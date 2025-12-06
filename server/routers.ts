@@ -139,6 +139,30 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Get videos sorted by smart tag score (admin only)
+    listBySmartScore: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.getVideosBySmartScore(input.limit);
+      }),
+
+    // Search videos by tags with smart sorting (admin only)
+    searchByTags: protectedProcedure
+      .input(z.object({
+        tagIds: z.array(z.number()),
+        matchAll: z.boolean().optional(),
+        limit: z.number().optional(),
+      }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.searchVideosByTags(input.tagIds, input.matchAll, input.limit);
+      }),
+
     // Update video notes
     updateNotes: protectedProcedure
       .input(z.object({
@@ -256,6 +280,7 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         name: z.string().min(1).max(100),
+        tagType: z.enum(['KEYWORD', 'PRODUCT_CODE']).optional(),
         description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
       }))
@@ -263,7 +288,9 @@ export const appRouter = router({
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        return await db.createTag(input);
+        // Auto-detect product code format if tagType not specified
+        const tagType = input.tagType || (db.isProductCode(input.name) ? 'PRODUCT_CODE' : 'KEYWORD');
+        return await db.createTag({ ...input, tagType });
       }),
 
     // Update tag (admin only)
@@ -271,6 +298,7 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         name: z.string().min(1).max(100).optional(),
+        tagType: z.enum(['KEYWORD', 'PRODUCT_CODE']).optional(),
         description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
       }))
@@ -292,6 +320,13 @@ export const appRouter = router({
         }
         await db.deleteTag(input.id);
         return { success: true };
+      }),
+
+    // Get tags by type (public)
+    getByType: publicProcedure
+      .input(z.object({ tagType: z.enum(['KEYWORD', 'PRODUCT_CODE']) }))
+      .query(async ({ input }) => {
+        return await db.getTagsByType(input.tagType);
       }),
   }),
 

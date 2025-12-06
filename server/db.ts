@@ -460,6 +460,7 @@ export async function getVideoTags(videoId: number): Promise<Tag[]> {
     .select({
       id: tags.id,
       name: tags.name,
+      tagType: tags.tagType,
       description: tags.description,
       color: tags.color,
       usageCount: tags.usageCount,
@@ -529,6 +530,7 @@ export async function getRelatedTags(tagId: number, limit: number = 10): Promise
     .select({
       id: tags.id,
       name: tags.name,
+      tagType: tags.tagType,
       description: tags.description,
       color: tags.color,
       usageCount: tags.usageCount,
@@ -542,7 +544,7 @@ export async function getRelatedTags(tagId: number, limit: number = 10): Promise
       sql`${videoTags.videoId} IN (${sql.join(videoIds.map(id => sql`${id}`), sql`, `)})`,
       sql`${tags.id} != ${tagId}`
     ))
-    .groupBy(tags.id, tags.name, tags.description, tags.color, tags.usageCount, tags.createdAt, tags.updatedAt)
+    .groupBy(tags.id, tags.name, tags.tagType, tags.description, tags.color, tags.usageCount, tags.createdAt, tags.updatedAt)
     .orderBy(desc(sql`COUNT(DISTINCT ${videoTags.videoId})`))
     .limit(limit);
   
@@ -573,4 +575,196 @@ export async function getTagStats() {
     totalRelationships: relationshipsCount,
     avgTagsPerVideo: Math.round(avgTagsPerVideo * 10) / 10,
   };
+}
+
+/**
+ * Check if a tag name matches product code format (3 letters + 6 digits + a/b/c)
+ * Example: QJD0020010A
+ */
+export function isProductCode(tagName: string): boolean {
+  return /^[A-Z]{3}\d{6}[a-cA-C]$/.test(tagName);
+}
+
+/**
+ * Get tags by type (KEYWORD or PRODUCT_CODE)
+ */
+export async function getTagsByType(tagType: 'KEYWORD' | 'PRODUCT_CODE'): Promise<Tag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db
+    .select()
+    .from(tags)
+    .where(eq(tags.tagType, tagType))
+    .orderBy(desc(tags.usageCount));
+}
+
+/**
+ * Calculate smart score for a video based on its tags
+ * Formula: Σ (tag.usageCount × tag.weight)
+ * - KEYWORD: weight = 1
+ * - PRODUCT_CODE: weight = 10000
+ */
+export async function calculateVideoScore(videoId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const videoTagsWithInfo = await db
+    .select({
+      tagType: tags.tagType,
+      usageCount: tags.usageCount,
+      weight: videoTags.weight,
+    })
+    .from(videoTags)
+    .innerJoin(tags, eq(videoTags.tagId, tags.id))
+    .where(eq(videoTags.videoId, videoId));
+  
+  let totalScore = 0;
+  for (const tag of videoTagsWithInfo) {
+    const typeWeight = tag.tagType === 'PRODUCT_CODE' ? 10000 : 1;
+    totalScore += tag.usageCount * typeWeight * tag.weight;
+  }
+  
+  return totalScore;
+}
+
+/**
+ * Get videos sorted by smart tag score
+ * Videos with PRODUCT_CODE tags will rank higher
+ */
+export async function getVideosBySmartScore(limit: number = 50): Promise<(Video & { smartScore: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all videos with their tag scores
+  const videosWithScores = await db
+    .select({
+      video: videos,
+      smartScore: sql<number>`
+        COALESCE(
+          SUM(
+            ${tags.usageCount} * 
+            CASE 
+              WHEN ${tags.tagType} = 'PRODUCT_CODE' THEN 10000 
+              ELSE 1 
+            END * 
+            ${videoTags.weight}
+          ), 
+          0
+        )
+      `,
+    })
+    .from(videos)
+    .leftJoin(videoTags, eq(videos.id, videoTags.videoId))
+    .leftJoin(tags, eq(videoTags.tagId, tags.id))
+    .groupBy(
+      videos.id,
+      videos.title,
+      videos.description,
+      videos.videoUrl,
+      videos.thumbnailUrl,
+      videos.platform,
+      videos.category,
+      videos.productId,
+      videos.shareStatus,
+      videos.viewCount,
+      videos.notes,
+      videos.createdAt,
+      videos.updatedAt,
+      videos.uploadedBy
+    )
+    .orderBy(desc(sql`
+      COALESCE(
+        SUM(
+          ${tags.usageCount} * 
+          CASE 
+            WHEN ${tags.tagType} = 'PRODUCT_CODE' THEN 10000 
+            ELSE 1 
+          END * 
+          ${videoTags.weight}
+        ), 
+        0
+      )
+    `))
+    .limit(limit);
+  
+  return videosWithScores.map(row => ({
+    ...row.video,
+    smartScore: Number(row.smartScore),
+  }));
+}
+
+/**
+ * Search videos by tags with smart sorting
+ * @param tagIds - Array of tag IDs to search for
+ * @param matchAll - If true, video must have ALL tags; if false, video must have ANY tag
+ */
+export async function searchVideosByTags(
+  tagIds: number[],
+  matchAll: boolean = false,
+  limit: number = 50
+): Promise<(Video & { smartScore: number; matchedTagCount: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (tagIds.length === 0) return [];
+  
+  const videosWithScores = await db
+    .select({
+      video: videos,
+      smartScore: sql<number>`
+        COALESCE(
+          SUM(
+            ${tags.usageCount} * 
+            CASE 
+              WHEN ${tags.tagType} = 'PRODUCT_CODE' THEN 10000 
+              ELSE 1 
+            END * 
+            ${videoTags.weight}
+          ), 
+          0
+        )
+      `,
+      matchedTagCount: sql<number>`COUNT(DISTINCT ${videoTags.tagId})`,
+    })
+    .from(videos)
+    .innerJoin(videoTags, eq(videos.id, videoTags.videoId))
+    .innerJoin(tags, eq(videoTags.tagId, tags.id))
+    .where(sql`${videoTags.tagId} IN (${sql.join(tagIds.map(id => sql`${id}`), sql`, `)})`)
+    .groupBy(
+      videos.id,
+      videos.title,
+      videos.description,
+      videos.videoUrl,
+      videos.thumbnailUrl,
+      videos.platform,
+      videos.category,
+      videos.productId,
+      videos.shareStatus,
+      videos.viewCount,
+      videos.notes,
+      videos.createdAt,
+      videos.updatedAt,
+      videos.uploadedBy
+    )
+    .having(matchAll ? sql`COUNT(DISTINCT ${videoTags.tagId}) = ${tagIds.length}` : sql`COUNT(DISTINCT ${videoTags.tagId}) > 0`)
+    .orderBy(desc(sql`
+      COALESCE(
+        SUM(
+          ${tags.usageCount} * 
+          CASE 
+            WHEN ${tags.tagType} = 'PRODUCT_CODE' THEN 10000 
+            ELSE 1 
+          END * 
+          ${videoTags.weight}
+        ), 
+        0
+      )
+    `))
+    .limit(limit);
+  
+  return videosWithScores.map(row => ({
+    ...row.video,
+    smartScore: Number(row.smartScore),
+    matchedTagCount: Number(row.matchedTagCount),
+  }));
 }

@@ -89,11 +89,17 @@ export type Video = typeof videos.$inferSelect;
 export type InsertVideo = typeof videos.$inferInsert;
 
 /**
+ * Tag type enum - distinguishes between keyword tags and product code tags
+ */
+export const tagTypeEnum = pgEnum("tag_type", ["KEYWORD", "PRODUCT_CODE"]);
+
+/**
  * Tags table - stores all tags for video classification and organization
  */
 export const tags = pgTable("tags", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   name: varchar("name", { length: 100 }).notNull().unique(),
+  tagType: tagTypeEnum("tagType").default("KEYWORD").notNull(), // Tag type for smart sorting
   description: text("description"),
   color: varchar("color", { length: 7 }), // Hex color code (e.g., #FF5733)
   usageCount: integer("usageCount").default(0).notNull(), // Redundant field for quick queries

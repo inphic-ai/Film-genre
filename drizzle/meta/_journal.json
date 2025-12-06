@@ -22,6 +22,13 @@
       "when": 1765039232688,
       "tag": "0002_optimal_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765042195556,
+      "tag": "0003_slippery_talon",
+      "breakpoints": true
     }
   ]
 }
