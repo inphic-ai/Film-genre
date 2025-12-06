@@ -78,7 +78,7 @@
 - [x] 執行所有測試確保通過
 
 ## Phase 9：建立 checkpoint 並部署到 Railway
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway 自動部署
 - [ ] 測試生產環境功能
