@@ -72,3 +72,11 @@
 - [x] 移除 useAuth hook 中的 OAuth 依賴
 - [x] 更新環境變數配置文件
 - [x] 測試登入與權限控制功能
+
+## Railway 部署修正
+- [x] 新增 railway.toml 配置檔案
+- [x] 指定建置指令（pnpm build）
+- [x] 指定啟動指令（pnpm start）
+- [x] 測試本地建置流程
+- [ ] 重新部署到 Railway
+- [ ] 驗證部署成功
