@@ -1,0 +1,51 @@
+# 影片知識庫與客戶分享系統 - 任務清單
+
+## 資料庫配置
+- [x] 配置 Drizzle ORM 使用 PostgreSQL adapter（node-postgres）
+- [x] 完全替換 MySQL 配置，移除 mysql2 依賴
+- [x] 建立影片資料表（videos）使用 PostgreSQL 資料類型
+- [x] 建立分類資料表（categories）
+- [x] 配置 Railway PostgreSQL 連接（DATABASE_URL）
+- [x] 建立 migration 腳本確保 schema 變更可追蹤
+
+## 後端 API（tRPC Procedures）
+- [x] 影片管理：新增影片
+- [x] 影片管理：編輯影片
+- [x] 影片管理：刪除影片
+- [x] 影片查詢：取得所有影片（內部用）
+- [x] 影片查詢：取得 YouTube 影片（客戶專區用）
+- [x] 影片查詢：依分類篩選
+- [x] 影片查詢：關鍵字搜尋
+- [x] 分類管理：取得所有分類
+- [x] 分類管理：新增/編輯分類
+- [x] AI 功能：自動生成縮圖
+- [x] AI 功能：建議分類標籤
+
+## 前端頁面
+- [x] 內部看板頁面（Board View）- 管理員專用
+- [x] 客戶自助專區頁面（Client Portal）- 公開頁面
+- [x] 影片管理頁面（新增/編輯表單）
+- [ ] 分類管理頁面
+- [x] 實作搜尋與篩選 UI
+- [x] 實作縮圖預覽與影片卡片組件
+- [x] 實作權限控制（管理員 vs 公開頁面）
+
+## AI 整合
+- [x] 整合 Image Generation API 自動生成縮圖
+- [x] 整合 LLM API 分析影片標題與描述建議分類
+
+## 測試
+- [x] 建立影片 CRUD 測試
+- [x] 建立分類管理測試
+- [x] 測試權限控制（管理員 vs 公開訪問）
+
+## 部署配置
+- [x] 配置 GitHub repository 連接（https://github.com/inphic-ai/Film-genre）
+- [x] 配置 Railway 自動部署流程
+- [x] 建立部署文件與說明變數說明
+
+## 視覺設計
+- [ ] 選擇清晰易用的設計風格
+- [ ] 設計內部看板的分類卡片佈局
+- [ ] 設計客戶專區的簡潔介面
+- [ ] 設計影片管理表單 UI
