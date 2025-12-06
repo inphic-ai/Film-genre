@@ -88,3 +88,9 @@
 - [ ] 驗證 Railway 自動部署觸發
 - [ ] 檢查部署狀態
 - [ ] 測試部署後的網站功能
+
+## 修正 Railway 部署錯誤
+- [ ] 修正 nixpacks.toml 中的 Node.js 版本名稱
+- [ ] 推送修正到 GitHub
+- [ ] 驗證 Railway 重新部署
+- [ ] 確認部署成功
