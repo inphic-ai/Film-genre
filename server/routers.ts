@@ -209,6 +209,137 @@ export const appRouter = router({
       }),
   }),
 
+  // Tags management
+  tags: router({
+    // Get all tags (public)
+    list: publicProcedure.query(async () => {
+      return await db.getAllTags();
+    }),
+
+    // Get tag by ID (public)
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getTagById(input.id);
+      }),
+
+    // Get popular tags (public)
+    getPopular: publicProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return await db.getPopularTags(input.limit);
+      }),
+
+    // Search tags (public)
+    search: publicProcedure
+      .input(z.object({ keyword: z.string() }))
+      .query(async ({ input }) => {
+        return await db.searchTags(input.keyword);
+      }),
+
+    // Get tag statistics (public)
+    getStats: publicProcedure.query(async () => {
+      return await db.getTagStats();
+    }),
+
+    // Get related tags (public)
+    getRelated: publicProcedure
+      .input(z.object({
+        tagId: z.number(),
+        limit: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getRelatedTags(input.tagId, input.limit);
+      }),
+
+    // Create tag (admin only)
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+        description: z.string().optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.createTag(input);
+      }),
+
+    // Update tag (admin only)
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100).optional(),
+        description: z.string().optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        const { id, ...data } = input;
+        await db.updateTag(id, data);
+        return { success: true };
+      }),
+
+    // Delete tag (admin only)
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        await db.deleteTag(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Video-Tags relationships
+  videoTags: router({
+    // Get tags for a video (public)
+    getVideoTags: publicProcedure
+      .input(z.object({ videoId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getVideoTags(input.videoId);
+      }),
+
+    // Get videos for a tag (public)
+    getTagVideos: publicProcedure
+      .input(z.object({ tagId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getTagVideos(input.tagId);
+      }),
+
+    // Add tag to video (admin only)
+    addTag: protectedProcedure
+      .input(z.object({
+        videoId: z.number(),
+        tagId: z.number(),
+        weight: z.number().min(1).max(10).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.addTagToVideo(input.videoId, input.tagId, input.weight);
+      }),
+
+    // Remove tag from video (admin only)
+    removeTag: protectedProcedure
+      .input(z.object({
+        videoId: z.number(),
+        tagId: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        await db.removeTagFromVideo(input.videoId, input.tagId);
+        return { success: true };
+      }),
+  }),
+
   // AI assistance
   ai: router({
     // Generate thumbnail for video

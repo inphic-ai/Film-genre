@@ -15,6 +15,13 @@
       "when": 1765036815658,
       "tag": "0001_absurd_vin_gonzales",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765039232688,
+      "tag": "0002_optimal_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

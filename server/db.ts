@@ -1,7 +1,7 @@
 import { eq, desc, and, or, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, Category, Video, InsertVideo, InsertCategory } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -296,4 +296,281 @@ export async function updateVideoNotes(id: number, notes: string): Promise<void>
   await db.update(videos)
     .set({ notes, updatedAt: new Date() })
     .where(eq(videos.id, id));
+}
+
+// ==================== Tags Management ====================
+
+/**
+ * Get all tags
+ */
+export async function getAllTags(): Promise<Tag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(tags).orderBy(desc(tags.usageCount));
+}
+
+/**
+ * Get tag by ID
+ */
+export async function getTagById(id: number): Promise<Tag | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
+  return result[0];
+}
+
+/**
+ * Get tag by name
+ */
+export async function getTagByName(name: string): Promise<Tag | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tags).where(eq(tags.name, name)).limit(1);
+  return result[0];
+}
+
+/**
+ * Create new tag
+ */
+export async function createTag(tag: InsertTag): Promise<Tag> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(tags).values(tag).returning();
+  return result[0]!;
+}
+
+/**
+ * Update tag
+ */
+export async function updateTag(id: number, tag: Partial<InsertTag>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(tags)
+    .set({ ...tag, updatedAt: new Date() })
+    .where(eq(tags.id, id));
+}
+
+/**
+ * Delete tag
+ */
+export async function deleteTag(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(tags).where(eq(tags.id, id));
+}
+
+/**
+ * Get popular tags (by usage count)
+ */
+export async function getPopularTags(limit: number = 20): Promise<Tag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(tags)
+    .orderBy(desc(tags.usageCount))
+    .limit(limit);
+}
+
+/**
+ * Search tags by name
+ */
+export async function searchTags(keyword: string): Promise<Tag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const searchPattern = `%${keyword}%`;
+  return db.select().from(tags)
+    .where(like(tags.name, searchPattern))
+    .orderBy(desc(tags.usageCount));
+}
+
+// ==================== Video-Tags Relationships ====================
+
+/**
+ * Add tag to video
+ */
+export async function addTagToVideo(videoId: number, tagId: number, weight: number = 1): Promise<VideoTag> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if relationship already exists
+  const existing = await db.select().from(videoTags)
+    .where(and(
+      eq(videoTags.videoId, videoId),
+      eq(videoTags.tagId, tagId)
+    ))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Update weight if already exists
+    const updated = await db.update(videoTags)
+      .set({ weight })
+      .where(eq(videoTags.id, existing[0].id))
+      .returning();
+    return updated[0];
+  }
+  
+  // Create new relationship
+  const result = await db.insert(videoTags)
+    .values({ videoId, tagId, weight })
+    .returning();
+  
+  // Increment tag usage count
+  const tag = await getTagById(tagId);
+  if (tag) {
+    await db.update(tags)
+      .set({ usageCount: tag.usageCount + 1 })
+      .where(eq(tags.id, tagId));
+  }
+  
+  return result[0]!;
+}
+
+/**
+ * Remove tag from video
+ */
+export async function removeTagFromVideo(videoId: number, tagId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.delete(videoTags)
+    .where(and(
+      eq(videoTags.videoId, videoId),
+      eq(videoTags.tagId, tagId)
+    ));
+  
+  // Decrement tag usage count
+  const tag = await getTagById(tagId);
+  if (tag && tag.usageCount > 0) {
+    await db.update(tags)
+      .set({ usageCount: tag.usageCount - 1 })
+      .where(eq(tags.id, tagId));
+  }
+}
+
+/**
+ * Get all tags for a video
+ */
+export async function getVideoTags(videoId: number): Promise<Tag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      description: tags.description,
+      color: tags.color,
+      usageCount: tags.usageCount,
+      createdAt: tags.createdAt,
+      updatedAt: tags.updatedAt,
+    })
+    .from(videoTags)
+    .innerJoin(tags, eq(videoTags.tagId, tags.id))
+    .where(eq(videoTags.videoId, videoId))
+    .orderBy(desc(videoTags.weight));
+  
+  return result;
+}
+
+/**
+ * Get all videos for a tag (with weight)
+ */
+export async function getTagVideos(tagId: number): Promise<(Video & { weight: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: videos.id,
+      title: videos.title,
+      description: videos.description,
+      platform: videos.platform,
+      videoUrl: videos.videoUrl,
+      thumbnailUrl: videos.thumbnailUrl,
+      category: videos.category,
+      productId: videos.productId,
+      shareStatus: videos.shareStatus,
+      viewCount: videos.viewCount,
+      notes: videos.notes,
+      createdAt: videos.createdAt,
+      updatedAt: videos.updatedAt,
+      uploadedBy: videos.uploadedBy,
+      weight: videoTags.weight,
+    })
+    .from(videoTags)
+    .innerJoin(videos, eq(videoTags.videoId, videos.id))
+    .where(eq(videoTags.tagId, tagId))
+    .orderBy(desc(videoTags.weight), desc(videos.createdAt));
+  
+  return result;
+}
+
+/**
+ * Get related tags (tags that appear together with the given tag)
+ */
+export async function getRelatedTags(tagId: number, limit: number = 10): Promise<(Tag & { coOccurrence: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all videos with this tag
+  const videosWithTag = await db
+    .select({ videoId: videoTags.videoId })
+    .from(videoTags)
+    .where(eq(videoTags.tagId, tagId));
+  
+  if (videosWithTag.length === 0) return [];
+  
+  const videoIds = videosWithTag.map(v => v.videoId);
+  
+  // Find other tags that appear in these videos
+  const relatedTagsResult = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      description: tags.description,
+      color: tags.color,
+      usageCount: tags.usageCount,
+      createdAt: tags.createdAt,
+      updatedAt: tags.updatedAt,
+      coOccurrence: sql<number>`COUNT(DISTINCT ${videoTags.videoId})`,
+    })
+    .from(videoTags)
+    .innerJoin(tags, eq(videoTags.tagId, tags.id))
+    .where(and(
+      sql`${videoTags.videoId} IN (${sql.join(videoIds.map(id => sql`${id}`), sql`, `)})`,
+      sql`${tags.id} != ${tagId}`
+    ))
+    .groupBy(tags.id, tags.name, tags.description, tags.color, tags.usageCount, tags.createdAt, tags.updatedAt)
+    .orderBy(desc(sql`COUNT(DISTINCT ${videoTags.videoId})`))
+    .limit(limit);
+  
+  return relatedTagsResult;
+}
+
+/**
+ * Get tag statistics
+ */
+export async function getTagStats() {
+  const db = await getDb();
+  if (!db) return { totalTags: 0, totalRelationships: 0, avgTagsPerVideo: 0 };
+  
+  const totalTags = await db.select({ count: sql<number>`COUNT(*)::int` }).from(tags);
+  const totalRelationships = await db.select({ count: sql<number>`COUNT(*)::int` }).from(videoTags);
+  const totalVideos = await db.select({ count: sql<number>`COUNT(*)::int` }).from(videos);
+  
+  const tagsCount = Number(totalTags[0].count);
+  const relationshipsCount = Number(totalRelationships[0].count);
+  const videosCount = Number(totalVideos[0].count);
+  
+  const avgTagsPerVideo = videosCount > 0 
+    ? relationshipsCount / videosCount 
+    : 0;
+  
+  return {
+    totalTags: tagsCount,
+    totalRelationships: relationshipsCount,
+    avgTagsPerVideo: Math.round(avgTagsPerVideo * 10) / 10,
+  };
 }

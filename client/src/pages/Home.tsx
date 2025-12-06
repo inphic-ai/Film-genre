@@ -15,6 +15,10 @@ export default function Home() {
             <h1 className="text-xl font-bold">影片知識庫系統</h1>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setLocation("/dashboard")}>
+              <Film className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
             <Button variant="outline" onClick={() => setLocation("/portal")}>
               <Users className="w-4 h-4 mr-2" />
               客戶專區

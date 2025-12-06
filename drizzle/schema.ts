@@ -87,3 +87,33 @@ export const videos = pgTable("videos", {
 
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = typeof videos.$inferInsert;
+
+/**
+ * Tags table - stores all tags for video classification and organization
+ */
+export const tags = pgTable("tags", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }), // Hex color code (e.g., #FF5733)
+  usageCount: integer("usageCount").default(0).notNull(), // Redundant field for quick queries
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = typeof tags.$inferInsert;
+
+/**
+ * Video-Tags junction table - many-to-many relationship between videos and tags
+ */
+export const videoTags = pgTable("video_tags", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  tagId: integer("tagId").notNull().references(() => tags.id, { onDelete: "cascade" }),
+  weight: integer("weight").default(1).notNull(), // Relationship weight (1-10) for sorting relevance
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type VideoTag = typeof videoTags.$inferSelect;
+export type InsertVideoTag = typeof videoTags.$inferInsert;

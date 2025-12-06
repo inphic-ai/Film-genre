@@ -1,10 +1,10 @@
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Youtube, Share2, Eye, Package } from "lucide-react";
+import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +20,7 @@ export default function VideoDetail() {
   const videoId = parseInt(params.id || "0");
 
   const { data: video, isLoading, error } = trpc.videos.getById.useQuery({ id: videoId });
+  const { data: videoTags, isLoading: tagsLoading } = trpc.videoTags.getVideoTags.useQuery({ videoId });
   const incrementViewMutation = trpc.videos.incrementViewCount.useMutation();
   const updateNotesMutation = trpc.videos.updateNotes.useMutation();
 
@@ -230,6 +231,31 @@ export default function VideoDetail() {
                   <span>{video.viewCount} 次觀看</span>
                 </div>
               </div>
+
+              {/* Tags */}
+              {videoTags && videoTags.length > 0 && (
+                <div className="pt-4 border-t">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <TagIcon className="w-4 h-4" />
+                    標籤
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {videoTags.map((tag) => (
+                      <Link key={tag.id} href={`/tag/${tag.id}`}>
+                        <button
+                          className="px-3 py-1 rounded-full text-sm hover:opacity-80 transition-opacity"
+                          style={{
+                            backgroundColor: tag.color || '#3B82F6',
+                            color: 'white',
+                          }}
+                        >
+                          {tag.name}
+                        </button>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Share Button */}
               <div className="pt-4 border-t">

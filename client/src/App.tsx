@@ -10,6 +10,9 @@ import Board from "./pages/Board";
 import Portal from "./pages/Portal";
 import Manage from "./pages/Manage";
 import VideoDetail from "./pages/VideoDetail";
+import Dashboard from "./pages/Dashboard";
+import TagDetailPage from "./pages/TagDetailPage";
+import TagRankingPage from "./pages/TagRankingPage";
 
 function Router() {
   return (
@@ -21,6 +24,9 @@ function Router() {
       <Route path={"/manage"} component={Manage} />
       <Route path={"/manage/:id"} component={Manage} />
       <Route path={"/video/:id"} component={VideoDetail} />
+      <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/tag/:id"} component={TagDetailPage} />
+      <Route path={"/tags/ranking"} component={TagRankingPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
