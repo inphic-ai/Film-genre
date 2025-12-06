@@ -44,6 +44,6 @@
 - [x] 測試所有新功能
 - [x] 測試向後相容性
 - [x] 建立 vitest 測試
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway 部署成功
