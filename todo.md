@@ -80,3 +80,11 @@
 - [x] 測試本地建置流程
 - [ ] 重新部署到 Railway
 - [ ] 驗證部署成功
+
+## GitHub 推送與 Railway 自動部署
+- [ ] 初始化 Git repository
+- [ ] 設定 GitHub remote
+- [ ] 推送程式碼到 GitHub
+- [ ] 驗證 Railway 自動部署觸發
+- [ ] 檢查部署狀態
+- [ ] 測試部署後的網站功能
