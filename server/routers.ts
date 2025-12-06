@@ -124,14 +124,33 @@ export const appRouter = router({
         return await db.searchVideos(input.keyword, input.platform);
       }),
 
-    // Get video by ID
-    getById: protectedProcedure
+    // Get video by ID (allow public access for client portal)
+    getById: publicProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input, ctx }) => {
+      .query(async ({ input }) => {
+        return await db.getVideoById(input.id);
+      }),
+
+    // Increment view count
+    incrementViewCount: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.incrementViewCount(input.id);
+        return { success: true };
+      }),
+
+    // Update video notes
+    updateNotes: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        notes: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        return await db.getVideoById(input.id);
+        await db.updateVideoNotes(input.id, input.notes);
+        return { success: true };
       }),
 
     // Create video (admin only)
@@ -143,6 +162,8 @@ export const appRouter = router({
         videoUrl: z.string().url(),
         thumbnailUrl: z.string().url().optional(),
         category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+        productId: z.string().optional(),
+        shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {
@@ -164,6 +185,8 @@ export const appRouter = router({
         videoUrl: z.string().url().optional(),
         thumbnailUrl: z.string().url().optional(),
         category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
+        productId: z.string().optional(),
+        shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {

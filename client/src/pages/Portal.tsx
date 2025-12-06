@@ -11,6 +11,7 @@ export default function Portal() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
+  // Use getPublicYouTubeVideos to only show public videos
   const { data: youtubeVideos, isLoading: videosLoading } = trpc.videos.listYouTube.useQuery();
 
   const filteredVideos = youtubeVideos?.filter(video => {
@@ -129,15 +130,15 @@ export default function Portal() {
                   )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {videosByCategory?.[category.key]?.map(video => (
-                    <VideoCard
-                      key={video.id}
-                      video={video}
+                  {videosByCategory?.[category.key]?.map((video) => (
+                    <VideoCard 
+                      key={video.id} 
+                      video={video} 
                       showActions={false}
                     />
                   ))}
                 </div>
-                {videosByCategory?.[category.key]?.length === 0 && (
+                {(videosByCategory?.[category.key]?.length === 0) && (
                   <div className="text-center py-16">
                     <div className="text-6xl mb-4">📹</div>
                     <p className="text-lg text-muted-foreground">

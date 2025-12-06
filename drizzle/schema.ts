@@ -34,6 +34,11 @@ export type InsertUser = typeof users.$inferInsert;
 export const platformEnum = pgEnum("platform", ["youtube", "tiktok", "redbook"]);
 
 /**
+ * Share status enum - controls video visibility in client portal
+ */
+export const shareStatusEnum = pgEnum("share_status", ["private", "public"]);
+
+/**
  * Video category enum - 5 main categories for organizing videos
  */
 export const categoryEnum = pgEnum("category", [
@@ -70,6 +75,11 @@ export const videos = pgTable("videos", {
   videoUrl: text("videoUrl").notNull(),
   thumbnailUrl: text("thumbnailUrl"),
   category: categoryEnum("category").notNull(),
+  // New fields for enhanced functionality
+  productId: varchar("productId", { length: 100 }),
+  shareStatus: shareStatusEnum("shareStatus").default("private").notNull(),
+  viewCount: integer("viewCount").default(0).notNull(),
+  notes: text("notes"), // JSON string for timeline notes
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   uploadedBy: integer("uploadedBy").references(() => users.id),

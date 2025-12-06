@@ -164,6 +164,20 @@ export async function getYouTubeVideos(): Promise<Video[]> {
 }
 
 /**
+ * Get public YouTube videos (for client portal with share filter)
+ */
+export async function getPublicYouTubeVideos(): Promise<Video[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(videos)
+    .where(and(
+      eq(videos.platform, 'youtube' as any),
+      eq(videos.shareStatus, 'public' as any)
+    ))
+    .orderBy(desc(videos.createdAt));
+}
+
+/**
  * Get videos by category
  */
 export async function getVideosByCategory(category: string): Promise<Video[]> {
@@ -255,4 +269,31 @@ export async function deleteVideo(id: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.delete(videos).where(eq(videos.id, id));
+}
+
+/**
+ * Increment view count
+ */
+export async function incrementViewCount(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const video = await getVideoById(id);
+  if (!video) return;
+  
+  await db.update(videos)
+    .set({ viewCount: video.viewCount + 1 })
+    .where(eq(videos.id, id));
+}
+
+/**
+ * Update video notes (timeline notes in JSON format)
+ */
+export async function updateVideoNotes(id: number, notes: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(videos)
+    .set({ notes, updatedAt: new Date() })
+    .where(eq(videos.id, id));
 }

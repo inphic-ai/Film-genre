@@ -20,6 +20,8 @@ export default function Manage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [category, setCategory] = useState<string>("");
+  const [productId, setProductId] = useState("");
+  const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
 
   const { data: categories } = trpc.categories.list.useQuery();
   const { data: existingVideo } = trpc.videos.getById.useQuery(
@@ -83,6 +85,8 @@ export default function Manage() {
       setVideoUrl(existingVideo.videoUrl);
       setThumbnailUrl(existingVideo.thumbnailUrl || "");
       setCategory(existingVideo.category);
+      setProductId(existingVideo.productId || "");
+      setShareStatus(existingVideo.shareStatus || "private");
     }
   }, [existingVideo]);
 
@@ -101,6 +105,8 @@ export default function Manage() {
       videoUrl,
       thumbnailUrl: thumbnailUrl || undefined,
       category: category as "product_intro" | "maintenance" | "case_study" | "faq" | "other",
+      productId: productId || undefined,
+      shareStatus,
     };
 
     if (videoId) {
@@ -240,6 +246,37 @@ export default function Manage() {
                   placeholder="https://..."
                   required
                 />
+              </div>
+
+              {/* Product ID */}
+              <div className="space-y-2">
+                <Label htmlFor="productId">商品編號</Label>
+                <Input
+                  id="productId"
+                  type="text"
+                  value={productId}
+                  onChange={(e) => setProductId(e.target.value)}
+                  placeholder="例：P-12345 (選填)"
+                />
+              </div>
+
+              {/* Share Status */}
+              <div className="space-y-2">
+                <Label htmlFor="shareStatus">分享狀態</Label>
+                <Select value={shareStatus} onValueChange={(value) => setShareStatus(value as "private" | "public")}>
+                  <SelectTrigger id="shareStatus">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="private">私人（僅內部看板）</SelectItem>
+                    <SelectItem value="public">公開（客戶專區可見）</SelectItem>
+                  </SelectContent>
+                </Select>
+                {platform !== "youtube" && shareStatus === "public" && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ 注意：僅 YouTube 影片可在客戶專區分享
+                  </p>
+                )}
               </div>
 
               {/* Thumbnail URL */}

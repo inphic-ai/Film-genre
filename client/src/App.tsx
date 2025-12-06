@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Board from "./pages/Board";
 import Portal from "./pages/Portal";
 import Manage from "./pages/Manage";
+import VideoDetail from "./pages/VideoDetail";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/portal"} component={Portal} />
       <Route path={"/manage"} component={Manage} />
       <Route path={"/manage/:id"} component={Manage} />
+      <Route path={"/video/:id"} component={VideoDetail} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
