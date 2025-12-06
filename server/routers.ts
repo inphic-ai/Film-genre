@@ -3,6 +3,9 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { sdk } from "./_core/sdk";
+import { ENV } from "./_core/env";
+import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as ai from "./ai";
 
@@ -10,6 +13,45 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    login: publicProcedure
+      .input(z.object({
+        password: z.string().min(1, "Password is required"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Verify password
+        if (!ENV.adminPassword) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Admin password not configured",
+          });
+        }
+
+        if (input.password !== ENV.adminPassword) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid password",
+          });
+        }
+
+        // Create session
+        const sessionToken = await sdk.createSessionToken(ENV.adminEmail, {
+          name: "Admin",
+          role: "admin",
+        });
+
+        // Set cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+
+        return {
+          success: true,
+          user: {
+            email: ENV.adminEmail,
+            name: "Admin",
+            role: "admin",
+          },
+        };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

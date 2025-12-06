@@ -49,3 +49,26 @@
 - [ ] 設計內部看板的分類卡片佈局
 - [ ] 設計客戶專區的簡潔介面
 - [ ] 設計影片管理表單 UI
+
+
+## Railway 部署配置與驗證
+- [ ] 檢查 Railway 部署狀態與日誌
+- [ ] 驗證環境變數配置完整性
+- [ ] 配置缺少的環境變數（DATABASE_URL, JWT_SECRET 等）
+- [ ] 執行資料庫 migration（pnpm db:push）
+- [ ] 初始化分類資料
+- [ ] 設定 GitHub Repository 連接
+- [ ] 配置自動部署觸發器
+- [ ] 測試自動部署流程
+- [ ] 驗證生產環境網站功能
+- [ ] 建立部署檢查清單文件
+
+## 移除 Manus OAuth 依賴
+- [x] 移除 OAuth 相關的環境變數依賴
+- [x] 移除 server/_core/oauth.ts 等 OAuth 相關檔案
+- [x] 實作簡單的密碼登入機制（環境變數配置管理員密碼）
+- [x] 更新 auth router 使用密碼登入
+- [x] 更新前端登入介面
+- [x] 移除 useAuth hook 中的 OAuth 依賴
+- [x] 更新環境變數配置文件
+- [x] 測試登入與權限控制功能

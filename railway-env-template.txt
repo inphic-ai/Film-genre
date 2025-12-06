@@ -1,0 +1,39 @@
+# Railway 環境變數範本
+# 複製以下內容到 Railway Variables 的 Raw Editor
+
+# ===== 必要變數（最小可運行配置）=====
+
+# 資料庫連接
+DATABASE_URL=postgresql://postgres:mLxtqaoiccugtZOVQuduvPRZgpjUEnpj@crossover.proxy.rlwy.net:34189/railway
+
+# JWT 密鑰（請替換為您自己生成的密鑰）
+JWT_SECRET=7a5754874d9a0dc47a1cb00e3b8a22ef912a3e8bd2e3dc6f253e439def7adf09
+
+# Manus OAuth 配置（暫時值，登入功能將無法使用）
+OAUTH_SERVER_URL=https://api.manus.im
+VITE_OAUTH_PORTAL_URL=https://auth.manus.im
+VITE_APP_ID=temp-app-id
+OWNER_OPEN_ID=temp-owner-id
+OWNER_NAME=Admin
+
+# 應用程式元資料
+VITE_APP_TITLE=影片知識庫系統
+
+# ===== 可選變數（AI 功能需要）=====
+
+# 如果需要 AI 自動生成縮圖和智能分類建議，請取消註解並填入實際值
+# BUILT_IN_FORGE_API_URL=https://forge.manus.im
+# BUILT_IN_FORGE_API_KEY=your-forge-api-key
+# VITE_FRONTEND_FORGE_API_URL=https://forge.manus.im
+# VITE_FRONTEND_FORGE_API_KEY=your-frontend-forge-api-key
+
+# ===== 可選變數（Analytics）=====
+
+# 如果需要分析功能，請取消註解並填入實際值
+# VITE_ANALYTICS_ENDPOINT=https://analytics.example.com
+# VITE_ANALYTICS_WEBSITE_ID=your-website-id
+
+# ===== 可選變數（自訂 Logo）=====
+
+# 如果需要自訂 Logo，請取消註解並填入 Logo URL
+# VITE_APP_LOGO=https://your-logo-url.com/logo.png
