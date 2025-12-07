@@ -805,3 +805,83 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+
+## Phase 27：效能優化（資料庫索引、API 速率限制、效能監控）
+- [x] 資料庫效能優化（新增索引）
+  - [x] 建立 Drizzle 遷移檔案（drizzle/0012_performance_indexes.sql）
+  - [x] 新增 videos 表索引（7 個）
+  - [x] 新增 timeline_notes 表索引（3 個）
+  - [x] 新增 video_tags 表索引（2 個）
+  - [x] 新增 tags 表索引（2 個）
+  - [x] 新增 products 表索引（2 個）
+  - [x] 執行索引 SQL 推送到本地測試環境
+  - [x] 驗證索引正確建立（16 個索引全部成功）
+  - [ ] 測試查詢效能改善（使用 EXPLAIN ANALYZE）
+  - [ ] 部署到 Railway 生產環境
+  - [ ] 驗證生產環境效能改善
+- [ ] API 速率限制實作
+  - [ ] 安裝 express-rate-limit 套件
+  - [ ] 設定 Redis 儲存（Railway Redis）
+  - [ ] 實作全域速率限制（60 次/分鐘）
+  - [ ] 實作認證使用者限制（120 次/分鐘）
+  - [ ] 實作 Admin 限制（300 次/分鐘）
+  - [ ] 實作特殊端點限制（AI 搜尋、批次匯入、圖片上傳）
+  - [ ] 前端錯誤處理（顯示友善錯誤訊息）
+  - [ ] 後端日誌記錄（audit logs）
+  - [ ] 測試速率限制功能
+- [ ] 效能監控儀表板開發
+  - [ ] 後端 API：performance.getSystemMetrics（系統效能指標）
+  - [ ] 後端 API：performance.getApiMetrics（API 效能監控）
+  - [ ] 後端 API：performance.getDatabaseMetrics（資料庫效能）
+  - [ ] 後端 API：performance.getFrontendMetrics（前端效能）
+  - [ ] 前端：整合到數據視覺化頁面（新增「效能監控」Tab）
+  - [ ] 前端：系統效能指標卡片（CPU、記憶體、資料庫連線、磁碟使用）
+  - [ ] 前端：API 效能監控圖表（回應時間趨勢、錯誤率、速率限制統計）
+  - [ ] 前端：資料庫效能圖表（查詢時間趨勢、慢查詢列表）
+  - [ ] 前端：前端效能指標（FCP、LCP、FID、CLS）
+  - [ ] 測試效能監控儀表板
+- [ ] 大列表虛擬滾動實作（可選，目前影片數量 < 100）
+  - [ ] 安裝 react-window 套件
+  - [ ] 實作影片看板虛擬滾動（Board.tsx）
+  - [ ] 實作標籤管理虛擬滾動（TagsManagement.tsx）
+  - [ ] 實作審核中心虛擬滾動（ReviewCenter.tsx）
+  - [ ] 測試虛擬滾動效能（FPS > 50）
+- [ ] 效能測試與驗證
+  - [ ] 測試資料庫查詢效能（P95 < 100ms）
+  - [ ] 測試 API 回應時間（P95 < 200ms）
+  - [ ] 測試前端列表滾動（FPS > 50）
+  - [ ] 測試速率限制功能
+  - [ ] 測試效能監控儀表板資料準確性
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 28：修復 Railway 生產環境 Select.Item 空值錯誤（緊急）
+- [ ] 診斷 Select.Item 空值錯誤
+  - [ ] 搜尋所有使用 Select.Item 的組件
+  - [ ] 找出空值的 Select.Item
+  - [ ] 分析錯誤原因
+- [ ] 修復 Select.Item 空值錯誤
+  - [ ] 移除或修正空值的 Select.Item
+  - [ ] 確保所有 Select.Item 都有非空 value prop
+  - [ ] 測試本地開發環境
+- [ ] 部署到 Railway 生產環境
+  - [ ] 建立 checkpoint
+  - [ ] 推送到 GitHub
+  - [ ] 驗證生產環境修復成功
+
+## Phase 28：修復 Railway 生產環境 Select.Item 空值錯誤（緊急）
+- [x] 診斷系統管理頁面 Select.Item 空值錯誤
+  - [x] 檢查 AdminSettings.tsx 的 Select 組件
+  - [x] 找出空值的 Select.Item（第 332, 346 行）
+  - [x] 分析錯誤原因（Radix UI 不允許 value=""）
+- [x] 修復 Select.Item 空值錯誤
+  - [x] 將 value="" 改為 value="all"
+  - [x] 修改篩選邏輯（處理 "all" 值）
+  - [x] 修改預設值為 "all"
+  - [ ] 測試本地開發環境
+- [ ] 部署到 Railway 生產環境
+  - [ ] 建立 checkpoint
+  - [ ] 推送到 GitHub
+  - [ ] 驗證生產環境修復成功

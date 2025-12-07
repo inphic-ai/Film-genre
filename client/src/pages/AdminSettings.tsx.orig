@@ -56,8 +56,8 @@ export default function AdminSettings() {
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
 
   // Audit logs state
-  const [actionFilter, setActionFilter] = useState<string>("all");
-  const [resourceTypeFilter, setResourceTypeFilter] = useState<string>("all");
+  const [actionFilter, setActionFilter] = useState<string>("");
+  const [resourceTypeFilter, setResourceTypeFilter] = useState<string>("");
 
   // Fetch users
   const { data: usersData, refetch: refetchUsers } = trpc.adminSettings.listUsers.useQuery(
@@ -70,8 +70,8 @@ export default function AdminSettings() {
     {
       limit: 50,
       offset: 0,
-      action: actionFilter === "all" ? undefined : actionFilter || undefined,
-      resourceType: resourceTypeFilter === "all" ? undefined : resourceTypeFilter || undefined,
+      action: actionFilter || undefined,
+      resourceType: resourceTypeFilter || undefined,
     },
     { enabled: user?.role === "admin" }
   );
