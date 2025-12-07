@@ -150,6 +150,6 @@
 - [x] 更新 ReviewCenter.tsx 使用 DashboardLayout
 - [x] 更新 Manage.tsx 使用 DashboardLayout
 - [x] 測試本地開發環境（見 docs/local-test-results.md）
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 8d7cf26f)
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
