@@ -255,3 +255,24 @@
   - [x] P1：通知系統、商品知識中樞進階功能、全文搜尋優化
   - [x] P2：影片批次操作、影片分析統計、影片評論系統
   - [x] P3：影片下載功能、影片轉碼與壓縮、多語言支援、暗黑模式
+- [x] 建立 checkpoint (version: d9cb1523)
+- [x] 推送到 GitHub（自動推送）
+- [x] 驗證 Railway Production 部署（Phase 18，見 docs/railway-production-verification-phase18.md）
+
+## Phase 19：遷移儲存系統到 Cloudflare R2
+- [x] 安裝 @aws-sdk/client-s3 依賴
+- [x] 設定 R2 環境變數（Railway）
+  - [x] R2_ACCESS_KEY_ID
+  - [x] R2_SECRET_ACCESS_KEY
+  - [x] R2_BUCKET_NAME
+  - [x] R2_ENDPOINT
+- [x] 重寫 server/storage.ts 使用 R2 API
+- [x] 測試 R2 整合（4 個測試全部通過）
+  - [x] 文件上傳功能
+  - [x] Signed URL 生成功能
+  - [x] Buffer 上傳功能
+  - [x] Key 正規化功能
+- [ ] 測試影片縮圖上傳功能（實際 API）
+- [ ] 測試 AI 圖片生成功能（實際 API）
+- [ ] 部署到 Railway 並驗證生產環境
+- [ ] 更新文件（README、開發規範）
