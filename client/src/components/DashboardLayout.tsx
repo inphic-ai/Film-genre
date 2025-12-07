@@ -32,7 +32,8 @@ import {
   Film,
   Plus,
   Search,
-  Tag as TagIcon
+  Tag as TagIcon,
+  Bell
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -40,12 +41,14 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
+import { NotificationBell } from "./NotificationBell";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "數據視覺化", path: "/dashboard", roles: ["admin", "staff", "viewer"] },
   { icon: Film, label: "影片看板", path: "/board", roles: ["admin", "staff", "viewer"] },
   { icon: Package, label: "商品知識中樞", path: "/products", roles: ["admin", "staff", "viewer"] },
   { icon: FileText, label: "我的貢獻", path: "/my-contributions", roles: ["admin", "staff"] },
+  { icon: Bell, label: "通知中心", path: "/notifications", roles: ["admin", "staff", "viewer"] },
   { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
   { icon: CheckSquare, label: "審核中心", path: "/admin/review", roles: ["admin"] },
@@ -347,6 +350,9 @@ function DashboardLayoutContent({
                 className="pl-10 pr-4 h-9 w-64 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 rounded-xl"
               />
             </form>
+
+            {/* 通知圖示 */}
+            <NotificationBell />
 
             {/* 新增影片按鈕 */}
             {(user?.role === "admin" || user?.role === "staff") && (

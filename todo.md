@@ -212,13 +212,28 @@
   - [x] 後端 API：fullTextSearch.search（PostgreSQL tsvector 搜尋）
   - [x] 後端 API：fullTextSearch.suggest（搜尋建議）
   - [x] 前端：整合全文搜尋到全域搜尋框（DashboardLayout + Board.tsx）
-- [ ] 通知系統
-  - [ ] 資料庫 Schema 變更申請（notifications 表）
-  - [ ] 後端 API：notifications.list（取得我的通知）
-  - [ ] 後端 API：notifications.markAsRead（標記為已讀）
-  - [ ] 後端 API：notifications.markAllAsRead（全部標記為已讀）
-  - [ ] 前端：通知中心頁面（/notifications）
-  - [ ] 前端：頂部導航列通知圖示（未讀數量）
+- [ ] 通知系統（Phase 17.1 - P2 階段）
+  - [ ] 資料庫 Schema 變更申請（notifications 表）- 已核准
+  - [ ] 建立 drizzle/schema.ts 的 notifications 表定義
+  - [ ] 執行 pnpm db:push 推送到 Railway PostgreSQL
+  - [ ] 驗證資料表正確建立
+  - [x] 後端 API：notifications.list（取得我的通知）
+  - [x] 後端 API：notifications.markAsRead（標記為已讀）
+  - [x] 後端 API：notifications.markAllAsRead（全部標記為已讀）
+  - [x] 後端 API：notifications.getUnreadCount（取得未讀數量）
+  - [x] 後端 API：notifications.create（建立通知，內部使用）
+  - [x] 後端 API：notifications.delete（刪除通知）
+  - [x] 整合到主 appRouter
+  - [x] 前端：通知中心頁面（/notifications）
+  - [x] 前端：頂部導航列通知圖示（未讀數量）
+  - [x] 前端：NotificationBell 組件
+  - [x] 前端：新增通知中心到側邊欄選單
+  - [x] 整合審核系統：筆記核准/拒絕時自動通知使用者
+  - [x] 建立 vitest 測試（5 個測試全部通過）
+  - [x] 測試本地開發環境（TypeScript 0 errors）
+  - [ ] 建立 checkpoint
+  - [ ] 推送到 GitHub
+  - [ ] 驗證 Railway Production 部署
 - [ ] 商品知識中樞進階功能
   - [ ] 後端 API：products.uploadThumbnail（商品縮圖上傳到 R2）
   - [ ] 後端 API：products.importBatch（批次匯入 SKU 資料，CSV/Excel）

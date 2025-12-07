@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
@@ -317,3 +317,5 @@ export const knowledgeNodes = pgTable("knowledge_nodes", {
 
 export type KnowledgeNode = typeof knowledgeNodes.$inferSelect;
 export type InsertKnowledgeNode = typeof knowledgeNodes.$inferInsert;
+
+

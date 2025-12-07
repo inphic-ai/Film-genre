@@ -1,7 +1,7 @@
 import { eq, desc, asc, and, or, like, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -951,14 +951,52 @@ export async function getTimelineNotesByUserId(userId: number, limit: number = 5
  * Approve timeline note (Admin only)
  */
 export async function approveTimelineNote(id: number) {
-  return updateTimelineNote(id, { status: "APPROVED" });
+  const note = await getTimelineNoteById(id);
+  if (!note) throw new Error("Note not found");
+  
+  const result = await updateTimelineNote(id, { status: "APPROVED" });
+  
+  // Send notification to the note author
+  try {
+    await createNotification({
+      userId: note.userId,
+      type: "REVIEW_APPROVED",
+      title: "您的時間軸筆記已通過審核",
+      content: `您在影片「${note.videoId}」的時間軸筆記已通過審核並發布。`,
+      relatedResourceType: "TIMELINE_NOTE",
+      relatedResourceId: id,
+    });
+  } catch (error) {
+    console.error("[Notification] Failed to create approval notification:", error);
+  }
+  
+  return result;
 }
 
 /**
  * Reject timeline note (Admin only)
  */
 export async function rejectTimelineNote(id: number, reason: string) {
-  return updateTimelineNote(id, { status: "REJECTED", rejectReason: reason });
+  const note = await getTimelineNoteById(id);
+  if (!note) throw new Error("Note not found");
+  
+  const result = await updateTimelineNote(id, { status: "REJECTED", rejectReason: reason });
+  
+  // Send notification to the note author
+  try {
+    await createNotification({
+      userId: note.userId,
+      type: "REVIEW_REJECTED",
+      title: "您的時間軸筆記未通過審核",
+      content: `您在影片「${note.videoId}」的時間軸筆記未通過審核。原因：${reason}`,
+      relatedResourceType: "TIMELINE_NOTE",
+      relatedResourceId: id,
+    });
+  } catch (error) {
+    console.error("[Notification] Failed to create rejection notification:", error);
+  }
+  
+  return result;
 }
 
 // List timeline notes with filters
@@ -1090,4 +1128,146 @@ export async function globalSearchVideos(query: string, limit: number = 20): Pro
     console.error("[Database] Error in global search:", error);
     return [];
   }
+}
+
+
+// ============================================================
+// Notifications
+// ============================================================
+
+/**
+ * Get user's notifications with pagination and optional filtering
+ */
+export async function getNotifications(
+  userId: number,
+  limit: number,
+  offset: number,
+  isRead?: boolean
+) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [eq(notifications.userId, userId)];
+  
+  if (isRead !== undefined) {
+    conditions.push(eq(notifications.isRead, isRead));
+  }
+
+  return db
+    .select()
+    .from(notifications)
+    .where(and(...conditions))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+/**
+ * Get total count of user's notifications
+ */
+export async function getNotificationsCount(userId: number, isRead?: boolean) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const conditions = [eq(notifications.userId, userId)];
+  
+  if (isRead !== undefined) {
+    conditions.push(eq(notifications.isRead, isRead));
+  }
+
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(and(...conditions));
+
+  return result[0]?.count || 0;
+}
+
+/**
+ * Get unread notifications count
+ */
+export async function getUnreadNotificationsCount(userId: number) {
+  return getNotificationsCount(userId, false);
+}
+
+/**
+ * Mark a notification as read
+ */
+export async function markNotificationAsRead(notificationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(notifications)
+    .set({ 
+      isRead: true,
+    })
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId)
+      )
+    );
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(notifications)
+    .set({ 
+      isRead: true,
+    })
+    .where(eq(notifications.userId, userId));
+}
+
+/**
+ * Create a new notification
+ */
+export async function createNotification(data: {
+  userId: number;
+  type: "REVIEW_APPROVED" | "REVIEW_REJECTED" | "SYSTEM_ANNOUNCEMENT" | "MENTION";
+  title: string;
+  content?: string;
+  relatedResourceType?: "VIDEO" | "TIMELINE_NOTE" | "PRODUCT";
+  relatedResourceId?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db
+    .insert(notifications)
+    .values({
+      userId: data.userId,
+      type: data.type,
+      title: data.title,
+      content: data.content,
+      relatedResourceType: data.relatedResourceType,
+      relatedResourceId: data.relatedResourceId,
+      isRead: false,
+    })
+    .returning();
+
+  return result[0];
+}
+
+/**
+ * Delete a notification (user can only delete their own notifications)
+ */
+export async function deleteNotification(notificationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .delete(notifications)
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId)
+      )
+    );
 }

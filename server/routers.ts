@@ -14,6 +14,7 @@ import { myContributionsRouter } from "./trpc/routers/myContributions";
 import { reviewCenterRouter } from "./trpc/routers/reviewCenter";
 import { adminSettingsRouter } from "./trpc/routers/adminSettings";
 import { fullTextSearchRouter } from "./trpc/routers/fullTextSearch";
+import { notificationsRouter } from "./trpc/routers/notifications";
 
 export const appRouter = router({
   system: systemRouter,
@@ -657,6 +658,7 @@ export const appRouter = router({
   reviewCenter: reviewCenterRouter,
   adminSettings: adminSettingsRouter,
   fullTextSearch: fullTextSearchRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
