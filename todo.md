@@ -353,7 +353,13 @@
 - [x] 診斷 server/storage.ts 的 R2 上傳實作
 - [x] 檢查 R2 環境變數設定（本地環境未設定）
 - [x] 新增詳細錯誤處理與日誌（storagePut、uploadThumbnail）
-- [ ] 推送到 GitHub 並部署到 Railway
-- [ ] 在 Railway 生產環境測試上傳
-- [ ] 檢查 Railway 部署日誌與錯誤訊息
-- [ ] 驗證 R2 儲存空間檔案列表
+- [x] 推送到 GitHub 並部署到 Railway
+- [x] 在 Railway 生產環境測試上傳
+- [x] 檢查 Railway 部署日誌與錯誤訊息
+- [x] 驗證 R2 儲存空間檔案列表（thumbnails/ 資料夾已建立）
+- [x] 發現問題：R2 上傳成功但圖片無法顯示（CORS / 公開存取問題）
+- [ ] 設定 R2 Bucket 公開存取權限
+- [ ] 設定 R2 CORS 政策
+- [ ] 設定 R2 Public URL（Custom Domain 或 Public Bucket）
+- [ ] 更新 R2_PUBLIC_URL 環境變數
+- [ ] 重新測試縮圖顯示
