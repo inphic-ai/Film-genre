@@ -97,5 +97,5 @@
 - [ ] 測試 Staff 權限（僅能查看自己的筆記）
 - [ ] 測試 Viewer 權限（無法存取審核中心）
 - [x] 建立 vitest 測試 (reviewCenter.test.ts - 5 個測試全部通過)
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: d5e39e46)
 - [ ] 推送到 GitHub
