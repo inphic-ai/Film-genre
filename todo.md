@@ -231,7 +231,7 @@
   - [x] 整合審核系統：筆記核准/拒絕時自動通知使用者
   - [x] 建立 vitest 測試（5 個測試全部通過）
   - [x] 測試本地開發環境（TypeScript 0 errors）
-  - [ ] 建立 checkpoint
+  - [x] 建立 checkpoint（version: 00f204d8）
   - [ ] 推送到 GitHub
   - [ ] 驗證 Railway Production 部署
 - [ ] 商品知識中樞進階功能
