@@ -139,5 +139,5 @@
   - [x] 搜尋結果頁面（Board.tsx 整合 URL 參數）
 - [x] 建立 vitest 測試（商品知識中樞 API）- 12 個測試全部通過
 - [x] 測試所有頁面導航與視覺（見 docs/browser-test-results.md）
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: e24c6d4c)
 - [ ] 推送到 GitHub
