@@ -34,7 +34,7 @@ export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title'>('createdAt');
+  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating'>('createdAt');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedShareStatus, setSelectedShareStatus] = useState<string[]>([]);
 
@@ -63,7 +63,7 @@ export default function Board() {
 
   // Use fullTextSearch results if enabled, tag-filtered videos if tags selected, otherwise all videos
   const baseVideos = useFullText && fullTextSearchResult 
-    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null })) 
+    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null })) 
     : selectedTagIds.length > 0 
     ? tagFilteredVideos 
     : allVideos;
@@ -83,6 +83,8 @@ export default function Board() {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (sortBy === 'createdAt') {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else if (sortBy === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
     } else { // title
       return a.title.localeCompare(b.title);
     }
@@ -135,6 +137,7 @@ export default function Board() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="viewCount">熱門度（點擊數）</SelectItem>
+              <SelectItem value="rating">評分（高到低）</SelectItem>
               <SelectItem value="createdAt">建立時間</SelectItem>
               <SelectItem value="title">標題（A-Z）</SelectItem>
             </SelectContent>

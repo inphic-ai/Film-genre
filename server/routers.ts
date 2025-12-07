@@ -550,6 +550,20 @@ ${tagsListText}
         return { success: true };
       }),
 
+    // Update video rating (admin and staff only)
+    updateRating: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        rating: z.number().min(1).max(5).nullable(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role === 'viewer') {
+          throw new Error('Viewers cannot rate videos');
+        }
+        await db.updateVideo(input.id, { rating: input.rating });
+        return { success: true };
+      }),
+
     // Delete video (admin only)
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))

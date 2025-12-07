@@ -83,6 +83,7 @@ export const videos = pgTable("videos", {
   notes: text("notes"), // JSON string for timeline notes
   duration: integer("duration"), // Video duration in seconds
   searchVector: text("searchVector"), // tsvector for full-text search (PostgreSQL specific)
+  rating: integer("rating"), // 1-5 star rating, NULL means not rated yet
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   uploadedBy: integer("uploadedBy").references(() => users.id),

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon, Plus, X, Edit3 } from "lucide-react";
+import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon, Plus, X, Edit3, Star } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -34,6 +34,15 @@ export default function VideoDetail() {
   const utils = trpc.useUtils();
   const addTagMutation = trpc.videoTags.addTag.useMutation();
   const removeTagMutation = trpc.videoTags.removeTag.useMutation();
+  const updateRatingMutation = trpc.videos.updateRating.useMutation({
+    onSuccess: () => {
+      toast.success('評分已更新');
+      utils.videos.getById.invalidate({ id: videoId });
+    },
+    onError: () => {
+      toast.error('評分更新失敗');
+    },
+  });
 
   useEffect(() => {
     if (video) {
@@ -206,6 +215,41 @@ export default function VideoDetail() {
                   <Eye className="w-4 h-4" />
                   <span>{video.viewCount} 次觀看</span>
                 </div>
+                {/* Rating */}
+                {user && user.role !== 'viewer' && (
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4" />
+                    <span>評分：</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 cursor-pointer transition-colors ${
+                            video.rating && star <= video.rating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-muted-foreground hover:text-yellow-400'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateRatingMutation.mutate({
+                              id: videoId,
+                              rating: star,
+                            });
+                          }}
+                        />
+                      ))}
+                      {video.rating && (
+                        <span className="ml-2 text-sm font-medium">{video.rating}/5</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {user && user.role === 'viewer' && video.rating && (
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span>{video.rating}/5</span>
+                  </div>
+                )}
               </div>
 
               {/* Tags */}

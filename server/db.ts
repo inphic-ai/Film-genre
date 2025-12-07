@@ -522,6 +522,7 @@ export async function getTagVideos(tagId: number): Promise<(Video & { weight: nu
       notes: videos.notes,
       duration: videos.duration,
       searchVector: videos.searchVector,
+      rating: videos.rating,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       uploadedBy: videos.uploadedBy,
@@ -697,6 +698,9 @@ export async function getVideosBySmartScore(limit: number = 50): Promise<(Video 
       videos.shareStatus,
       videos.viewCount,
       videos.notes,
+      videos.duration,
+      videos.searchVector,
+      videos.rating,
       videos.createdAt,
       videos.updatedAt,
       videos.uploadedBy
@@ -771,6 +775,9 @@ export async function searchVideosByTags(
       videos.shareStatus,
       videos.viewCount,
       videos.notes,
+      videos.duration,
+      videos.searchVector,
+      videos.rating,
       videos.createdAt,
       videos.updatedAt,
       videos.uploadedBy
