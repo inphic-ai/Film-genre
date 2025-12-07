@@ -741,3 +741,70 @@
   - [ ] 建立 checkpoint
   - [ ] 推送到 GitHub
   - [ ] 驗證 Railway Production 部署
+
+## Phase 25：功能優化與進階搜尋（P2 階段）
+
+### Phase 25.1：數據視覺化頁面優化
+- [x] 統計卡片可點擊跳轉到對應功能清單
+- [x] 卡片 hover 效果與提示文字優化
+- [x] 測試本地開發環境
+- [x] 建立 checkpoint (version: 87ce6be2)
+
+### Phase 25.2：影片看板優化
+- [x] 新增排序功能：熱門度（viewCount）、建立時間、標題（A-Z）
+- [x] 新增平台篩選器：YouTube、抖音、小紅書
+- [x] 新增分享狀態篩選器：私人、公開
+- [x] 篩選與排序邏輯整合
+- [x] 測試本地開發環境
+- [x] 建立 checkpoint (version: 87ce6be2)
+
+### Phase 25.3：影片評分系統實作（5 星評分）
+- [x] 資料庫 Schema 變更申請：新增 rating 欄位到 videos 表
+- [x] 後端 API：videos.updateRating
+- [x] 前端：影片卡片顯示星星評分（縮圖左下角）
+- [x] 前端：影片詳情頁評分功能（點擊星星評分）
+- [x] 影片看板：新增評分排序與篩選器（評分高到低）
+- [x] 瀏覽器測試：評分功能與排序功能正常運作
+- [x] 建立 checkpoint (version: e492a8f3)
+
+### Phase 25.4：AI 智慧搜尋功能實作
+- [x] 後端 API：aiSearch.parseQuery（LLM 解析自然語言查詢）
+- [x] 後端 API：aiSearch.search（基於解析結果搜尋影片）
+- [x] 前端：AI 智慧搜尋對話框（AISearchDialog）
+- [x] 前端：Board.tsx 整合 AI 搜尋結果顯示
+- [x] 前端：AI 搜尋查詢條件卡片（動態更新）
+- [x] Vitest 測試：aiSearch.test.ts（13/13 通過）
+- [x] 瀏覽器測試：平台篩選、評分篩選功能正常運作
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+### Phase 25.4：AI 智慧搜尋功能
+- [ ] 後端 API：aiSearch.parseQuery（LLM 解析自然語言查詢）
+- [ ] 後端 API：aiSearch.search（根據解析結果執行搜尋）
+- [ ] 前端：智慧搜尋輸入框（整合到全域搜尋框）
+- [ ] 前端：搜尋結果顯示（Board.tsx）
+- [ ] 支援查詢條件：評分、標籤、平台、分類、關鍵字
+- [ ] 測試自然語言查詢（例如：「找評分 4 星以上的維修影片」）
+- [ ] 建立 vitest 測試
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+### Phase 25.5：標籤管理頁面優化
+- [ ] 統計卡片（總標籤數、商品編號標籤數、關鍵字標籤數）
+- [ ] 視角切換功能（依標籤類型、依使用次數）
+- [ ] 優化標籤列表顯示（排序、篩選）
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+### Phase 25.6：我的貢獻頁面優化
+- [ ] 統計卡片（我提交的影片數、時間軸筆記數、待審核筆記數）
+- [ ] 人員下拉選單（Admin 可查看所有人員的貢獻）
+- [ ] 優化貢獻列表顯示（排序、篩選）
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署

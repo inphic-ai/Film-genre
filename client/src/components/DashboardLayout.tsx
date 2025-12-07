@@ -33,7 +33,8 @@ import {
   Plus,
   Search,
   Tag as TagIcon,
-  Bell
+  Bell,
+  Sparkles
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -42,6 +43,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { NotificationBell } from "./NotificationBell";
+import { AISearchDialog } from "./AISearchDialog";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "數據視覺化", path: "/dashboard", roles: ["admin", "staff", "viewer"] },
@@ -138,6 +140,7 @@ function DashboardLayoutContent({
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
@@ -340,16 +343,32 @@ function DashboardLayoutContent({
 
           <div className="flex items-center gap-3">
             {/* 全域搜尋框 */}
-            <form onSubmit={handleSearch} className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="搜尋影片、商品編號、標籤..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-9 w-64 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 rounded-xl"
-              />
-            </form>
+            <div className="hidden md:flex items-center gap-2">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="搜尋影片、商品編號、標籤..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 h-9 w-64 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 rounded-xl"
+                />
+              </form>
+              
+              {/* AI 智慧搜尋按鈕 */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAiSearchOpen(true)}
+                className="h-9 gap-2 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+              >
+                <Sparkles className="h-4 w-4 text-emerald-500" />
+                <span className="text-emerald-600 font-medium">AI 搜尋</span>
+              </Button>
+            </div>
+
+            {/* AI 搜尋對話框 */}
+            <AISearchDialog open={aiSearchOpen} onOpenChange={setAiSearchOpen} />
 
             {/* 通知圖示 */}
             <NotificationBell />

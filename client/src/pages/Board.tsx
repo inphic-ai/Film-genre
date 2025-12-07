@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { VideoCard } from "@/components/VideoCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter } from "lucide-react";
+import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter, Sparkles, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,10 +25,28 @@ const categoryLabels: Record<string, string> = {
 export default function Board() {
   const [location, setLocation] = useLocation();
   
-  // 從 URL 參數讀取搜尋關鍵字
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  // 從 URL 參數讀取搜尋關鍵字（使用 useMemo 監聽 location 變化）
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [location]);
   const searchFromUrl = urlParams.get('search') || '';
   const useFullText = urlParams.get('useFullText') === 'true';
+  
+  // AI 搜尋參數（使用 useMemo 監聽 location 變化）
+  const isAiSearch = urlParams.get('aiSearch') === 'true';
+  const parsedQuery = useMemo(() => {
+    const parsedQueryStr = urlParams.get('parsedQuery');
+    if (!parsedQueryStr) return null;
+    
+    try {
+      const parsed = JSON.parse(parsedQueryStr);
+      console.log('✅ AI 搜尋解析結果:', parsed);
+      return parsed;
+    } catch (error) {
+      console.error('❌ AI 搜尋解析失敗:', error);
+      return null;
+    }
+  }, [urlParams]);
+  
+  console.log('[Board Debug] isAiSearch:', isAiSearch, 'parsedQuery:', parsedQuery);
   
   const [searchKeyword, setSearchKeyword] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -54,6 +72,12 @@ export default function Board() {
     { tagIds: selectedTagIds },
     { enabled: selectedTagIds.length > 0 }
   );
+  
+  // AI 搜尋 API
+  const { data: aiSearchResult, isLoading: aiSearchLoading } = trpc.aiSearch.search.useQuery(
+    { parsedQuery: parsedQuery!, limit: 50, offset: 0 },
+    { enabled: isAiSearch && parsedQuery !== null }
+  );
 
   const deleteMutation = trpc.videos.delete.useMutation({
     onSuccess: () => {
@@ -61,8 +85,10 @@ export default function Board() {
     },
   });
 
-  // Use fullTextSearch results if enabled, tag-filtered videos if tags selected, otherwise all videos
-  const baseVideos = useFullText && fullTextSearchResult 
+  // Use AI search results if enabled, fullTextSearch results if enabled, tag-filtered videos if tags selected, otherwise all videos
+  const baseVideos = isAiSearch && aiSearchResult
+    ? aiSearchResult.videos
+    : useFullText && fullTextSearchResult 
     ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null })) 
     : selectedTagIds.length > 0 
     ? tagFilteredVideos 
@@ -104,7 +130,7 @@ export default function Board() {
     deleteMutation.mutate({ id: video.id });
   };
 
-  if (categoriesLoading || videosLoading || (selectedTagIds.length > 0 && tagFilterLoading)) {
+  if (categoriesLoading || videosLoading || (selectedTagIds.length > 0 && tagFilterLoading) || (isAiSearch && aiSearchLoading)) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
@@ -117,6 +143,67 @@ export default function Board() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* AI 搜尋查詢條件卡片 */}
+        {isAiSearch && parsedQuery && (
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <Sparkles className="h-5 w-5 text-emerald-500 mt-0.5" />
+                <div className="space-y-2 flex-1">
+                  <h3 className="font-semibold text-emerald-900">AI 智慧搜尋結果</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {parsedQuery.rating && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        評分：{parsedQuery.rating.min || 1}-{parsedQuery.rating.max || 5} 星
+                      </Badge>
+                    )}
+                    {parsedQuery.category && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        分類：{categoryLabels[parsedQuery.category] || parsedQuery.category}
+                      </Badge>
+                    )}
+                    {parsedQuery.platform && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        平台：{parsedQuery.platform === 'youtube' ? 'YouTube' : parsedQuery.platform === 'tiktok' ? '抖音' : '小紅書'}
+                      </Badge>
+                    )}
+                    {parsedQuery.shareStatus && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        分享狀態：{parsedQuery.shareStatus === 'public' ? '公開' : '私人'}
+                      </Badge>
+                    )}
+                    {parsedQuery.tags && parsedQuery.tags.length > 0 && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        標籤：{parsedQuery.tags.join(', ')}
+                      </Badge>
+                    )}
+                    {parsedQuery.keywords && parsedQuery.keywords.length > 0 && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        關鍵字：{parsedQuery.keywords.join(', ')}
+                      </Badge>
+                    )}
+                    {parsedQuery.sortBy && (
+                      <Badge variant="secondary" className="bg-white/80">
+                        排序：{parsedQuery.sortBy === 'rating' ? '評分' : parsedQuery.sortBy === 'viewCount' ? '觀看次數' : parsedQuery.sortBy === 'createdAt' ? '建立時間' : '標題'}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-emerald-700">
+                    共找到 <span className="font-semibold">{aiSearchResult?.total || 0}</span> 部影片
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/board')}
+                className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
         {/* Search & Filters */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 max-w-md">
