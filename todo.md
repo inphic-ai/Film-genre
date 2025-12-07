@@ -81,5 +81,5 @@
 - [x] 移除 VideoCard 的「觀看影片」按鈕（改為點擊卡片進入詳情頁）
 - [x] 測試點擊卡片是否正確進入 VideoDetail 頁面
 - [x] 測試時間軸筆記功能（新增、顯示、時間戳記、圖片上傳區域全部正常）
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 49219b0b)
 - [ ] 推送到 GitHub
