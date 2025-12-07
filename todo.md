@@ -109,5 +109,5 @@
 - [ ] 新增全域搜尋功能
 - [ ] 新增影片描述與時長欄位
 - [ ] 測試所有頁面導航與視覺
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 1fbe08d9)
 - [ ] 推送到 GitHub
