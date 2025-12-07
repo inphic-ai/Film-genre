@@ -171,6 +171,6 @@
 - [x] 更新側邊欄導航（新增「我的貢獻」路由）
 - [x] 測試本地開發環境（見 docs/phase15-local-test-results.md）
 - [x] 建立 vitest 測試 - 7 個測試全部通過（Dashboard API 4 個 + MyContributions API 3 個）
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 4a114e1e)
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
