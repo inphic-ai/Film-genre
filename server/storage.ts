@@ -63,7 +63,21 @@ export async function storagePut(
   });
 
   try {
-    await client.send(command);
+    console.log('[R2 Upload] Starting upload:', {
+      key,
+      bucketName,
+      contentType,
+      dataSize: typeof data === 'string' ? data.length : data.byteLength,
+      endpoint: ENV.r2Endpoint,
+    });
+
+    const result = await client.send(command);
+    
+    console.log('[R2 Upload] Upload successful:', {
+      key,
+      etag: result.ETag,
+      versionId: result.VersionId,
+    });
     
     // Construct public URL
     // If R2_PUBLIC_URL is set, use it; otherwise construct from endpoint
@@ -71,8 +85,16 @@ export async function storagePut(
       ? `${publicUrl.replace(/\/+$/, "")}/${key}`
       : `${ENV.r2Endpoint.replace(/\/+$/, "")}/${bucketName}/${key}`;
 
+    console.log('[R2 Upload] Generated URL:', url);
+
     return { key, url };
   } catch (error) {
+    console.error('[R2 Upload] Upload failed:', {
+      key,
+      bucketName,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     throw new Error(
       `R2 upload failed: ${error instanceof Error ? error.message : String(error)}`
     );

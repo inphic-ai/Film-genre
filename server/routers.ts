@@ -273,23 +273,41 @@ export const appRouter = router({
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        const { storagePut } = await import('./storage');
         
-        // Convert base64 to buffer
-        const base64Data = input.imageData.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        
-        // Generate unique file key
-        const timestamp = Date.now();
-        const fileKey = `thumbnails/video-${input.videoId}-${timestamp}.jpg`;
-        
-        // Upload to S3
-        const { url } = await storagePut(fileKey, buffer, 'image/jpeg');
-        
-        // Update video record
-        await db.updateVideo(input.videoId, { thumbnailUrl: url });
-        
-        return { url };
+        try {
+          console.log('[Upload Thumbnail] Starting upload for video:', input.videoId);
+          
+          const { storagePut } = await import('./storage');
+          
+          // Convert base64 to buffer
+          const base64Data = input.imageData.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          
+          console.log('[Upload Thumbnail] Image buffer size:', buffer.length, 'bytes');
+          
+          // Generate unique file key
+          const timestamp = Date.now();
+          const fileKey = `thumbnails/video-${input.videoId}-${timestamp}.jpg`;
+          
+          // Upload to R2
+          const { url } = await storagePut(fileKey, buffer, 'image/jpeg');
+          
+          console.log('[Upload Thumbnail] R2 upload successful, URL:', url);
+          
+          // Update video record
+          await db.updateVideo(input.videoId, { thumbnailUrl: url });
+          
+          console.log('[Upload Thumbnail] Database updated for video:', input.videoId);
+          
+          return { url };
+        } catch (error) {
+          console.error('[Upload Thumbnail] Upload failed:', {
+            videoId: input.videoId,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+          throw error;
+        }
       }),
 
     // Delete custom thumbnail (admin only)
