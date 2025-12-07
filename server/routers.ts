@@ -15,6 +15,7 @@ import { reviewCenterRouter } from "./trpc/routers/reviewCenter";
 import { adminSettingsRouter } from "./trpc/routers/adminSettings";
 import { fullTextSearchRouter } from "./trpc/routers/fullTextSearch";
 import { notificationsRouter } from "./trpc/routers/notifications";
+import { videoSuggestionsRouter } from "./trpc/routers/videoSuggestions";
 
 export const appRouter = router({
   system: systemRouter,
@@ -659,6 +660,7 @@ export const appRouter = router({
   adminSettings: adminSettingsRouter,
   fullTextSearch: fullTextSearchRouter,
   notifications: notificationsRouter,
+  videoSuggestions: videoSuggestionsRouter,
 });
 
 export type AppRouter = typeof appRouter;

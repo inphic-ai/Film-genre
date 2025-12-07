@@ -205,6 +205,7 @@ export const suggestions = pgTable("suggestions", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
   userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
   priority: suggestionPriorityEnum("priority").default("MEDIUM").notNull(),
   status: suggestionStatusEnum("status").default("PENDING").notNull(),

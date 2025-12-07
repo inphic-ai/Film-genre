@@ -71,6 +71,13 @@
       "when": 1765091806850,
       "tag": "0009_fearless_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1765098159929,
+      "tag": "0010_wise_husk",
+      "breakpoints": true
     }
   ]
 }

@@ -291,35 +291,63 @@
 - [ ] 測試 AI 圖片生成功能（實際 API）- 待 Railway 部署後測試
 - [ ] 部署到 Railway 並驗證生產環境 - 等待自動部署
 - [ ] 更新文件（README、開發規範）
-- [x] 建立 checkpoint (version: f05a703a## Phase 20：縮圖上傳功能（方案 A 優先實作）x] 提出資料庫 Schema 變更申請（docs/DB_CHANGE_REQUEST_PHASE20.md）
-  - [x] timeline_notes 表（時間軸筆記，11 個欄位）
-  - [x] video_suggestions 表（影片建議，8 個欄位）
+- [x] 建立 checkpoint (version: f05a703a## Phase 20：影片詳情頁重新設計（優先開發）
+
+### 1. 資料庫 Schema 變更（已完成）
+- [x] 提出資料庫 Schema 讌更申請（docs/DB_CHANGE_REQUEST_PHASE20.md）
+  - [x] timeline_notes 表（時間軸筆記，10 個欄位）
+  - [x] suggestions 表（影片建議，9 個欄位，包含 title）
   - [x] video_documents 表（影片文件，10 個欄位）
   - [x] knowledge_nodes 表（知識節點，8 個欄位）
-- [x] 等待 Schema 變更審核通過
-- [x] 執行 pnpm db:push 推送到 Railway PostgreSQL（migration 0009_fearless_tattoo.sql）
-- [ ] 實作後端 API
-  - [ ] timelineNotes router（list、create、update、delete、approve）
-  - [ ] videoSuggestions router（list、create、update、delete）
-  - [ ] videoDocuments router（list、upload）
-  - [ ] knowledgeNodes router（listByVideo）
-- [ ] 實作前端組件
-  - [ ] 重新設計 VideoDetail.tsx（左右分欄佈局）
-  - [ ] TimelineNotesList.tsx（時間軸筆記列表）
-  - [ ] TimelineNoteCard.tsx（筆記卡片）
-  - [ ] AddTimelineNoteForm.tsx（新增筆記表單）
+- [x] 等待 Schema 讌更審核通過
+- [x] 執行 pnpm db:push 推送到 Railway PostgreSQL（migration 0010_wise_husk.sql）
+
+### 2. 後端 API 實作
+- [x] videoSuggestions router（Phase 20.1 完成）
+  - [x] videoSuggestions.listByVideo（取得影片建議列表，支援篩選與分頁）
+  - [x] videoSuggestions.getCount（取得建議數量）
+  - [x] videoSuggestions.create（新增建議，需登入）
+  - [x] videoSuggestions.update（更新建議，僅建立者或 Admin）
+  - [x] videoSuggestions.updateStatus（更新狀態，Admin 專用）
+  - [x] videoSuggestions.delete（刪除建議，僅建立者或 Admin）
+  - [x] 整合到主 appRouter
+  - [x] 建立 vitest 測試（10 個測試全部通過）
+  - [x] 推送 schema 變更到 Railway PostgreSQL（suggestions 表已建立）
+- [ ] videoDocuments router
+  - [ ] videoDocuments.listByVideo（取得影片文件列表）
+  - [ ] videoDocuments.upload（上傳文件到 R2）
+  - [ ] videoDocuments.delete（刪除文件）
+  - [ ] videoDocuments.getSignedUrl（取得簽名 URL）
+- [ ] knowledgeNodes router
+  - [ ] knowledgeNodes.listByVideo（取得影片知識節點）
+  - [ ] knowledgeNodes.create（新增知識節點）
+  - [ ] knowledgeNodes.update（更新知識節點）
+  - [ ] knowledgeNodes.delete（刪除知識節點）
+
+### 3. 前端組件實作
+- [ ] 時間軸筆記組件
+  - [ ] TimelineNotesList.tsx（筆記列表、排序、篩選）
+  - [ ] TimelineNoteCard.tsx（筆記卡片、時間戳記、圖片、編輯/刪除）
+  - [ ] AddTimelineNoteForm.tsx（新增筆記表單、時間選擇器、圖片上傳）
+- [ ] 影片建議組件
+  - [ ] VideoSuggestionsList.tsx（建議列表、排序）
+  - [ ] VideoSuggestionCard.tsx（建議卡片、投票、狀態標籤）
+  - [ ] AddSuggestionForm.tsx（新增建議表單）
+- [ ] 文件與知識節點組件
   - [ ] DocumentTabs.tsx（Tab 切換：說明書 PDF / SOP / 知識節點）
-  - [ ] PDFViewer.tsx（PDF 檢視器）
-  - [ ] VideoSuggestionsList.tsx（建議列表）
-  - [ ] VideoSuggestionCard.tsx（建議卡片）
-  - [ ] ThumbnailUpload.tsx（縮圖上傳組件）
-- [ ] 實作縮圖上傳前端功能
-  - [ ] 新增影片對話框新增「自訂縮圖」上傳欄位
-  - [ ] 縮圖預覽功能
-  - [ ] 換圖功能
-  - [ ] 刪除功能
-  - [ ] 優先顯示自訂縮圖或 YouTube 預設圖示
-- [ ] 建立 vitest 測試
+  - [ ] PDFViewer.tsx（PDF 檢視器、縮放、翻頁）
+  - [ ] KnowledgeNodesList.tsx（知識節點列表）
+  - [ ] DocumentUploadForm.tsx（文件上傳表單）
+
+### 4. VideoDetail.tsx 頁面整合
+- [ ] 重新設計佈局（左右分欄）
+  - [ ] 左側：YouTube 播放器 + 影片資訊
+  - [ ] 右側：Tab 切換（時間軸筆記 / 影片建議 / 文件資料）
+- [ ] 整合所有組件
+- [ ] 實作響應式設計（手機版堆疊佈局）
+
+### 5. 測試與部署
+- [ ] 建立 vitest 測試（videoSuggestions、videoDocuments、knowledgeNodes）
 - [ ] 測試本地開發環境
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT * FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute SELECT * FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 5;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1142 (42000) at line 1: SELECT command denied to user '2zwSb7aZqxwGG5M.6a2ce670420f'@'%' for table '__drizzle_migrations'"
+  ]
+}

@@ -1,7 +1,7 @@
 import { eq, desc, asc, and, or, like, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -1270,4 +1270,112 @@ export async function deleteNotification(notificationId: number, userId: number)
         eq(notifications.userId, userId)
       )
     );
+}
+
+// ==================== Video Suggestions ====================
+
+export async function getSuggestionsByVideo(
+  videoId: number,
+  limit: number = 20,
+  offset: number = 0,
+  priority?: "LOW" | "MEDIUM" | "HIGH",
+  status?: "PENDING" | "READ" | "RESOLVED"
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  let conditions = [eq(suggestions.videoId, videoId)];
+  
+  if (priority) {
+    conditions.push(eq(suggestions.priority, priority as any));
+  }
+  if (status) {
+    conditions.push(eq(suggestions.status, status as any));
+  }
+
+  return await db
+    .select()
+    .from(suggestions)
+    .where(and(...conditions))
+    .limit(limit)
+    .offset(offset)
+    .orderBy(desc(suggestions.createdAt));
+}
+
+export async function getSuggestionsCountByVideo(
+  videoId: number,
+  priority?: "LOW" | "MEDIUM" | "HIGH",
+  status?: "PENDING" | "READ" | "RESOLVED"
+) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  let conditions = [eq(suggestions.videoId, videoId)];
+  
+  if (priority) {
+    conditions.push(eq(suggestions.priority, priority as any));
+  }
+  if (status) {
+    conditions.push(eq(suggestions.status, status as any));
+  }
+
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(suggestions)
+    .where(and(...conditions));
+    
+  return Number(result[0]?.count) || 0;
+}
+
+export async function getSuggestionById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(suggestions)
+    .where(eq(suggestions.id, id))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function createSuggestion(data: {
+  videoId: number;
+  userId: number;
+  title: string;
+  content: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(suggestions).values(data).returning();
+  return result[0];
+}
+
+export async function updateSuggestion(
+  id: number,
+  data: {
+    title?: string;
+    content?: string;
+    priority?: "LOW" | "MEDIUM" | "HIGH";
+    status?: "PENDING" | "READ" | "RESOLVED";
+  }
+) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .update(suggestions)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(suggestions.id, id))
+    .returning();
+  return result[0];
+}
+
+export async function deleteSuggestion(id: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.delete(suggestions).where(eq(suggestions.id, id));
 }
