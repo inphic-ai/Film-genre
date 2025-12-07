@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Loader2, Save, Sparkles, Wand2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -27,6 +28,9 @@ export default function Manage() {
   const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
   const [customThumbnailUrl, setCustomThumbnailUrl] = useState<string | null>(null);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const [duplicateVideo, setDuplicateVideo] = useState<any>(null);
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: categories } = trpc.categories.list.useQuery();
@@ -41,6 +45,14 @@ export default function Manage() {
 
   const addTagMutation = trpc.videoTags.addTag.useMutation();
   const removeTagMutation = trpc.videoTags.removeTag.useMutation();
+
+  // Check duplicate video by URL
+  const checkDuplicateQuery = trpc.videos.checkDuplicate.useQuery(
+    { videoUrl },
+    {
+      enabled: false, // Manual trigger only
+    }
+  );
 
   const createMutation = trpc.videos.create.useMutation({
     onSuccess: async (video) => {
@@ -173,6 +185,38 @@ export default function Manage() {
       // Tags will be loaded by TagSelector component
     }
   }, [existingVideo]);
+
+  // Check for duplicate video when videoUrl changes (with debounce)
+  useEffect(() => {
+    // Skip duplicate check if editing existing video or URL is empty
+    if (videoId || !videoUrl || videoUrl.length < 10) {
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(videoUrl);
+    } catch {
+      return; // Invalid URL, skip check
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCheckingDuplicate(true);
+      try {
+        const result = await checkDuplicateQuery.refetch();
+        if (result.data?.isDuplicate && result.data?.video) {
+          setDuplicateVideo(result.data.video);
+          setIsDuplicateDialogOpen(true);
+        }
+      } catch (error) {
+        console.error('Failed to check duplicate:', error);
+      } finally {
+        setIsCheckingDuplicate(false);
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timer);
+  }, [videoUrl, videoId, checkDuplicateQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,7 +414,15 @@ export default function Manage() {
 
               {/* Video URL */}
               <div className="space-y-2">
-                <Label htmlFor="videoUrl">影片連結 *</Label>
+                <Label htmlFor="videoUrl">
+                  影片連結 *
+                  {isCheckingDuplicate && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      <Loader2 className="inline w-3 h-3 animate-spin mr-1" />
+                      檢查重複中...
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="videoUrl"
                   type="url"
@@ -538,6 +590,70 @@ export default function Manage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Duplicate Video Dialog */}
+      <Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>⚠️ 偵測到重複影片</DialogTitle>
+            <DialogDescription>
+              這個影片連結已經存在於系統中，請確認是否要繼續新增。
+            </DialogDescription>
+          </DialogHeader>
+          
+          {duplicateVideo && (
+            <div className="space-y-4">
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-start gap-3">
+                  {duplicateVideo.customThumbnailUrl || duplicateVideo.thumbnailUrl ? (
+                    <img
+                      src={duplicateVideo.customThumbnailUrl || duplicateVideo.thumbnailUrl}
+                      alt={duplicateVideo.title}
+                      className="w-24 h-16 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-24 h-16 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
+                      無縮圖
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{duplicateVideo.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      平台：{duplicateVideo.platform === 'youtube' ? 'YouTube' : duplicateVideo.platform === 'tiktok' ? '抖音' : '小紅書'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      建立時間：{new Date(duplicateVideo.createdAt).toLocaleDateString('zh-TW')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                如果您確定要新增這個影片，請修改影片連結或取消新增。
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsDuplicateDialogOpen(false);
+                setVideoUrl(""); // Clear the URL
+              }}
+            >
+              清除連結
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsDuplicateDialogOpen(false)}
+            >
+              我知道了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

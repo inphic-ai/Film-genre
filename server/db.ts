@@ -251,6 +251,16 @@ export async function getVideoById(id: number): Promise<Video | undefined> {
 }
 
 /**
+ * Get video by URL (for duplicate detection)
+ */
+export async function getVideoByUrl(videoUrl: string): Promise<Video | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(videos).where(eq(videos.videoUrl, videoUrl)).limit(1);
+  return result[0];
+}
+
+/**
  * Create new video
  */
 export async function createVideo(video: InsertVideo): Promise<Video> {

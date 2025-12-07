@@ -210,6 +210,28 @@ export const appRouter = router({
         return { urls };
       }),
 
+    // Check duplicate video by URL (admin only)
+    checkDuplicate: protectedProcedure
+      .input(z.object({
+        videoUrl: z.string().url(),
+      }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        const existingVideo = await db.getVideoByUrl(input.videoUrl);
+        if (existingVideo) {
+          return {
+            isDuplicate: true,
+            video: existingVideo,
+          };
+        }
+        return {
+          isDuplicate: false,
+          video: null,
+        };
+      }),
+
     // Create video (admin only)
     create: protectedProcedure
       .input(z.object({
