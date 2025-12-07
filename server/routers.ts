@@ -287,7 +287,7 @@ export const appRouter = router({
         const { url } = await storagePut(fileKey, buffer, 'image/jpeg');
         
         // Update video record
-        await db.updateVideo(input.videoId, { customThumbnailUrl: url });
+        await db.updateVideo(input.videoId, { thumbnailUrl: url });
         
         return { url };
       }),
@@ -300,7 +300,7 @@ export const appRouter = router({
           throw new Error('Unauthorized');
         }
         // Remove custom thumbnail URL from database
-        await db.updateVideo(input.videoId, { customThumbnailUrl: null });
+        await db.updateVideo(input.videoId, { thumbnailUrl: null });
         return { success: true };
       }),
   }),
