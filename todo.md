@@ -73,6 +73,6 @@
 ## Phase 10：移除 Login.tsx 中的客戶專區按鈕
 - [x] 移除 Login.tsx 中的「前往客戶專區」按鈕
 - [x] 測試登入頁面
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 05873604)
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway 部署
