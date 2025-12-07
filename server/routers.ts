@@ -262,6 +262,47 @@ export const appRouter = router({
         await db.deleteVideo(input.id);
         return { success: true };
       }),
+
+    // Upload custom thumbnail (admin only)
+    uploadThumbnail: protectedProcedure
+      .input(z.object({
+        videoId: z.number(),
+        imageData: z.string(), // Base64 encoded image
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        const { storagePut } = await import('./storage');
+        
+        // Convert base64 to buffer
+        const base64Data = input.imageData.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Generate unique file key
+        const timestamp = Date.now();
+        const fileKey = `thumbnails/video-${input.videoId}-${timestamp}.jpg`;
+        
+        // Upload to S3
+        const { url } = await storagePut(fileKey, buffer, 'image/jpeg');
+        
+        // Update video record
+        await db.updateVideo(input.videoId, { customThumbnailUrl: url });
+        
+        return { url };
+      }),
+
+    // Delete custom thumbnail (admin only)
+    deleteThumbnail: protectedProcedure
+      .input(z.object({ videoId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        // Remove custom thumbnail URL from database
+        await db.updateVideo(input.videoId, { customThumbnailUrl: null });
+        return { success: true };
+      }),
   }),
 
   // Tags management

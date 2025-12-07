@@ -166,7 +166,7 @@ export const YouTubePlayer = forwardRef<YouTubePlayerHandle, YouTubePlayerProps>
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-4">
       {/* Player Container */}
       <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
         <div ref={containerRef} className="w-full h-full" />

@@ -74,6 +74,7 @@ export const videos = pgTable("videos", {
   platform: platformEnum("platform").notNull(),
   videoUrl: text("videoUrl").notNull(),
   thumbnailUrl: text("thumbnailUrl"),
+  customThumbnailUrl: text("customThumbnailUrl"), // User-uploaded custom thumbnail (S3 URL)
   category: categoryEnum("category").notNull(),
   // New fields for enhanced functionality
   productId: varchar("productId", { length: 100 }),

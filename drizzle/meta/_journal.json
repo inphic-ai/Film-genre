@@ -57,6 +57,13 @@
       "when": 1765084935144,
       "tag": "0007_colossal_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1765087063857,
+      "tag": "0008_classy_stone_men",
+      "breakpoints": true
     }
   ]
 }

@@ -145,17 +145,17 @@ export default function VideoDetail() {
         {/* Video Player */}
         <Card>
           <CardContent className="p-6">
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
-              {video.platform === "youtube" ? (
-                <YouTubePlayer
-                  ref={youtubePlayerRef}
-                  videoId={extractYouTubeId(video.videoUrl)}
-                  onTimeUpdate={setCurrentTime}
-                  onReady={() => {
-                    // Player is ready
-                  }}
-                />
-              ) : (
+            {video.platform === "youtube" ? (
+              <YouTubePlayer
+                ref={youtubePlayerRef}
+                videoId={extractYouTubeId(video.videoUrl)}
+                onTimeUpdate={setCurrentTime}
+                onReady={() => {
+                  // Player is ready
+                }}
+              />
+            ) : (
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
                 <div className="text-center">
                   <p className="text-muted-foreground mb-4">
                     {video.platform === "tiktok" ? "抖音" : "小紅書"}影片請點擊下方連結觀看
@@ -166,8 +166,8 @@ export default function VideoDetail() {
                     </a>
                   </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Video Info */}
             <div className="space-y-4">

@@ -194,7 +194,7 @@
 - [x] 建立 vitest 測試 - 8 個測試全部通過（Admin Settings 4 個 + Review Center 4 個）
 - [x] 建立 checkpoint (version: 7d5452a3)
 - [x] 推送到 GitHub (commit: c596863)
-- [ ] 驗證 Railway Production 部署
+- [x] 驗證 Railway Production 部署（Phase 16 已完成）
 
 ## Phase 17：P2 階段功能（標籤管理、全文搜尋、通知系統、商品進階功能）
 - [x] 標籤管理系統
@@ -229,3 +229,29 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+- [x] 建立 checkpoint (version: 340ebc5c)
+- [x] 推送到 GitHub (commit: 340ebc5)
+- [x] 驗證 Railway Production 部署（Phase 17 標籤管理系統，見 docs/railway-production-verification-phase17.md）
+
+## Phase 18：使用者回饋修正與功能優化（影片播放器、縮圖上傳）
+- [x] 修復影片詳情頁播放器比例問題
+  - [x] 問題：影片詳情頁（/video/:id）播放器框很大但影片很小，播放比例不對
+  - [x] 修正：移除 VideoDetail.tsx 的外層 aspect-video 容器，保留 YouTubePlayer 內建的 aspect-video
+  - [x] 測試：驗證 YouTube 影片在詳情頁正常顯示（16:9 比例）
+- [ ] 優化新增影片功能（縮圖上傳系統）
+  - [x] 資料庫：videos.customThumbnailUrl 欄位（儲存 S3 URL）
+  - [x] 後端 API：videos.uploadThumbnail（上傳自訂縮圖到 S3）
+  - [x] 後端 API：videos.deleteThumbnail（刪除自訂縮圖）
+  - [ ] 前端：新增影片對話框新增「自訂縮圖」上傳欄位（選擇性）
+  - [ ] 前端：預設顯示 YouTube 圖示（當無自訂縮圖時）
+  - [ ] 前端：縮圖預覽、換圖、刪除功能
+  - [ ] 資料庫：videos.customThumbnailUrl 欄位（儲存 S3 URL）
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+- [x] 規劃後續優先開發功能（見 docs/priority-features-roadmap.md）
+  - [x] P0：縮圖上傳系統前端實作、影片播放器優化
+  - [x] P1：通知系統、商品知識中樞進階功能、全文搜尋優化
+  - [x] P2：影片批次操作、影片分析統計、影片評論系統
+  - [x] P3：影片下載功能、影片轉碼與壓縮、多語言支援、暗黑模式
