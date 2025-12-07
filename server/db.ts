@@ -1,7 +1,7 @@
-import { eq, desc, and, or, like, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, tags, videoTags, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -13,7 +13,7 @@ export async function getDb() {
     try {
       _pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+        ssl: { rejectUnauthorized: false }, // Railway PostgreSQL requires SSL
       });
       _db = drizzle(_pool);
     } catch (error) {
@@ -770,4 +770,177 @@ export async function searchVideosByTags(
     smartScore: Number(row.smartScore),
     matchedTagCount: Number(row.matchedTagCount),
   }));
+}
+
+// ============================================================================
+// Timeline Notes Functions
+// ============================================================================
+
+/**
+ * Get all timeline notes for a video
+ */
+export async function getTimelineNotesByVideoId(videoId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: timelineNotes.id,
+      videoId: timelineNotes.videoId,
+      userId: timelineNotes.userId,
+      timeSeconds: timelineNotes.timeSeconds,
+      content: timelineNotes.content,
+      imageUrls: timelineNotes.imageUrls,
+      status: timelineNotes.status,
+      rejectReason: timelineNotes.rejectReason,
+      createdAt: timelineNotes.createdAt,
+      updatedAt: timelineNotes.updatedAt,
+      userName: users.name,
+      userEmail: users.email,
+    })
+    .from(timelineNotes)
+    .innerJoin(users, eq(timelineNotes.userId, users.id))
+    .where(eq(timelineNotes.videoId, videoId))
+    .orderBy(asc(timelineNotes.timeSeconds));
+}
+
+/**
+ * Get timeline note by ID
+ */
+export async function getTimelineNoteById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(timelineNotes)
+    .where(eq(timelineNotes.id, id))
+    .limit(1);
+  return result[0];
+}
+
+/**
+ * Create a new timeline note
+ */
+export async function createTimelineNote(data: {
+  videoId: number;
+  userId: number;
+  timeSeconds: number;
+  content: string;
+  imageUrls?: string[];
+  status?: "PENDING" | "APPROVED" | "REJECTED";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [note] = await db
+    .insert(timelineNotes)
+    .values({
+      videoId: data.videoId,
+      userId: data.userId,
+      timeSeconds: data.timeSeconds,
+      content: data.content,
+      imageUrls: data.imageUrls || [],
+      status: data.status || "PENDING",
+    })
+    .returning();
+  return note;
+}
+
+/**
+ * Update timeline note
+ */
+export async function updateTimelineNote(
+  id: number,
+  data: {
+    content?: string;
+    imageUrls?: string[];
+    status?: "PENDING" | "APPROVED" | "REJECTED";
+    rejectReason?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [updated] = await db
+    .update(timelineNotes)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(timelineNotes.id, id))
+    .returning();
+  return updated;
+}
+
+/**
+ * Delete timeline note
+ */
+export async function deleteTimelineNote(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(timelineNotes).where(eq(timelineNotes.id, id));
+}
+
+/**
+ * Get pending timeline notes (for review)
+ */
+export async function getPendingTimelineNotes(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: timelineNotes.id,
+      videoId: timelineNotes.videoId,
+      userId: timelineNotes.userId,
+      timeSeconds: timelineNotes.timeSeconds,
+      content: timelineNotes.content,
+      imageUrls: timelineNotes.imageUrls,
+      status: timelineNotes.status,
+      createdAt: timelineNotes.createdAt,
+      userName: users.name,
+      userEmail: users.email,
+      videoTitle: videos.title,
+    })
+    .from(timelineNotes)
+    .innerJoin(users, eq(timelineNotes.userId, users.id))
+    .innerJoin(videos, eq(timelineNotes.videoId, videos.id))
+    .where(eq(timelineNotes.status, "PENDING"))
+    .orderBy(desc(timelineNotes.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Get timeline notes by user
+ */
+export async function getTimelineNotesByUserId(userId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: timelineNotes.id,
+      videoId: timelineNotes.videoId,
+      timeSeconds: timelineNotes.timeSeconds,
+      content: timelineNotes.content,
+      imageUrls: timelineNotes.imageUrls,
+      status: timelineNotes.status,
+      rejectReason: timelineNotes.rejectReason,
+      createdAt: timelineNotes.createdAt,
+      videoTitle: videos.title,
+    })
+    .from(timelineNotes)
+    .innerJoin(videos, eq(timelineNotes.videoId, videos.id))
+    .where(eq(timelineNotes.userId, userId))
+    .orderBy(desc(timelineNotes.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Approve timeline note (Admin only)
+ */
+export async function approveTimelineNote(id: number) {
+  return updateTimelineNote(id, { status: "APPROVED" });
+}
+
+/**
+ * Reject timeline note (Admin only)
+ */
+export async function rejectTimelineNote(id: number, reason: string) {
+  return updateTimelineNote(id, { status: "REJECTED", rejectReason: reason });
 }

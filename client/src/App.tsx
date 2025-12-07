@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Board from "./pages/Board";
-import Portal from "./pages/Portal";
+
 import Manage from "./pages/Manage";
 import VideoDetail from "./pages/VideoDetail";
 import Dashboard from "./pages/Dashboard";
@@ -20,7 +20,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
       <Route path={"/board"} component={Board} />
-      <Route path={"/portal"} component={Portal} />
+
       <Route path={"/manage"} component={Manage} />
       <Route path={"/manage/:id"} component={Manage} />
       <Route path={"/video/:id"} component={VideoDetail} />

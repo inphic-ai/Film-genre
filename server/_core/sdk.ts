@@ -167,7 +167,7 @@ class SDKServer {
       {
         email,
         name: options.name || "",
-        role: options.role || "user",
+        role: options.role || "staff",
       },
       options
     );
@@ -272,7 +272,7 @@ class SDKServer {
         name: session.name || null,
         email: sessionUserEmail,
         loginMethod: "password",
-        role: session.role as "user" | "admin",
+        role: session.role as "admin" | "staff" | "viewer",
         lastSignedIn: signedInAt,
       });
       user = await db.getUserByEmail(sessionUserEmail);

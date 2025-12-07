@@ -177,6 +177,21 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Upload images to R2 (staff/admin only)
+    uploadImagesToR2: protectedProcedure
+      .input(z.object({
+        images: z.array(z.string()),
+        folder: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role === 'viewer') {
+          throw new Error('Viewers cannot upload images');
+        }
+        const { uploadImagesToR2 } = await import('./r2');
+        const urls = await uploadImagesToR2(input.images, input.folder);
+        return { urls };
+      }),
+
     // Create video (admin only)
     create: protectedProcedure
       .input(z.object({
@@ -372,6 +387,120 @@ export const appRouter = router({
         }
         await db.removeTagFromVideo(input.videoId, input.tagId);
         return { success: true };
+      }),
+  }),
+
+  // Timeline Notes
+  timelineNotes: router({
+    // Get all notes for a video
+    getByVideoId: publicProcedure
+      .input(z.object({ videoId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getTimelineNotesByVideoId(input.videoId);
+      }),
+
+    // Get note by ID
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getTimelineNoteById(input.id);
+      }),
+
+    // Create new note (staff/admin only)
+    create: protectedProcedure
+      .input(z.object({
+        videoId: z.number(),
+        timeSeconds: z.number(),
+        content: z.string(),
+        imageUrls: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role === 'viewer') {
+          throw new Error('Viewers cannot create notes');
+        }
+        // Staff notes are PENDING by default, admin notes are APPROVED
+        const status = ctx.user.role === 'admin' ? 'APPROVED' : 'PENDING';
+        return await db.createTimelineNote({
+          ...input,
+          userId: ctx.user.id,
+          status: status as 'PENDING' | 'APPROVED',
+        });
+      }),
+
+    // Update note (owner or admin only)
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        content: z.string().optional(),
+        imageUrls: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const note = await db.getTimelineNoteById(input.id);
+        if (!note) {
+          throw new Error('Note not found');
+        }
+        if (note.userId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.updateTimelineNote(input.id, {
+          content: input.content,
+          imageUrls: input.imageUrls,
+        });
+      }),
+
+    // Delete note (owner or admin only)
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const note = await db.getTimelineNoteById(input.id);
+        if (!note) {
+          throw new Error('Note not found');
+        }
+        if (note.userId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        await db.deleteTimelineNote(input.id);
+        return { success: true };
+      }),
+
+    // Get pending notes (admin only)
+    getPending: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.getPendingTimelineNotes(input.limit);
+      }),
+
+    // Get my notes
+    getMyNotes: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        return await db.getTimelineNotesByUserId(ctx.user.id, input.limit);
+      }),
+
+    // Approve note (admin only)
+    approve: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.approveTimelineNote(input.id);
+      }),
+
+    // Reject note (admin only)
+    reject: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        reason: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.rejectTimelineNote(input.id, input.reason);
       }),
   }),
 

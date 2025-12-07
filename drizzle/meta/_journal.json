@@ -29,6 +29,13 @@
       "when": 1765042195556,
       "tag": "0003_slippery_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765070186209,
+      "tag": "0004_elite_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }

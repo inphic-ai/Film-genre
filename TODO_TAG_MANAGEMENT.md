@@ -92,7 +92,7 @@
   - [x] 確認現有標籤正常顯示
   - [x] 確認現有 AP## Phase 8：建立 checkpoint 並部署到 Railway
 - [x] 更新 TODO 標記所有任務完成
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (aaef9793)
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway 自動部署
 - [ ] 測試生產環境功能

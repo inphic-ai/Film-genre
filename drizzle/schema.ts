@@ -6,7 +6,7 @@ import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/
  * Columns use camelCase to match both database fields and generated types.
  */
 
-export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const roleEnum = pgEnum("role", ["admin", "staff", "viewer"]);
 
 export const users = pgTable("users", {
   /**
@@ -19,7 +19,7 @@ export const users = pgTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: roleEnum("role").default("user").notNull(),
+  role: roleEnum("role").default("staff").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -123,3 +123,27 @@ export const videoTags = pgTable("video_tags", {
 
 export type VideoTag = typeof videoTags.$inferSelect;
 export type InsertVideoTag = typeof videoTags.$inferInsert;
+
+/**
+ * Timeline note status enum - controls note approval workflow
+ */
+export const noteStatusEnum = pgEnum("note_status", ["PENDING", "APPROVED", "REJECTED"]);
+
+/**
+ * Timeline Notes table - stores time-stamped notes for videos with image support
+ */
+export const timelineNotes = pgTable("timeline_notes", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  timeSeconds: integer("timeSeconds").notNull(), // Video timestamp in seconds
+  content: text("content").notNull(), // Note text content
+  imageUrls: text("imageUrls").array(), // Array of Cloudflare R2 image URLs (max 5)
+  status: noteStatusEnum("status").default("PENDING").notNull(), // Approval status
+  rejectReason: text("rejectReason"), // Reason for rejection (only for REJECTED status)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type TimelineNote = typeof timelineNotes.$inferSelect;
+export type InsertTimelineNote = typeof timelineNotes.$inferInsert;

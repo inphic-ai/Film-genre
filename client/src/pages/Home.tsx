@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Film, Users, Shield } from "lucide-react";
+import { Film, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -19,10 +19,7 @@ export default function Home() {
               <Film className="w-4 h-4 mr-2" />
               Dashboard
             </Button>
-            <Button variant="outline" onClick={() => setLocation("/portal")}>
-              <Users className="w-4 h-4 mr-2" />
-              客戶專區
-            </Button>
+
             <Button onClick={() => setLocation("/login")}>
               <Shield className="w-4 h-4 mr-2" />
               管理員登入
@@ -36,41 +33,27 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <div className="space-y-4">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              內外分流的影片知識庫
+              影片知識庫管理系統
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              內部看板整合所有平台資源，客戶專區僅分享 YouTube 影片，實現專業的知識管理與客戶服務
+              整合多平台影片資源（YouTube/抖音/小紅書），支援智慧標籤、時間軸筆記、權限管理，實現專業的知識管理
             </p>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid md:grid-cols-2 gap-6 mt-12">
-            <div className="p-6 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-              <Shield className="w-12 h-12 text-primary mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">內部看板</h3>
-              <p className="text-muted-foreground mb-4">
-                顯示所有平台影片（YouTube/抖音/小紅書），依分類快速查找，供客服人員使用
+          {/* Main Action */}
+          <div className="max-w-md mx-auto mt-12">
+            <div className="p-8 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+              <Shield className="w-16 h-16 text-primary mb-4 mx-auto" />
+              <h3 className="text-2xl font-semibold mb-3 text-center">影片管理看板</h3>
+              <p className="text-muted-foreground mb-6 text-center">
+                顯示所有平台影片（YouTube/抖音/小紅書），支援智慧標籤、時間軸筆記、權限管理
               </p>
               <Button 
                 className="w-full" 
+                size="lg"
                 onClick={() => setLocation("/login")}
               >
-                前往內部看板
-              </Button>
-            </div>
-
-            <div className="p-6 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-              <Users className="w-12 h-12 text-primary mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">客戶自助專區</h3>
-              <p className="text-muted-foreground mb-4">
-                僅顯示 YouTube 影片，提供公開分享連結，讓客戶自助查找教學資源
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setLocation("/portal")}
-              >
-                前往客戶專區
+                登入系統
               </Button>
             </div>
           </div>
@@ -78,21 +61,21 @@ export default function Home() {
           {/* Features List */}
           <div className="mt-16 grid md:grid-cols-3 gap-6 text-left">
             <div>
-              <h4 className="font-semibold mb-2">🎯 智能分類</h4>
+              <h4 className="font-semibold mb-2">🏷️ 智慧標籤系統</h4>
               <p className="text-sm text-muted-foreground">
-                5大分類（使用介紹/維修/案例/常見問題/其他），AI 自動建議分類標籤
+                支援關鍵字標籤與商品編號標籤，自動檢測商品編號格式（QJD002001A），智慧排序優先顯示
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">🖼️ 自動縮圖</h4>
+              <h4 className="font-semibold mb-2">📝 時間軸筆記</h4>
               <p className="text-sm text-muted-foreground">
-                未上傳縮圖時，AI 自動根據影片標題生成吸引人的預覽圖
+                在影片特定時間點新增筆記與圖片，支援審核機制（Admin/Staff/Viewer 權限控制）
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-2">🔍 快速搜尋</h4>
               <p className="text-sm text-muted-foreground">
-                支援關鍵字、平台、分類篩選，快速定位所需影片
+                支援關鍵字、平台、分類、標籤多維度篩選，快速定位所需影片
               </p>
             </div>
           </div>

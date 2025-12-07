@@ -47,3 +47,12 @@
 - [x] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway 部署成功
+
+## Phase 8：移除客戶自助專區
+- [x] 刪除 Portal.tsx 頁面
+- [x] 移除 App.tsx 中的 /portal 路由
+- [x] 移除 Home.tsx 中的「前往客戶專區」按鈕與說明
+- [x] 更新 Home.tsx 頁面文案（改為內部專用系統）
+- [x] 測試所有頁面導航正常
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub

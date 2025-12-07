@@ -5,17 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon, Plus, X, Edit3 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { TagSelector } from "@/components/TagSelector";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { TimelineNotes } from "@/components/TimelineNotes";
+import { YouTubePlayer, YouTubePlayerHandle } from "@/components/YouTubePlayer";
 
-interface TimelineNote {
-  timestamp: number;
-  content: string;
-  created_at: string;
-}
+
 
 export default function VideoDetail() {
   const params = useParams();
@@ -26,11 +24,8 @@ export default function VideoDetail() {
   const { data: video, isLoading, error } = trpc.videos.getById.useQuery({ id: videoId });
   const { data: videoTags, isLoading: tagsLoading } = trpc.videoTags.getVideoTags.useQuery({ videoId });
   const incrementViewMutation = trpc.videos.incrementViewCount.useMutation();
-  const updateNotesMutation = trpc.videos.updateNotes.useMutation();
-
-  const [notes, setNotes] = useState<TimelineNote[]>([]);
-  const [newNote, setNewNote] = useState("");
-  const [currentTimestamp, setCurrentTimestamp] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const youtubePlayerRef = useRef<YouTubePlayerHandle>(null);
   const [editingTags, setEditingTags] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
 
@@ -42,17 +37,6 @@ export default function VideoDetail() {
     if (video) {
       // Increment view count when video is loaded
       incrementViewMutation.mutate({ id: videoId });
-
-      // Parse notes from JSON string
-      if (video.notes) {
-        try {
-          const parsedNotes = JSON.parse(video.notes);
-          setNotes(Array.isArray(parsedNotes) ? parsedNotes : []);
-        } catch (e) {
-          console.error("Failed to parse notes:", e);
-          setNotes([]);
-        }
-      }
     }
   }, [video]);
 
@@ -105,44 +89,10 @@ export default function VideoDetail() {
     return categoryMap[category] || category;
   };
 
-  const formatTimestamp = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleAddNote = () => {
-    if (!newNote.trim()) {
-      toast.error("請輸入筆記內容");
-      return;
+  const handleSeek = (timeSeconds: number) => {
+    if (youtubePlayerRef.current) {
+      youtubePlayerRef.current.seekTo(timeSeconds);
     }
-
-    const note: TimelineNote = {
-      timestamp: currentTimestamp,
-      content: newNote.trim(),
-      created_at: new Date().toISOString(),
-    };
-
-    const updatedNotes = [...notes, note].sort((a, b) => a.timestamp - b.timestamp);
-    setNotes(updatedNotes);
-    setNewNote("");
-    setCurrentTimestamp(0);
-
-    // Save to database
-    updateNotesMutation.mutate(
-      {
-        id: videoId,
-        notes: JSON.stringify(updatedNotes),
-      },
-      {
-        onSuccess: () => {
-          toast.success("筆記已儲存");
-        },
-        onError: (error) => {
-          toast.error(`儲存失敗：${error.message}`);
-        },
-      }
-    );
   };
 
   const canShare = video?.platform === "youtube" && video?.shareStatus === "public";
@@ -197,11 +147,13 @@ export default function VideoDetail() {
           <CardContent className="p-6">
             <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
               {video.platform === "youtube" ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${extractYouTubeId(video.videoUrl)}`}
-                  className="w-full h-full rounded-lg"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                <YouTubePlayer
+                  ref={youtubePlayerRef}
+                  videoId={extractYouTubeId(video.videoUrl)}
+                  onTimeUpdate={setCurrentTime}
+                  onReady={() => {
+                    // Player is ready
+                  }}
                 />
               ) : (
                 <div className="text-center">
@@ -386,67 +338,12 @@ export default function VideoDetail() {
 
         {/* Timeline Notes */}
         <Card>
-          <CardHeader>
-            <CardTitle>時間軸筆記</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Existing Notes */}
-            {notes.length > 0 ? (
-              <div className="space-y-3">
-                {notes.map((note, index) => (
-                  <div key={index} className="flex gap-3 p-3 bg-muted rounded-lg">
-                    <div className="font-mono text-sm text-primary font-semibold min-w-[60px]">
-                      {formatTimestamp(note.timestamp)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm">{note.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(note.created_at).toLocaleString("zh-TW")}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">尚無筆記</p>
-            )}
-
-            {/* Add Note Form */}
-            <div className="pt-4 border-t space-y-3">
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-2 block">時間戳記（秒）</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={currentTimestamp}
-                    onChange={(e) => setCurrentTimestamp(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="0"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-2 block">顯示格式</label>
-                  <div className="px-3 py-2 border rounded-md bg-muted font-mono">
-                    {formatTimestamp(currentTimestamp)}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">筆記內容</label>
-                <textarea
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md min-h-[100px]"
-                  placeholder="輸入筆記內容..."
-                />
-              </div>
-
-              <Button onClick={handleAddNote} className="w-full">
-                新增筆記
-              </Button>
-            </div>
+          <CardContent className="p-6">
+            <TimelineNotes
+              videoId={videoId}
+              currentTime={currentTime}
+              onSeek={handleSeek}
+            />
           </CardContent>
         </Card>
       </main>
