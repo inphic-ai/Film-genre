@@ -8,6 +8,7 @@ import { ENV } from "./_core/env";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as ai from "./ai";
+import { productsRouter } from "./trpc/routers/products";
 
 export const appRouter = router({
   system: systemRouter,
@@ -122,6 +123,16 @@ export const appRouter = router({
           throw new Error('Unauthorized');
         }
         return await db.searchVideos(input.keyword, input.platform);
+      }),
+
+    // Global search (supports title, product ID, tags)
+    globalSearch: publicProcedure
+      .input(z.object({
+        query: z.string().min(1),
+        limit: z.number().min(1).max(50).default(20),
+      }))
+      .query(async ({ input }) => {
+        return await db.globalSearchVideos(input.query, input.limit);
       }),
 
     // Get video by ID (allow public access for client portal)
@@ -573,6 +584,8 @@ export const appRouter = router({
         return { category };
       }),
   }),
+  // Products knowledge hub
+  products: productsRouter,
 });
 
 export type AppRouter = typeof appRouter;

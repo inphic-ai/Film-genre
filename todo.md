@@ -110,4 +110,34 @@
 - [ ] 新增影片描述與時長欄位
 - [ ] 測試所有頁面導航與視覺
 - [x] 建立 checkpoint (version: 1fbe08d9)
+- [x] 推送到 GitHub (commit: f5a367e)
+
+## Phase 14：UI 升級 - 側邊欄導航與商品知識中樞
+- [x] 讀取 UI 原型設計文件（docs/ui-upgrade-design.md）
+- [x] 升級 DashboardLayout 組件（深色側邊欄 + Logo + 使用者資訊）
+- [x] 新增導航項目：看板總覽、商品知識中樞、我的貢獻、系統管理、審核中心
+- [x] 實作頂部搜尋列（品牌標識 + 全域搜尋框 + 新增影片按鈕）
+- [x] 建立商品知識中樞後端 API（products router）
+  - [x] products.search（SKU 搜尋）
+  - [x] products.getBySku（根據 SKU 取得商品）
+  - [x] products.getFamily（商品家族查詢）
+  - [x] products.getRelations（商品關聯查詢）
+  - [x] products.getRelatedVideos（相關影片查詢）
+  - [x] products.create（新增商品）
+  - [x] products.update（更新商品）
+  - [x] products.createRelation（建立商品關聯）
+  - [x] products.deleteRelation（刪除商品關聯）
+- [x] 建立商品知識中樞前端頁面（/products）
+  - [x] SKU 搜尋輸入框
+  - [x] 商品資訊顯示卡片
+  - [x] 商品家族列表（前 6 碼相同）
+  - [x] 關聯商品列表（同義 SKU、相關零件）
+  - [x] 相關影片列表
+- [x] 實作全域搜尋功能
+  - [x] 後端 API：videos.globalSearch（支援標題、商品編號、描述）
+  - [x] 前端搜尋框組件（頂部導航列）
+  - [x] 搜尋結果頁面（Board.tsx 整合 URL 參數）
+- [x] 建立 vitest 測試（商品知識中樞 API）- 12 個測試全部通過
+- [x] 測試所有頁面導航與視覺（見 docs/browser-test-results.md）
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub

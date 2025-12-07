@@ -1056,3 +1056,34 @@ export async function batchRejectTimelineNotes(ids: number[], reason: string) {
     throw error;
   }
 }
+
+/**
+ * Global search for videos (supports title, product ID, tags)
+ */
+export async function globalSearchVideos(query: string, limit: number = 20): Promise<Video[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const searchPattern = `%${query}%`;
+  
+  try {
+    // Search in title, description, and productId
+    const results = await db
+      .select()
+      .from(videos)
+      .where(
+        or(
+          like(videos.title, searchPattern),
+          like(videos.description, searchPattern),
+          like(videos.productId, searchPattern)
+        )
+      )
+      .orderBy(desc(videos.createdAt))
+      .limit(limit);
+    
+    return results;
+  } catch (error) {
+    console.error("[Database] Error in global search:", error);
+    return [];
+  }
+}

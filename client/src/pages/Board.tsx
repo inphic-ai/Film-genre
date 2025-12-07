@@ -21,8 +21,13 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Board() {
-  const [, setLocation] = useLocation();
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [location, setLocation] = useLocation();
+  
+  // 從 URL 參數讀取搜尋關鍵字
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const searchFromUrl = urlParams.get('search') || '';
+  
+  const [searchKeyword, setSearchKeyword] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);

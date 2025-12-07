@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import TagDetailPage from "./pages/TagDetailPage";
 import TagRankingPage from "./pages/TagRankingPage";
 import ReviewCenter from "./pages/ReviewCenter";
+import Products from "./pages/Products";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path={"/tag/:id"} component={TagDetailPage} />
       <Route path={"/tags/ranking"} component={TagRankingPage} />
       <Route path={"/admin/review"} component={ReviewCenter} />
+      <Route path={"/products"} component={Products} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
