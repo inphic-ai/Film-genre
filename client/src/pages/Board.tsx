@@ -4,11 +4,12 @@ import { VideoCard } from "@/components/VideoCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Loader2, Tag, X } from "lucide-react";
+import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -33,6 +34,9 @@ export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title'>('createdAt');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedShareStatus, setSelectedShareStatus] = useState<string[]>([]);
 
   const utils = trpc.useUtils();
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
@@ -70,8 +74,18 @@ export default function Board() {
       video.description?.toLowerCase().includes(searchKeyword.toLowerCase());
     
     const matchesCategory = selectedCategory === "all" || video.category === selectedCategory;
+    const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(video.platform);
+    const matchesShareStatus = selectedShareStatus.length === 0 || selectedShareStatus.includes(video.shareStatus);
     
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesPlatform && matchesShareStatus;
+  }).sort((a, b) => {
+    if (sortBy === 'viewCount') {
+      return (b.viewCount || 0) - (a.viewCount || 0);
+    } else if (sortBy === 'createdAt') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else { // title
+      return a.title.localeCompare(b.title);
+    }
   });
 
   const videosByCategory = categories?.reduce((acc, category) => {
@@ -112,6 +126,121 @@ export default function Board() {
               className="pl-9"
             />
           </div>
+
+          {/* Sort Selector */}
+          <Select value={sortBy} onValueChange={(value: 'viewCount' | 'createdAt' | 'title') => setSortBy(value)}>
+            <SelectTrigger className="w-[180px]">
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="viewCount">熱門度（點擊數）</SelectItem>
+              <SelectItem value="createdAt">建立時間</SelectItem>
+              <SelectItem value="title">標題（A-Z）</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Platform Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                平台
+                {selectedPlatforms.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedPlatforms.length}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">選擇平台</h4>
+                  {selectedPlatforms.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedPlatforms([])}
+                    >
+                      清除
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {[{ value: 'youtube', label: 'YouTube' }, { value: 'tiktok', label: '抖音' }, { value: 'redbook', label: '小紅書' }].map(platform => (
+                    <div key={platform.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`platform-${platform.value}`}
+                        checked={selectedPlatforms.includes(platform.value)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPlatforms([...selectedPlatforms, platform.value]);
+                          } else {
+                            setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform.value));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`platform-${platform.value}`} className="flex-1 cursor-pointer">
+                        {platform.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Share Status Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                分享狀態
+                {selectedShareStatus.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedShareStatus.length}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">選擇分享狀態</h4>
+                  {selectedShareStatus.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedShareStatus([])}
+                    >
+                      清除
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {[{ value: 'private', label: '私人（僅內部看板）' }, { value: 'public', label: '公開（客戶專區）' }].map(status => (
+                    <div key={status.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`status-${status.value}`}
+                        checked={selectedShareStatus.includes(status.value)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedShareStatus([...selectedShareStatus, status.value]);
+                          } else {
+                            setSelectedShareStatus(selectedShareStatus.filter(s => s !== status.value));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`status-${status.value}`} className="flex-1 cursor-pointer">
+                        {status.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Tag Filter */}
           <Popover open={tagFilterOpen} onOpenChange={setTagFilterOpen}>

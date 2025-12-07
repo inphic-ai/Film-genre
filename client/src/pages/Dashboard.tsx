@@ -43,57 +43,65 @@ export default function Dashboard() {
 
         {/* 綜合統計卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">總影片數</CardTitle>
-              <Film className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{overview?.totalVideos || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                跨平台影片資源
-              </p>
-            </CardContent>
-          </Card>
+          <Link href="/board">
+            <Card className="cursor-pointer hover:bg-accent transition-colors">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">總影片數</CardTitle>
+                <Film className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{overview?.totalVideos || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  點擊查看影片看板
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">總商品數</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{overview?.totalProducts || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                商品知識中樞
-              </p>
-            </CardContent>
-          </Card>
+          <Link href="/products">
+            <Card className="cursor-pointer hover:bg-accent transition-colors">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">總商品數</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{overview?.totalProducts || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  點擊查看商品中樞
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">時間軸筆記</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{overview?.totalNotes || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                累計筆記數量
-              </p>
-            </CardContent>
-          </Card>
+          <Link href="/my-contributions">
+            <Card className="cursor-pointer hover:bg-accent transition-colors">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">時間軸筆記</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{overview?.totalNotes || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  點擊查看我的貢獻
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">待審核筆記</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{overview?.pendingNotes || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                需要審核處理
-              </p>
-            </CardContent>
-          </Card>
+          <Link href="/review-center">
+            <Card className="cursor-pointer hover:bg-accent transition-colors">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">待審核筆記</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{overview?.pendingNotes || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  點擊查看審核中心
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* 影片統計圖表 */}
