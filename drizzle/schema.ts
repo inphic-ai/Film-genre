@@ -274,3 +274,46 @@ export const notifications = pgTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Video document type enum - categorizes different document types
+ */
+export const documentTypeEnum = pgEnum("document_type", ["manual", "sop", "other"]);
+
+/**
+ * Video Documents table - stores PDF manuals, SOPs, and other documents
+ * Files are stored in Cloudflare R2
+ */
+export const videoDocuments = pgTable("video_documents", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  type: documentTypeEnum("type").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  fileUrl: text("fileUrl").notNull(), // Cloudflare R2 URL
+  fileKey: varchar("fileKey", { length: 500 }).notNull(), // R2 file key
+  fileSize: integer("fileSize"), // File size in bytes
+  mimeType: varchar("mimeType", { length: 100 }), // e.g., application/pdf
+  uploadedBy: integer("uploadedBy").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type VideoDocument = typeof videoDocuments.$inferSelect;
+export type InsertVideoDocument = typeof videoDocuments.$inferInsert;
+
+/**
+ * Knowledge Nodes table - stores structured knowledge (problem/cause/solution)
+ * Linked to SKU for product-specific troubleshooting
+ */
+export const knowledgeNodes = pgTable("knowledge_nodes", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  sku: varchar("sku", { length: 50 }).notNull(),
+  problem: text("problem").notNull(),
+  cause: text("cause"),
+  solution: text("solution").notNull(),
+  createdBy: integer("createdBy").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type KnowledgeNode = typeof knowledgeNodes.$inferSelect;
+export type InsertKnowledgeNode = typeof knowledgeNodes.$inferInsert;

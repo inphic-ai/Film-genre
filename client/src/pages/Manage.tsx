@@ -25,6 +25,8 @@ export default function Manage() {
   const [productId, setProductId] = useState("");
   const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
   const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
+  const [customThumbnailUrl, setCustomThumbnailUrl] = useState<string | null>(null);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: categories } = trpc.categories.list.useQuery();
@@ -126,6 +128,28 @@ export default function Manage() {
     },
   });
 
+  const uploadThumbnailMutation = trpc.videos.uploadThumbnail.useMutation({
+    onSuccess: (data) => {
+      setCustomThumbnailUrl(data.url);
+      setThumbnailUrl(data.url);
+      toast.success("縮圖上傳成功！");
+    },
+    onError: (error) => {
+      toast.error(`縮圖上傳失敗：${error.message}`);
+    },
+  });
+
+  const deleteThumbnailMutation = trpc.videos.deleteThumbnail.useMutation({
+    onSuccess: () => {
+      setCustomThumbnailUrl(null);
+      setThumbnailUrl("");
+      toast.success("縮圖已刪除！");
+    },
+    onError: (error) => {
+      toast.error(`刪除失敗：${error.message}`);
+    },
+  });
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -144,6 +168,8 @@ export default function Manage() {
       setCategory(existingVideo.category);
       setProductId(existingVideo.productId || "");
       setShareStatus(existingVideo.shareStatus || "private");
+      // @ts-ignore - customThumbnailUrl may exist in existingVideo
+      setCustomThumbnailUrl(existingVideo.customThumbnailUrl || null);
       // Tags will be loaded by TagSelector component
     }
   }, [existingVideo]);
@@ -188,6 +214,55 @@ export default function Manage() {
       return;
     }
     suggestCategoryMutation.mutate({ title, description });
+  };
+
+  const handleUploadThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('請選擇圖片檔案！');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('圖片大小不能超過 5MB！');
+      return;
+    }
+
+    if (!videoId) {
+      toast.error('請先儲存影片後再上傳縮圖！');
+      return;
+    }
+
+    setIsUploadingThumbnail(true);
+
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        await uploadThumbnailMutation.mutateAsync({
+          videoId,
+          imageData: base64,
+        });
+        setIsUploadingThumbnail(false);
+      };
+      reader.onerror = () => {
+        toast.error('讀取檔案失敗！');
+        setIsUploadingThumbnail(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setIsUploadingThumbnail(false);
+    }
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (!videoId) return;
+    await deleteThumbnailMutation.mutateAsync({ videoId });
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
@@ -345,37 +420,89 @@ export default function Manage() {
                 )}
               </div>
 
-              {/* Thumbnail URL */}
+              {/* Thumbnail Upload */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="thumbnailUrl">縮圖連結</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleGenerateThumbnail}
-                    disabled={isAiLoading || !title}
-                  >
-                    <Wand2 className="h-4 w-4 mr-2" />
-                    AI 生成縮圖
-                  </Button>
+                  <Label htmlFor="thumbnailUrl">影片縮圖</Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateThumbnail}
+                      disabled={isAiLoading || !title}
+                    >
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      AI 生成
+                    </Button>
+                    {videoId && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={isUploadingThumbnail}
+                        onClick={() => document.getElementById('thumbnail-upload')?.click()}
+                      >
+                        {isUploadingThumbnail ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            上傳中...
+                          </>
+                        ) : (
+                          "上傳縮圖"
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                <input
+                  id="thumbnail-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleUploadThumbnail}
+                />
                 <Input
                   id="thumbnailUrl"
                   type="url"
                   value={thumbnailUrl}
                   onChange={(e) => setThumbnailUrl(e.target.value)}
-                  placeholder="https://... (選填，可使用 AI 自動生成)"
-                  disabled={isAiLoading}
+                  placeholder="https://... (選填，或使用 AI 生成 / 上傳縮圖)"
+                  disabled={isAiLoading || isUploadingThumbnail}
                 />
                 {thumbnailUrl && (
-                  <div className="mt-2 rounded-lg overflow-hidden border">
+                  <div className="mt-2 rounded-lg overflow-hidden border relative group">
                     <img
                       src={thumbnailUrl}
                       alt="縮圖預覽"
                       className="w-full aspect-video object-cover"
                     />
+                    {customThumbnailUrl && videoId && (
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => document.getElementById('thumbnail-upload')?.click()}
+                        >
+                          換圖
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleDeleteThumbnail}
+                        >
+                          刪除
+                        </Button>
+                      </div>
+                    )}
                   </div>
+                )}
+                {!videoId && (
+                  <p className="text-sm text-muted-foreground">
+                    ℹ️ 請先儲存影片後才能上傳自訂縮圖
+                  </p>
                 )}
               </div>
 

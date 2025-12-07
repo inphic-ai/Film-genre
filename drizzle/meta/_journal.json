@@ -64,6 +64,13 @@
       "when": 1765087063857,
       "tag": "0008_classy_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1765091806850,
+      "tag": "0009_fearless_tattoo",
+      "breakpoints": true
     }
   ]
 }

@@ -272,7 +272,40 @@
   - [x] Signed URL 生成功能
   - [x] Buffer 上傳功能
   - [x] Key 正規化功能
-- [ ] 測試影片縮圖上傳功能（實際 API）
-- [ ] 測試 AI 圖片生成功能（實際 API）
-- [ ] 部署到 Railway 並驗證生產環境
+- [ ] 測試影片縮圖上傳功能（實際 API）- 待 Railway 部署後測試
+- [ ] 測試 AI 圖片生成功能（實際 API）- 待 Railway 部署後測試
+- [ ] 部署到 Railway 並驗證生產環境 - 等待自動部署
 - [ ] 更新文件（README、開發規範）
+- [x] 建立 checkpoint (version: f05a703a## Phase 20：縮圖上傳功能（方案 A 優先實作）x] 提出資料庫 Schema 變更申請（docs/DB_CHANGE_REQUEST_PHASE20.md）
+  - [x] timeline_notes 表（時間軸筆記，11 個欄位）
+  - [x] video_suggestions 表（影片建議，8 個欄位）
+  - [x] video_documents 表（影片文件，10 個欄位）
+  - [x] knowledge_nodes 表（知識節點，8 個欄位）
+- [x] 等待 Schema 變更審核通過
+- [x] 執行 pnpm db:push 推送到 Railway PostgreSQL（migration 0009_fearless_tattoo.sql）
+- [ ] 實作後端 API
+  - [ ] timelineNotes router（list、create、update、delete、approve）
+  - [ ] videoSuggestions router（list、create、update、delete）
+  - [ ] videoDocuments router（list、upload）
+  - [ ] knowledgeNodes router（listByVideo）
+- [ ] 實作前端組件
+  - [ ] 重新設計 VideoDetail.tsx（左右分欄佈局）
+  - [ ] TimelineNotesList.tsx（時間軸筆記列表）
+  - [ ] TimelineNoteCard.tsx（筆記卡片）
+  - [ ] AddTimelineNoteForm.tsx（新增筆記表單）
+  - [ ] DocumentTabs.tsx（Tab 切換：說明書 PDF / SOP / 知識節點）
+  - [ ] PDFViewer.tsx（PDF 檢視器）
+  - [ ] VideoSuggestionsList.tsx（建議列表）
+  - [ ] VideoSuggestionCard.tsx（建議卡片）
+  - [ ] ThumbnailUpload.tsx（縮圖上傳組件）
+- [ ] 實作縮圖上傳前端功能
+  - [ ] 新增影片對話框新增「自訂縮圖」上傳欄位
+  - [ ] 縮圖預覽功能
+  - [ ] 換圖功能
+  - [ ] 刪除功能
+  - [ ] 優先顯示自訂縮圖或 YouTube 預設圖示
+- [ ] 建立 vitest 測試
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
