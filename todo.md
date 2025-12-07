@@ -67,5 +67,5 @@
 - [x] 驗證 timeline_notes 表結構 (10 個欄位)
 - [x] 測試時間軸筆記功能（資料庫連線測試通過）
 - [x] 建立資料庫連線測試 (database.connection.test.ts)
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 72bd1c02)
 - [ ] 推送到 GitHub
