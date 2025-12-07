@@ -45,7 +45,7 @@
 - [x] 測試向後相容性
 - [x] 建立 vitest 測試
 - [x] 建立 checkpoint
-- [ ] 推送到 GitHub
+- [x] 推送到 GitHub (commit: 4a40617)
 - [ ] 驗證 Railway 部署成功
 
 ## Phase 8：移除客戶自助專區
@@ -55,7 +55,7 @@
 - [x] 更新 Home.tsx 頁面文案（改為內部專用系統）
 - [x] 測試所有頁面導航正常
 - [x] 建立 checkpoint
-- [ ] 推送到 GitHub
+- [x] 推送到 GitHub (commit: 4a40617)
 
 ## Phase 9：修正資料庫連線（TiDB → Railway PostgreSQL）
 - [x] 修改 server/db.ts 優先使用 CUSTOM_DATABASE_URL
@@ -68,4 +68,11 @@
 - [x] 測試時間軸筆記功能（資料庫連線測試通過）
 - [x] 建立資料庫連線測試 (database.connection.test.ts)
 - [x] 建立 checkpoint (version: 72bd1c02)
+- [x] 推送到 GitHub (commit: 4a40617)
+
+## Phase 10：移除 Login.tsx 中的客戶專區按鈕
+- [x] 移除 Login.tsx 中的「前往客戶專區」按鈕
+- [x] 測試登入頁面
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
+- [ ] 驗證 Railway 部署

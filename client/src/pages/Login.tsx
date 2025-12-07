@@ -67,16 +67,7 @@ export default function Login() {
               {loginMutation.isPending ? "登入中..." : "登入"}
             </Button>
           </form>
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>客戶自助專區無需登入</p>
-            <Button
-              variant="link"
-              className="p-0 h-auto"
-              onClick={() => setLocation("/portal")}
-            >
-              前往客戶專區 →
-            </Button>
-          </div>
+
         </CardContent>
       </Card>
     </div>
