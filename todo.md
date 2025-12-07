@@ -46,7 +46,7 @@
 - [x] 建立 vitest 測試
 - [x] 建立 checkpoint
 - [x] 推送到 GitHub (commit: 4a40617)
-- [ ] 驗證 Railway 部署成功
+- [x] 驗證 Railway 部署（登入頁面已無客戶專區按鈕）成功
 
 ## Phase 8：移除客戶自助專區
 - [x] 刪除 Portal.tsx 頁面
@@ -74,5 +74,12 @@
 - [x] 移除 Login.tsx 中的「前往客戶專區」按鈕
 - [x] 測試登入頁面
 - [x] 建立 checkpoint (version: 05873604)
+- [x] 推送到 GitHub (commit: 3e6fc86)
+- [x] 驗證 Railway 部署（登入頁面已無客戶專區按鈕）
+
+## Phase 11：修正 VideoCard 觀看影片按鈕邏輯
+- [x] 移除 VideoCard 的「觀看影片」按鈕（改為點擊卡片進入詳情頁）
+- [x] 測試點擊卡片是否正確進入 VideoDetail 頁面
+- [x] 測試時間軸筆記功能（新增、顯示、時間戳記、圖片上傳區域全部正常）
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
-- [ ] 驗證 Railway 部署

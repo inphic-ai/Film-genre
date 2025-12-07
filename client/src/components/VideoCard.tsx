@@ -133,20 +133,6 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false, showTa
       </CardHeader>
 
       <CardContent className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(video.videoUrl, '_blank');
-            }}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            觀看影片
-          </Button>
-        </div>
         {showActions && (
           <div className="flex items-center gap-2">
             <Button
