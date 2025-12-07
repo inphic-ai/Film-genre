@@ -82,4 +82,20 @@
 - [x] 測試點擊卡片是否正確進入 VideoDetail 頁面
 - [x] 測試時間軸筆記功能（新增、顯示、時間戳記、圖片上傳區域全部正常）
 - [x] 建立 checkpoint (version: 49219b0b)
+- [x] 推送到 GitHub (commit: 107d092)
+
+## Phase 12：時間軸筆記審核中心
+- [x] 設計審核中心 UI 與功能規劃（docs/review-center-design.md）
+- [x] 建立後端 API（listPendingNotes, batchApprove, batchReject）
+- [x] 建立 /admin/review 頁面組件
+- [x] 實作筆記列表顯示（建立者、影片標題、時間戳記、筆記內容）
+- [x] 實作單筆審核功能（核准/拒絕）
+- [x] 實作批次審核功能
+- [x] 實作拒絕原因輸入
+- [x] 實作篩選與排序功能
+- [x] 測試 Admin 權限審核流程（列表、篩選、排序、筆記顯示全部正常）
+- [ ] 測試 Staff 權限（僅能查看自己的筆記）
+- [ ] 測試 Viewer 權限（無法存取審核中心）
+- [x] 建立 vitest 測試 (reviewCenter.test.ts - 5 個測試全部通過)
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub

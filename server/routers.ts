@@ -502,6 +502,48 @@ export const appRouter = router({
         }
         return await db.rejectTimelineNote(input.id, input.reason);
       }),
+
+    // List pending notes with filters (admin/staff)
+    listPendingNotes: protectedProcedure
+      .input(z.object({
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'ALL']).optional(),
+        userId: z.number().optional(),
+        sortBy: z.enum(['createdAt_desc', 'createdAt_asc']).optional(),
+        limit: z.number().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Staff can only see their own notes
+        const userId = ctx.user.role === 'staff' ? ctx.user.id : input.userId;
+        return await db.listTimelineNotes({
+          status: input.status === 'ALL' ? undefined : input.status,
+          userId,
+          sortBy: input.sortBy || 'createdAt_desc',
+          limit: input.limit,
+        });
+      }),
+
+    // Batch approve notes (admin only)
+    batchApprove: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.batchApproveTimelineNotes(input.ids);
+      }),
+
+    // Batch reject notes (admin only)
+    batchReject: protectedProcedure
+      .input(z.object({
+        ids: z.array(z.number()),
+        reason: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.batchRejectTimelineNotes(input.ids, input.reason);
+      }),
   }),
 
   // AI assistance

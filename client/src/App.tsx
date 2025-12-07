@@ -13,6 +13,7 @@ import VideoDetail from "./pages/VideoDetail";
 import Dashboard from "./pages/Dashboard";
 import TagDetailPage from "./pages/TagDetailPage";
 import TagRankingPage from "./pages/TagRankingPage";
+import ReviewCenter from "./pages/ReviewCenter";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/tag/:id"} component={TagDetailPage} />
       <Route path={"/tags/ranking"} component={TagRankingPage} />
+      <Route path={"/admin/review"} component={ReviewCenter} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

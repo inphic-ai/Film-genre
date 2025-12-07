@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, or, like, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, like, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote } from "../drizzle/schema";
@@ -954,4 +954,104 @@ export async function approveTimelineNote(id: number) {
  */
 export async function rejectTimelineNote(id: number, reason: string) {
   return updateTimelineNote(id, { status: "REJECTED", rejectReason: reason });
+}
+
+// List timeline notes with filters
+export async function listTimelineNotes(options: {
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  userId?: number;
+  sortBy?: 'createdAt_desc' | 'createdAt_asc';
+  limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    let query = db
+      .select({
+        id: timelineNotes.id,
+        videoId: timelineNotes.videoId,
+        userId: timelineNotes.userId,
+        timeSeconds: timelineNotes.timeSeconds,
+        content: timelineNotes.content,
+        imageUrls: timelineNotes.imageUrls,
+        status: timelineNotes.status,
+        rejectReason: timelineNotes.rejectReason,
+        createdAt: timelineNotes.createdAt,
+        updatedAt: timelineNotes.updatedAt,
+        // Join with users to get creator info
+        userName: users.name,
+        userRole: users.role,
+        // Join with videos to get video title
+        videoTitle: videos.title,
+      })
+      .from(timelineNotes)
+      .leftJoin(users, eq(timelineNotes.userId, users.id))
+      .leftJoin(videos, eq(timelineNotes.videoId, videos.id));
+
+    // Apply filters
+    const conditions = [];
+    if (options.status) {
+      conditions.push(eq(timelineNotes.status, options.status));
+    }
+    if (options.userId) {
+      conditions.push(eq(timelineNotes.userId, options.userId));
+    }
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+
+    // Apply sorting
+    if (options.sortBy === 'createdAt_asc') {
+      query = query.orderBy(asc(timelineNotes.createdAt)) as any;
+    } else {
+      query = query.orderBy(desc(timelineNotes.createdAt)) as any;
+    }
+
+    // Apply limit
+    if (options.limit) {
+      query = query.limit(options.limit) as any;
+    }
+
+    return await query;
+  } catch (error) {
+    console.error("[Database] Error listing timeline notes:", error);
+    return [];
+  }
+}
+
+// Batch approve timeline notes
+export async function batchApproveTimelineNotes(ids: number[]) {
+  const db = await getDb();
+  if (!db) return { success: false, count: 0 };
+
+  try {
+    const result = await db
+      .update(timelineNotes)
+      .set({ status: "APPROVED", updatedAt: new Date() })
+      .where(inArray(timelineNotes.id, ids));
+
+    return { success: true, count: ids.length };
+  } catch (error) {
+    console.error("[Database] Error batch approving timeline notes:", error);
+    throw error;
+  }
+}
+
+// Batch reject timeline notes
+export async function batchRejectTimelineNotes(ids: number[], reason: string) {
+  const db = await getDb();
+  if (!db) return { success: false, count: 0 };
+
+  try {
+    const result = await db
+      .update(timelineNotes)
+      .set({ status: "REJECTED", rejectReason: reason, updatedAt: new Date() })
+      .where(inArray(timelineNotes.id, ids));
+
+    return { success: true, count: ids.length };
+  } catch (error) {
+    console.error("[Database] Error batch rejecting timeline notes:", error);
+    throw error;
+  }
 }
