@@ -1,14 +1,37 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Film, FileText, CheckCircle, Clock, XCircle, Eye } from "lucide-react";
+import { Loader2, Film, FileText, CheckCircle, Clock, XCircle, Eye, Users } from "lucide-react";
 import { Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function MyContributions() {
-  const { data: stats, isLoading: statsLoading } = trpc.myContributions.getStats.useQuery();
-  const { data: myVideos, isLoading: videosLoading } = trpc.myContributions.getMyVideos.useQuery();
-  const { data: myNotes, isLoading: notesLoading } = trpc.myContributions.getMyNotes.useQuery();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  
+  // Admin 專屬：列出所有使用者
+  const { data: allUsers } = trpc.myContributions.listUsers.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  
+  // 根據選擇的使用者或當前使用者查詢資料
+  const targetUserId = selectedUserId || user?.id;
+  
+  const { data: stats, isLoading: statsLoading } = selectedUserId
+    ? trpc.myContributions.getUserStats.useQuery({ userId: selectedUserId })
+    : trpc.myContributions.getStats.useQuery();
+  
+  const { data: myVideos, isLoading: videosLoading } = selectedUserId
+    ? trpc.myContributions.getUserVideos.useQuery({ userId: selectedUserId })
+    : trpc.myContributions.getMyVideos.useQuery();
+  
+  const { data: myNotes, isLoading: notesLoading } = selectedUserId
+    ? trpc.myContributions.getUserNotes.useQuery({ userId: selectedUserId })
+    : trpc.myContributions.getMyNotes.useQuery();
 
   const isLoading = statsLoading || videosLoading || notesLoading;
 
@@ -26,11 +49,38 @@ export default function MyContributions() {
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">我的貢獻</h1>
-          <p className="text-muted-foreground">
-            查看您提交的影片與時間軸筆記，追蹤審核狀態與貢獻統計
-          </p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold tracking-tight">我的貢獻</h1>
+              <p className="text-muted-foreground">
+                查看您提交的影片與時間軸筆記，追蹤審核狀態與貢獻統計
+              </p>
+            </div>
+            
+            {/* Admin 專屬：人員下拉選單 */}
+            {isAdmin && allUsers && allUsers.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  value={selectedUserId || "me"}
+                  onValueChange={(value) => setSelectedUserId(value === "me" ? null : value)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="選擇人員" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="me">我的貢獻</SelectItem>
+                    {allUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.name} ({u.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 貢獻統計卡片 */}

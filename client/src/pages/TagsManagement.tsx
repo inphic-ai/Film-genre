@@ -27,6 +27,10 @@ export default function TagsManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   
+  // View controls
+  const [tagTypeFilter, setTagTypeFilter] = useState<"ALL" | "KEYWORD" | "PRODUCT_CODE">("ALL");
+  const [sortBy, setSortBy] = useState<"usage_desc" | "usage_asc" | "created_desc">("usage_desc");
+  
   // Form states
   const [formName, setFormName] = useState("");
   const [formTagType, setFormTagType] = useState<"KEYWORD" | "PRODUCT_CODE">("KEYWORD");
@@ -115,10 +119,28 @@ export default function TagsManagement() {
     deleteMutation.mutate({ id: tag.id });
   };
   
-  const filteredTags = allTags?.filter(tag =>
-    tag.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-    tag.description?.toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  const filteredTags = allTags
+    ?.filter(tag => {
+      // Search filter
+      const matchesSearch = tag.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        tag.description?.toLowerCase().includes(searchKeyword.toLowerCase());
+      if (!matchesSearch) return false;
+      
+      // Tag type filter
+      if (tagTypeFilter === "ALL") return true;
+      return tag.tagType === tagTypeFilter;
+    })
+    .sort((a, b) => {
+      // Sort by usage count or created date
+      if (sortBy === "usage_desc") {
+        return (b.usageCount || 0) - (a.usageCount || 0);
+      } else if (sortBy === "usage_asc") {
+        return (a.usageCount || 0) - (b.usageCount || 0);
+      } else {
+        // created_desc
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
   
   if (isLoading) {
     return (
@@ -245,15 +267,63 @@ export default function TagsManagement() {
           </div>
         )}
         
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="搜尋標籤名稱或描述..."
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search & Filters */}
+        <div className="space-y-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="搜尋標籤名稱或描述..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          {/* View Controls */}
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Tag Type Filter */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">標籤類型：</span>
+              <div className="flex gap-2">
+                <Button
+                  variant={tagTypeFilter === "ALL" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTagTypeFilter("ALL")}
+                >
+                  全部
+                </Button>
+                <Button
+                  variant={tagTypeFilter === "PRODUCT_CODE" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTagTypeFilter("PRODUCT_CODE")}
+                >
+                  商品編號
+                </Button>
+                <Button
+                  variant={tagTypeFilter === "KEYWORD" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTagTypeFilter("KEYWORD")}
+                >
+                  關鍵字
+                </Button>
+              </div>
+            </div>
+            
+            {/* Sort By */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">排序：</span>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="usage_desc">使用次數（高到低）</SelectItem>
+                  <SelectItem value="usage_asc">使用次數（低到高）</SelectItem>
+                  <SelectItem value="created_desc">建立時間（新到舊）</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
         
         {/* Tags List */}
