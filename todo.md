@@ -309,3 +309,36 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+
+## Phase 21：測試縮圖上傳、實作預設 YouTube 圖示、完成影片詳情頁重新設計
+
+### 1. 測試縮圖上傳功能（本地環境）
+- [ ] 測試新增影片流程
+- [ ] 測試上傳縮圖功能（5MB 限制、檔案類型驗證）
+- [ ] 測試換圖功能
+- [ ] 測試刪除縮圖功能
+- [ ] 驗證 R2 整合（檔案上傳到 Cloudflare R2）
+- [ ] 驗證 Signed URL 生成
+
+### 2. 實作預設 YouTube 圖示
+- [ ] 新增 YouTube 平台圖示資源
+- [ ] 修改 VideoCard.tsx 顯示邏輯（無縮圖時顯示平台圖示）
+- [ ] 修改影片列表顯示邏輯
+- [ ] 測試不同平台圖示顯示
+
+### 3. 完成影片詳情頁重新設計
+- [ ] 實作剩餘 router（videoSuggestions、videoDocuments、knowledgeNodes）
+- [ ] 實作時間軸筆記前端組件
+- [ ] 實作說明書 PDF 檢視器
+- [ ] 實作影片建議前端組件
+- [ ] 整合到 VideoDetail.tsx
+- [ ] 建立 vitest 測試
+
+### 4. 部署到 Railway 並驗證
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway 生產環境
+
+### 5. 交付成果
+- [ ] 更新文件（README、開發規範）
+- [ ] 建立功能演示文件
