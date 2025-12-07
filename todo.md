@@ -658,3 +658,33 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+
+## Phase 23：影片管理系統三大功能改進
+- [x] Phase 23.2：自動縮圖抓取機制
+  - [x] 建立技術規劃文件（docs/phase23-auto-thumbnail-design.md）
+  - [x] 建立 YouTube 縮圖抓取輔助函數（server/utils/youtube.ts）
+  - [x] 新增 videos.fetchThumbnail API（YouTube oEmbed API）
+  - [x] 建立 vitest 測試（13/13 測試通過）
+  - [x] 前端整合：自動觸發抓取（debounce 1.5 秒）
+  - [x] 前端整合：進度提示與結果顯示
+  - [x] 瀏覽器測試：真實 YouTube 影片縮圖抓取成功
+- [x] Phase 23.3：自動帶入影片資訊與 AI 標籤生成
+  - [x] 建立技術規劃文件（docs/phase23-auto-metadata-design.md）
+  - [x] 擴充 youtube.ts：新增 fetchYouTubeMetadata 函數
+  - [x] 新增 videos.fetchMetadata API（YouTube oEmbed API）
+  - [x] 新增 videos.suggestTags API（LLM API）
+  - [x] 建立 vitest 測試（15/15 測試通過）
+  - [x] 前端整合：自動帶入影片標題
+  - [x] 前端整合：AI 建議標籤按鈕與功能
+  - [x] 瀏覽器測試：自動帶入影片資訊與 AI 標籤生成成功
+- [x] 準備推送到 GitHub
+  - [x] 更新 todo.md 標記已完成任務
+  - [x] 檢查程式碼符合規範（無資料庫 Schema 變更、無主版型修改）
+- [ ] 推送到 GitHub 並部署到 Railway Production
+  - [ ] 設定 Git remote（https://github.com/inphic-ai/Film-genre）
+  - [ ] 推送程式碼到 GitHub
+  - [ ] 驗證 Railway 自動部署
+  - [ ] 測試生產環境功能
+- [ ] 交付成果
+  - [ ] 建立 checkpoint
+  - [ ] 提供功能驗收報告

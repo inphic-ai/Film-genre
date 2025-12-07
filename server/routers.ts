@@ -232,6 +232,167 @@ export const appRouter = router({
         };
       }),
 
+    // Fetch thumbnail from video URL (admin only)
+    fetchThumbnail: protectedProcedure
+      .input(z.object({
+        videoUrl: z.string().url(),
+      }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        const { fetchYouTubeThumbnail } = await import('./utils/youtube');
+        
+        // 目前僅支援 YouTube，未來可擴充抖音與小紅書
+        const result = await fetchYouTubeThumbnail(input.videoUrl);
+        
+        if (!result) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Failed to fetch thumbnail. Please upload manually.',
+          });
+        }
+        
+        return result;
+      }),
+
+    // Fetch video metadata from URL (admin only)
+    fetchMetadata: protectedProcedure
+      .input(z.object({
+        videoUrl: z.string().url(),
+      }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        const { fetchYouTubeMetadata } = await import('./utils/youtube');
+        
+        // 目前僅支援 YouTube，未來可擴充抖音與小紅書
+        const result = await fetchYouTubeMetadata(input.videoUrl);
+        
+        if (!result) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Failed to fetch video metadata. Please enter manually.',
+          });
+        }
+        
+        return result;
+      }),
+
+    // Suggest tags using AI (admin only)
+    suggestTags: protectedProcedure
+      .input(z.object({
+        title: z.string(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        // Get all existing tags
+        const allTags = await db.getAllTags();
+        
+        if (allTags.length === 0) {
+          return { suggestedTags: [] };
+        }
+        
+        // Build prompt for LLM
+        const tagsListText = allTags.map(tag => `- ${tag.name} (${tag.tagType}, ID: ${tag.id})`).join('\n');
+        
+        const prompt = `你是一個影片標籤分析專家。根據影片標題與描述，從現有標籤列表中選擇最相關的標籤（最多 5 個）。
+
+影片標題：${input.title}
+${input.description ? `影片描述：${input.description}` : ''}
+
+現有標籤列表：
+${tagsListText}
+
+請返回 JSON 格式的標籤建議：
+[
+  { "tagId": 1, "confidence": 0.95 },
+  ...
+]
+
+注意：
+1. 僅從現有標籤列表中選擇
+2. 優先選擇與影片內容高度相關的標籤
+3. confidence 範圍：0.0 - 1.0
+4. 最多返回 5 個標籤
+5. 必須返回有效的 JSON 陣列`;
+        
+        try {
+          const { invokeLLM } = await import('./_core/llm');
+          const response = await invokeLLM({
+            messages: [
+              { role: 'system', content: '你是一個影片標籤分析專家，擅長根據影片內容選擇相關標籤。' },
+              { role: 'user', content: prompt },
+            ],
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'tag_suggestions',
+                strict: true,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    tags: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          tagId: { type: 'number' },
+                          confidence: { type: 'number' },
+                        },
+                        required: ['tagId', 'confidence'],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ['tags'],
+                  additionalProperties: false,
+                },
+              },
+            },
+          });
+          
+          const content = response.choices[0].message.content;
+          if (typeof content !== 'string') {
+            throw new Error('Unexpected response format from LLM');
+          }
+          const parsed = JSON.parse(content);
+          const suggestedTagIds = parsed.tags.map((t: { tagId: number; confidence: number }) => ({
+            tagId: t.tagId,
+            confidence: t.confidence,
+          }));
+          
+          // Map tag IDs to tag objects
+          const suggestedTags = suggestedTagIds
+            .map((st: { tagId: number; confidence: number }) => {
+              const tag = allTags.find(t => t.id === st.tagId);
+              if (!tag) return null;
+              return {
+                id: tag.id,
+                name: tag.name,
+                tagType: tag.tagType,
+                confidence: st.confidence,
+              };
+            })
+            .filter((t: any): t is { id: number; name: string; tagType: string; confidence: number } => t !== null);
+          
+          return { suggestedTags };
+        } catch (error) {
+          console.error('Failed to suggest tags:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to generate tag suggestions. Please try again.',
+          });
+        }
+      }),
+
     // Create video (admin only)
     create: protectedProcedure
       .input(z.object({

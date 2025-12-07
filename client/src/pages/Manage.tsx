@@ -31,6 +31,12 @@ export default function Manage() {
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const [duplicateVideo, setDuplicateVideo] = useState<any>(null);
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const [isFetchingThumbnail, setIsFetchingThumbnail] = useState(false);
+  const [autoFetchedThumbnail, setAutoFetchedThumbnail] = useState<string | null>(null);
+  const [thumbnailFetchError, setThumbnailFetchError] = useState(false);
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [autoFetchedMetadata, setAutoFetchedMetadata] = useState<{ title: string; authorName: string; thumbnailUrl: string; platform: string } | null>(null);
+  const [metadataFetchError, setMetadataFetchError] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: categories } = trpc.categories.list.useQuery();
@@ -218,6 +224,66 @@ export default function Manage() {
     return () => clearTimeout(timer);
   }, [videoUrl, videoId, checkDuplicateQuery]);
 
+  // Auto-fetch thumbnail and metadata when videoUrl changes (with debounce)
+  useEffect(() => {
+    // Skip if editing existing video or URL is empty
+    if (videoId || !videoUrl || videoUrl.length < 10) {
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(videoUrl);
+    } catch {
+      return; // Invalid URL, skip fetch
+    }
+
+    // Reset states
+    setAutoFetchedThumbnail(null);
+    setThumbnailFetchError(false);
+    setAutoFetchedMetadata(null);
+    setMetadataFetchError(false);
+
+    const timer = setTimeout(async () => {
+      setIsFetchingThumbnail(true);
+      setIsFetchingMetadata(true);
+      
+      // Fetch thumbnail and metadata in parallel
+      const [thumbnailResult, metadataResult] = await Promise.allSettled([
+        utils.client.videos.fetchThumbnail.query({ videoUrl }),
+        utils.client.videos.fetchMetadata.query({ videoUrl }),
+      ]);
+      
+      // Handle thumbnail result
+      if (thumbnailResult.status === 'fulfilled' && thumbnailResult.value?.thumbnailUrl) {
+        setAutoFetchedThumbnail(thumbnailResult.value.thumbnailUrl);
+        setThumbnailUrl(thumbnailResult.value.thumbnailUrl); // Auto-fill thumbnailUrl field
+        setThumbnailFetchError(false);
+      } else {
+        console.error('Failed to fetch thumbnail:', thumbnailResult.status === 'rejected' ? thumbnailResult.reason : 'No thumbnail');
+        setThumbnailFetchError(true);
+      }
+      
+      // Handle metadata result
+      if (metadataResult.status === 'fulfilled' && metadataResult.value) {
+        setAutoFetchedMetadata(metadataResult.value);
+        // Auto-fill title if empty
+        if (!title && metadataResult.value.title) {
+          setTitle(metadataResult.value.title);
+        }
+        setMetadataFetchError(false);
+      } else {
+        console.error('Failed to fetch metadata:', metadataResult.status === 'rejected' ? metadataResult.reason : 'No metadata');
+        setMetadataFetchError(true);
+      }
+      
+      setIsFetchingThumbnail(false);
+      setIsFetchingMetadata(false);
+    }, 1500); // 1.5 second debounce (slightly longer than duplicate check)
+
+    return () => clearTimeout(timer);
+  }, [videoUrl, videoId, utils, title]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -258,6 +324,30 @@ export default function Manage() {
       return;
     }
     suggestCategoryMutation.mutate({ title, description });
+  };
+
+  const handleSuggestTags = async () => {
+    if (!title) {
+      toast.error("請先輸入影片標題");
+      return;
+    }
+    
+    try {
+      const result = await utils.client.videos.suggestTags.mutate({ title, description });
+      if (result.suggestedTags && result.suggestedTags.length > 0) {
+        // Add suggested tags to selected tags (avoid duplicates)
+        const newTags = result.suggestedTags.filter(
+          (st: { id: number }) => !selectedTags.some(t => t.id === st.id)
+        );
+        setSelectedTags([...selectedTags, ...newTags]);
+        toast.success(`已新增 ${newTags.length} 個 AI 建議標籤！`);
+      } else {
+        toast.info("沒有找到適合的標籤建議");
+      }
+    } catch (error) {
+      console.error('Failed to suggest tags:', error);
+      toast.error("標籤建議失敗，請稍後再試！");
+    }
   };
 
   const handleUploadThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,7 +436,15 @@ export default function Manage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title">影片標題 *</Label>
+                <Label htmlFor="title">
+                  影片標題 *
+                  {isFetchingMetadata && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      <Loader2 className="inline w-3 h-3 animate-spin mr-1" />
+                      抓取資訊中...
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="title"
                   value={title}
@@ -354,6 +452,16 @@ export default function Manage() {
                   placeholder="請輸入影片標題"
                   required
                 />
+                {autoFetchedMetadata && (
+                  <p className="text-sm text-green-600">
+                    ✅ 影片資訊已自動帶入（可手動修改）
+                  </p>
+                )}
+                {metadataFetchError && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ 無法自動抓取影片資訊，請手動輸入
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -422,6 +530,12 @@ export default function Manage() {
                       檢查重複中...
                     </span>
                   )}
+                  {isFetchingThumbnail && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      <Loader2 className="inline w-3 h-3 animate-spin mr-1" />
+                      抓取縮圖中...
+                    </span>
+                  )}
                 </Label>
                 <Input
                   id="videoUrl"
@@ -431,6 +545,16 @@ export default function Manage() {
                   placeholder="https://..."
                   required
                 />
+                {autoFetchedThumbnail && (
+                  <p className="text-sm text-green-600">
+                    ✅ 縮圖已自動抓取（可手動上傳覆蓋）
+                  </p>
+                )}
+                {thumbnailFetchError && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ 無法自動抓取縮圖，請手動上傳
+                  </p>
+                )}
               </div>
 
               {/* Product ID */}
@@ -446,12 +570,27 @@ export default function Manage() {
               </div>
 
               {/* Tags */}
-              <TagSelector
-                videoId={videoId || undefined}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-                maxTags={5}
-              />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>標籤</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSuggestTags}
+                    disabled={isAiLoading || !title}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    AI 建議標籤
+                  </Button>
+                </div>
+                <TagSelector
+                  videoId={videoId || undefined}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  maxTags={5}
+                />
+              </div>
 
               {/* Share Status */}
               <div className="space-y-2">
