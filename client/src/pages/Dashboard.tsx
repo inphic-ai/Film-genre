@@ -2,6 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Film, Tag, Eye, TrendingUp, Youtube, Video as VideoIcon } from "lucide-react";
 import { Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Dashboard() {
   const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
@@ -10,9 +11,11 @@ export default function Dashboard() {
 
   if (videosLoading || statsLoading || tagsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -38,8 +41,8 @@ export default function Dashboard() {
   }, {} as Record<string, number>) || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container py-8 space-y-8">
+    <DashboardLayout>
+      <div className="space-y-8">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
@@ -218,6 +221,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

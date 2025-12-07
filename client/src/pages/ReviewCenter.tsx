@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -199,7 +200,8 @@ export default function ReviewCenter() {
   const isAdmin = user.role === "admin";
 
   return (
-    <div className="container mx-auto py-8">
+    <DashboardLayout>
+      <div className="space-y-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">時間軸筆記審核中心</h1>
         <p className="text-muted-foreground">
@@ -388,6 +390,7 @@ export default function ReviewCenter() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

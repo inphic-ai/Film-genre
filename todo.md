@@ -140,4 +140,16 @@
 - [x] 建立 vitest 測試（商品知識中樞 API）- 12 個測試全部通過
 - [x] 測試所有頁面導航與視覺（見 docs/browser-test-results.md）
 - [x] 建立 checkpoint (version: e24c6d4c)
+- [x] 推送到 GitHub (commit: 9581d7e)
+
+## Phase 14.1：修正側邊欄導航整合問題
+- [x] 診斷問題：DashboardLayout 未整合到實際頁面路由
+- [x] 更新 Board.tsx 使用 DashboardLayout
+- [x] 更新 Products.tsx 使用 DashboardLayout
+- [x] 更新 Dashboard.tsx 使用 DashboardLayout
+- [x] 更新 ReviewCenter.tsx 使用 DashboardLayout
+- [x] 更新 Manage.tsx 使用 DashboardLayout
+- [x] 測試本地開發環境（見 docs/local-test-results.md）
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署

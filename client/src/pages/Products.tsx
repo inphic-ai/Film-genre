@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Search, Package, Link as LinkIcon, Film, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 
 /**
  * 商品知識中樞頁面
@@ -98,7 +99,8 @@ export default function Products() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       {/* 頁面標題 */}
       <div className="flex items-center gap-3">
         <Package className="h-8 w-8 text-emerald-500" />
@@ -385,6 +387,7 @@ export default function Products() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

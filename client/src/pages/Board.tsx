@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const categoryLabels: Record<string, string> = {
   product_intro: '使用介紹',
@@ -78,29 +79,17 @@ export default function Board() {
 
   if (categoriesLoading || videosLoading || (selectedTagIds.length > 0 && tagFilterLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">內部影片看板</h1>
-            <p className="text-muted-foreground mt-1">
-              管理所有平台的影片資源
-            </p>
-          </div>
-          <Button onClick={() => setLocation('/manage')}>
-            <Plus className="h-4 w-4 mr-2" />
-            新增影片
-          </Button>
-        </div>
-
+    <DashboardLayout>
+      <div className="space-y-6">
         {/* Search & Filters */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 max-w-md">
@@ -272,6 +261,6 @@ export default function Board() {
           ))}
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
