@@ -151,5 +151,26 @@
 - [x] 更新 Manage.tsx 使用 DashboardLayout
 - [x] 測試本地開發環境（見 docs/local-test-results.md）
 - [x] 建立 checkpoint (version: 8d7cf26f)
+- [x] 推送到 GitHub (commit: 65ed530)
+- [x] 驗證 Railway Production 部署（見 docs/railway-production-verification-final.md）
+
+## Phase 15：Dashboard 數據視覺化與我的貢獻頁面
+- [x] 移除登入頁舊入口（Home.tsx 中的 Dashboard 按鈕）
+- [x] 實作 Dashboard 頁面數據視覺化
+  - [x] 影片統計圖表（分類分佈、平台分佈）
+  - [x] 商品分析儀表板（商品總數、關聯統計、熱門商品）
+  - [x] 使用者活動追蹤（審核統計、最近活動）
+  - [x] 整合現有 Dashboard 頁面內容（熱門標籤、最近上傳）
+- [x] 建立我的貢獻頁面（/my-contributions）
+  - [x] 後端 API：myContributions.getMyVideos
+  - [x] 後端 API：myContributions.getMyNotes
+  - [x] 後端 API：myContributions.getStats
+  - [x] 前端頁面：影片列表（含審核狀態）
+  - [x] 前端頁面：時間軸筆記列表（含審核狀態、拒絕原因）
+  - [x] 前端頁面：貢獻統計卡片（5 個統計指標）
+- [x] 更新側邊欄導航（新增「我的貢獻」路由）
+- [x] 測試本地開發環境（見 docs/phase15-local-test-results.md）
+- [x] 建立 vitest 測試 - 7 個測試全部通過（Dashboard API 4 個 + MyContributions API 3 個）
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署

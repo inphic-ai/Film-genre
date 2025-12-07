@@ -1,15 +1,23 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Film, Tag, Eye, TrendingUp, Youtube, Video as VideoIcon } from "lucide-react";
+import { Loader2, Film, Tag, Eye, TrendingUp, Youtube, Video as VideoIcon, Package, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Dashboard() {
-  const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
-  const { data: tagStats, isLoading: statsLoading } = trpc.tags.getStats.useQuery();
+  // 使用新的 dashboard API
+  const { data: overview, isLoading: overviewLoading } = trpc.dashboard.getOverview.useQuery();
+  const { data: videoStats, isLoading: videoStatsLoading } = trpc.dashboard.getVideoStats.useQuery();
+  const { data: productStats, isLoading: productStatsLoading } = trpc.dashboard.getProductStats.useQuery();
+  const { data: userActivity, isLoading: activityLoading } = trpc.dashboard.getUserActivity.useQuery();
+  
+  // 保留舊的 API 用於熱門標籤
   const { data: popularTags, isLoading: tagsLoading } = trpc.tags.getPopular.useQuery({ limit: 15 });
+  const { data: allVideos } = trpc.videos.listAll.useQuery();
 
-  if (videosLoading || statsLoading || tagsLoading) {
+  const isLoading = overviewLoading || videoStatsLoading || productStatsLoading || activityLoading || tagsLoading;
+
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
@@ -19,39 +27,21 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate statistics
-  const totalVideos = allVideos?.length || 0;
-  const totalViews = allVideos?.reduce((sum, video) => sum + (video.viewCount || 0), 0) || 0;
-  const totalTags = tagStats?.totalTags || 0;
-  
-  // Get this week's videos
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const thisWeekVideos = allVideos?.filter(video => 
-    new Date(video.createdAt) >= oneWeekAgo
-  ) || [];
-
-  // Get recent videos
+  // 計算最近影片
   const recentVideos = allVideos?.slice(0, 6) || [];
-
-  // Platform distribution
-  const platformCounts = allVideos?.reduce((acc, video) => {
-    acc[video.platform] = (acc[video.platform] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) || {};
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-4xl font-bold tracking-tight">看板總覽</h1>
           <p className="text-muted-foreground">
-            影片知識庫系統總覽與統計資訊
+            INPHIC 影片知識庫系統 - 數據統計與活動追蹤
           </p>
         </div>
 
-        {/* Statistics Cards */}
+        {/* 綜合統計卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -59,87 +49,278 @@ export default function Dashboard() {
               <Film className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalVideos}</div>
+              <div className="text-2xl font-bold">{overview?.totalVideos || 0}</div>
               <p className="text-xs text-muted-foreground">
-                跨 {Object.keys(platformCounts).length} 個平台
+                跨平台影片資源
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">本週新增</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">總商品數</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{thisWeekVideos.length}</div>
+              <div className="text-2xl font-bold">{overview?.totalProducts || 0}</div>
               <p className="text-xs text-muted-foreground">
-                最近 7 天上傳的影片
+                商品知識中樞
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">總標籤數</CardTitle>
-              <Tag className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">時間軸筆記</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalTags}</div>
+              <div className="text-2xl font-bold">{overview?.totalNotes || 0}</div>
               <p className="text-xs text-muted-foreground">
-                平均每部影片 {tagStats?.avgTagsPerVideo || 0} 個標籤
+                累計筆記數量
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">總觀看次數</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">待審核筆記</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalViews.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-orange-600">{overview?.pendingNotes || 0}</div>
               <p className="text-xs text-muted-foreground">
-                所有影片累計觀看
+                需要審核處理
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Platform Distribution */}
+        {/* 影片統計圖表 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 分類分佈 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>影片分類分佈</CardTitle>
+              <CardDescription>各分類影片數量統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {videoStats?.categoryDistribution && videoStats.categoryDistribution.length > 0 ? (
+                <div className="space-y-3">
+                  {videoStats.categoryDistribution.map((item) => {
+                    const percentage = videoStats.totalVideos > 0 
+                      ? ((item.count / videoStats.totalVideos) * 100).toFixed(1)
+                      : 0;
+                    return (
+                      <div key={item.category} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium">{item.category || '未分類'}</span>
+                          <span className="text-muted-foreground">{item.count} ({percentage}%)</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  尚無分類資料
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 平台分佈 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>平台分佈</CardTitle>
+              <CardDescription>各平台影片數量統計</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {videoStats?.platformDistribution && videoStats.platformDistribution.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {videoStats.platformDistribution.map((item) => {
+                    const platformIcon = item.platform === 'youtube' ? Youtube : VideoIcon;
+                    const platformColor = item.platform === 'youtube' ? 'text-red-600' : 
+                                         item.platform === 'tiktok' ? 'text-blue-600' : 'text-pink-600';
+                    const platformBg = item.platform === 'youtube' ? 'bg-red-50 dark:bg-red-950/20' : 
+                                      item.platform === 'tiktok' ? 'bg-blue-50 dark:bg-blue-950/20' : 'bg-pink-50 dark:bg-pink-950/20';
+                    const Icon = platformIcon;
+                    
+                    return (
+                      <div key={item.platform} className={`flex items-center gap-3 p-4 rounded-lg ${platformBg}`}>
+                        <Icon className={`h-8 w-8 ${platformColor}`} />
+                        <div className="flex-1">
+                          <div className="text-2xl font-bold">{item.count}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.platform === 'youtube' ? 'YouTube' : 
+                             item.platform === 'tiktok' ? '抖音' : '小紅書'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  尚無平台資料
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 商品分析儀表板 */}
         <Card>
           <CardHeader>
-            <CardTitle>平台分布</CardTitle>
-            <CardDescription>各平台影片數量統計</CardDescription>
+            <CardTitle>商品分析儀表板</CardTitle>
+            <CardDescription>商品關聯統計與熱門商品</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950/20">
-                <Youtube className="h-8 w-8 text-red-600" />
-                <div>
-                  <div className="text-2xl font-bold">{platformCounts['youtube'] || 0}</div>
-                  <div className="text-sm text-muted-foreground">YouTube</div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 商品統計 */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                  <div>
+                    <div className="text-sm text-muted-foreground">總商品數</div>
+                    <div className="text-2xl font-bold">{productStats?.totalProducts || 0}</div>
+                  </div>
+                  <Package className="h-8 w-8 text-muted-foreground" />
                 </div>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                  <div>
+                    <div className="text-sm text-muted-foreground">商品關聯數</div>
+                    <div className="text-2xl font-bold">{productStats?.totalRelations || 0}</div>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                </div>
+                
+                {/* 關聯類型分佈 */}
+                {productStats?.relationTypeDistribution && productStats.relationTypeDistribution.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">關聯類型分佈</div>
+                    {productStats.relationTypeDistribution.map((item) => (
+                      <div key={item.relationType} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {item.relationType === 'SYNONYM' ? '同義 SKU' : 
+                           item.relationType === 'PART' ? '相關零件' : 
+                           item.relationType === 'FAMILY' ? '商品家族' : '其他'}
+                        </span>
+                        <span className="font-medium">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                <VideoIcon className="h-8 w-8 text-blue-600" />
-                <div>
-                  <div className="text-2xl font-bold">{platformCounts['tiktok'] || 0}</div>
-                  <div className="text-sm text-muted-foreground">抖音</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-pink-50 dark:bg-pink-950/20">
-                <VideoIcon className="h-8 w-8 text-pink-600" />
-                <div>
-                  <div className="text-2xl font-bold">{platformCounts['redbook'] || 0}</div>
-                  <div className="text-sm text-muted-foreground">小紅書</div>
-                </div>
+
+              {/* 熱門商品 */}
+              <div className="space-y-2">
+                <div className="text-sm font-medium mb-3">最常關聯的商品（前 10）</div>
+                {productStats?.topRelatedProducts && productStats.topRelatedProducts.length > 0 ? (
+                  <div className="space-y-2">
+                    {productStats.topRelatedProducts.map((product, index) => (
+                      <div key={product.sku} className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{product.name || product.sku}</div>
+                          <div className="text-xs text-muted-foreground">{product.sku}</div>
+                        </div>
+                        <div className="text-sm font-medium text-primary">{product.relationCount} 關聯</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    尚無商品關聯資料
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Popular Tags Cloud */}
+        {/* 使用者活動追蹤 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 審核統計 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>審核統計</CardTitle>
+              <CardDescription>時間軸筆記審核狀態分佈</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userActivity?.noteStats && userActivity.noteStats.length > 0 ? (
+                <div className="space-y-4">
+                  {userActivity.noteStats.map((item) => {
+                    const Icon = item.status === 'APPROVED' ? CheckCircle : 
+                                item.status === 'REJECTED' ? XCircle : Clock;
+                    const color = item.status === 'APPROVED' ? 'text-green-600' : 
+                                 item.status === 'REJECTED' ? 'text-red-600' : 'text-orange-600';
+                    const bg = item.status === 'APPROVED' ? 'bg-green-50 dark:bg-green-950/20' : 
+                              item.status === 'REJECTED' ? 'bg-red-50 dark:bg-red-950/20' : 'bg-orange-50 dark:bg-orange-950/20';
+                    
+                    return (
+                      <div key={item.status} className={`flex items-center gap-3 p-4 rounded-lg ${bg}`}>
+                        <Icon className={`h-6 w-6 ${color}`} />
+                        <div className="flex-1">
+                          <div className="text-sm text-muted-foreground">
+                            {item.status === 'APPROVED' ? '已通過' : 
+                             item.status === 'REJECTED' ? '已拒絕' : '待審核'}
+                          </div>
+                          <div className="text-2xl font-bold">{item.count}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  尚無審核資料
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 最近活動 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>最近活動</CardTitle>
+              <CardDescription>最近 7 天的系統活動記錄</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userActivity?.recentAudits && userActivity.recentAudits.length > 0 ? (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {userActivity.recentAudits.map((audit) => (
+                    <div key={audit.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted">
+                      <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">{audit.action}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {audit.details || '無詳細資訊'}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {new Date(audit.createdAt).toLocaleString('zh-TW')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  尚無活動記錄
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 熱門標籤雲 */}
         <Card>
           <CardHeader>
             <CardTitle>熱門標籤</CardTitle>
@@ -179,7 +360,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Videos */}
+        {/* 最近上傳 */}
         <Card>
           <CardHeader>
             <CardTitle>最近上傳</CardTitle>

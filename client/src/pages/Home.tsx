@@ -14,17 +14,10 @@ export default function Home() {
             <Film className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold">影片知識庫系統</h1>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setLocation("/dashboard")}>
-              <Film className="w-4 h-4 mr-2" />
-              Dashboard
-            </Button>
-
-            <Button onClick={() => setLocation("/login")}>
-              <Shield className="w-4 h-4 mr-2" />
-              管理員登入
-            </Button>
-          </div>
+          <Button onClick={() => setLocation("/login")}>
+            <Shield className="w-4 h-4 mr-2" />
+            管理員登入
+          </Button>
         </div>
       </header>
 

@@ -9,6 +9,8 @@ import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as ai from "./ai";
 import { productsRouter } from "./trpc/routers/products";
+import { dashboardRouter } from "./trpc/routers/dashboard";
+import { myContributionsRouter } from "./trpc/routers/myContributions";
 
 export const appRouter = router({
   system: systemRouter,
@@ -586,6 +588,10 @@ export const appRouter = router({
   }),
   // Products knowledge hub
   products: productsRouter,
+  // Dashboard statistics
+  dashboard: dashboardRouter,
+  // My contributions
+  myContributions: myContributionsRouter,
 });
 
 export type AppRouter = typeof appRouter;

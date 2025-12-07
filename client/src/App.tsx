@@ -15,6 +15,7 @@ import TagDetailPage from "./pages/TagDetailPage";
 import TagRankingPage from "./pages/TagRankingPage";
 import ReviewCenter from "./pages/ReviewCenter";
 import Products from "./pages/Products";
+import MyContributions from "./pages/MyContributions";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function Router() {
       <Route path={"/tags/ranking"} component={TagRankingPage} />
       <Route path={"/admin/review"} component={ReviewCenter} />
       <Route path={"/products"} component={Products} />
+      <Route path={"/my-contributions"} component={MyContributions} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
