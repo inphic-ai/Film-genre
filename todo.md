@@ -192,6 +192,6 @@
   - [x] 影片速度控制（YouTube Player 原生控制）
 - [ ] 測試本地開發環境
 - [x] 建立 vitest 測試 - 8 個測試全部通過（Admin Settings 4 個 + Review Center 4 個）
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint (version: 7d5452a3)
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
