@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Loader2, Save, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Sparkles, Wand2, Upload } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { TagSelector } from "@/components/TagSelector";
+import { BatchImportDialog } from "@/components/BatchImportDialog";
 
 export default function Manage() {
   const [, setLocation] = useLocation();
@@ -37,6 +38,7 @@ export default function Manage() {
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [autoFetchedMetadata, setAutoFetchedMetadata] = useState<{ title: string; authorName: string; thumbnailUrl: string; platform: string } | null>(null);
   const [metadataFetchError, setMetadataFetchError] = useState(false);
+  const [isBatchImportDialogOpen, setIsBatchImportDialogOpen] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: categories } = trpc.categories.list.useQuery();
@@ -406,24 +408,34 @@ export default function Manage() {
     <DashboardLayout>
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLocation("/board")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">
-              {videoId ? "編輯影片" : "新增影片"}
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {videoId ? "更新影片資訊" : "新增影片到知識庫"}
-            </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLocation("/board")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">
+                {videoId ? "編輯影片" : "新增影片"}
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {videoId ? "更新影片資訊" : "新增影片到知識庫"}
+              </p>
+            </div>
           </div>
+          {!videoId && (
+            <Button
+              variant="outline"
+              onClick={() => setIsBatchImportDialogOpen(true)}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              批次匯入
+            </Button>
+          )}
         </div>
-
         {/* Form */}
         <Card>
           <CardHeader>
@@ -793,6 +805,16 @@ export default function Manage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Batch Import Dialog */}
+      <BatchImportDialog
+        open={isBatchImportDialogOpen}
+        onOpenChange={setIsBatchImportDialogOpen}
+        onImportComplete={() => {
+          toast.success('影片匯入完成！');
+          // Optionally navigate to board or refresh
+        }}
+      />
     </DashboardLayout>
   );
 }

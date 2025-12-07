@@ -180,3 +180,87 @@ export async function fetchYouTubeThumbnail(videoUrl: string): Promise<{
   console.error('[YouTube] Failed to fetch thumbnail for:', videoUrl);
   return null;
 }
+
+/**
+ * 從 YouTube URL 解析 playlistId
+ * 支援格式：
+ * - https://www.youtube.com/playlist?list=PLAYLIST_ID
+ * - https://www.youtube.com/watch?v=VIDEO_ID&list=PLAYLIST_ID
+ */
+export function extractPlaylistId(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    
+    // 檢查是否為 YouTube URL
+    if (!urlObj.hostname.includes('youtube.com')) {
+      return null;
+    }
+    
+    // 從 query string 取得 list 參數
+    return urlObj.searchParams.get('list');
+  } catch (error) {
+    console.error('[YouTube] Failed to parse playlist URL:', error);
+    return null;
+  }
+}
+
+/**
+ * 使用 YouTube Data API v3 取得播放清單影片列表
+ * 文檔：https://developers.google.com/youtube/v3/docs/playlistItems/list
+ */
+export async function fetchPlaylistVideos(
+  playlistId: string,
+  apiKey: string,
+  maxResults: number = 50
+): Promise<Array<{
+  videoId: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  publishedAt: string;
+}> | null> {
+  try {
+    const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&key=${apiKey}&maxResults=${maxResults}`;
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[YouTube] Playlist API failed:', response.status, response.statusText, errorData);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (!data.items || data.items.length === 0) {
+      console.log('[YouTube] Playlist is empty:', playlistId);
+      return [];
+    }
+    
+    return data.items.map((item: any) => ({
+      videoId: item.snippet.resourceId.videoId,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnailUrl: item.snippet.thumbnails.maxres?.url || item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+      publishedAt: item.snippet.publishedAt,
+    }));
+  } catch (error) {
+    console.error('[YouTube] Failed to fetch playlist videos:', error);
+    return null;
+  }
+}
+
+/**
+ * 驗證 YouTube Data API v3 Key 是否有效
+ */
+export async function validateYouTubeApiKey(apiKey: string): Promise<boolean> {
+  try {
+    // 使用簡單的 API 呼叫測試 API Key（取得 YouTube 頻道資訊）
+    const testUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=UC_x5XG1OV2P6uZZ5FSM9Ttw&key=${apiKey}`;
+    const response = await fetch(testUrl);
+    
+    return response.ok;
+  } catch (error) {
+    console.error('[YouTube] Failed to validate API key:', error);
+    return false;
+  }
+}

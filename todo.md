@@ -688,3 +688,22 @@
 - [ ] 交付成果
   - [ ] 建立 checkpoint
   - [ ] 提供功能驗收報告
+
+## Phase 24：AI 標籤生成擴充與批次影片匯入
+- [x] Phase 24.1：擴充 AI 標籤生成支援影片描述（Phase 23.3 已完成）
+  - [x] 修改 videos.suggestTags API（同時使用 title 與 description）
+  - [x] 更新前端：AI 建議標籤納入 description 資訊
+  - [x] 測試 AI 標籤生成準確度提升
+- [x] Phase 24.2：批次影片匯入（YouTube 播放清單）
+  - [x] 研究 YouTube 播放清單 API（Data API v3 或 oEmbed）
+  - [x] 新增後端 API：videos.importPlaylist
+  - [x] 實作播放清單影片列表抓取
+  - [x] 實作批次影片資訊與縮圖抓取
+  - [x] 前端：新增「批次匯入」按鈕與對話框
+  - [x] 前端：顯示匯入進度與結果
+  - [x] 測試批次匯入功能（瀏覽器測試通過）
+- [ ] 測試與部署
+  - [ ] 建立 vitest 測試
+  - [ ] 建立 checkpoint
+  - [ ] 推送到 GitHub
+  - [ ] 驗證 Railway Production 部署

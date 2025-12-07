@@ -393,6 +393,119 @@ ${tagsListText}
         }
       }),
 
+    // Validate YouTube API Key
+    validateYouTubeApiKey: protectedProcedure
+      .input(z.object({
+        apiKey: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        const { validateYouTubeApiKey } = await import('./utils/youtube');
+        const isValid = await validateYouTubeApiKey(input.apiKey);
+        
+        return { valid: isValid };
+      }),
+
+    // Import playlist (admin only)
+    importPlaylist: protectedProcedure
+      .input(z.object({
+        playlistUrl: z.string().url(),
+        apiKey: z.string(),
+        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+        shareStatus: z.enum(['private', 'public']).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        const { extractPlaylistId, fetchPlaylistVideos } = await import('./utils/youtube');
+        
+        // 1. 解析 playlistId
+        const playlistId = extractPlaylistId(input.playlistUrl);
+        if (!playlistId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '無效的 YouTube 播放清單 URL',
+          });
+        }
+        
+        // 2. 取得播放清單影片列表（最多 100 部）
+        const videos = await fetchPlaylistVideos(playlistId, input.apiKey, 100);
+        if (!videos) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: '無法取得播放清單影片列表，請檢查 API Key 是否有效',
+          });
+        }
+        
+        // 3. 批次匯入影片
+        const results = {
+          total: videos.length,
+          imported: 0,
+          skipped: 0,
+          failed: 0,
+          videos: [] as Array<{
+            videoId: string;
+            title: string;
+            status: 'imported' | 'skipped' | 'failed';
+            reason?: string;
+          }>,
+        };
+        
+        for (const video of videos) {
+          try {
+            const videoUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
+            
+            // 檢查是否已存在
+            const existing = await db.getVideoByUrl(videoUrl);
+            if (existing) {
+              results.skipped++;
+              results.videos.push({
+                videoId: video.videoId,
+                title: video.title,
+                status: 'skipped',
+                reason: '影片已存在',
+              });
+              continue;
+            }
+            
+            // 建立影片記錄
+            await db.createVideo({
+              title: video.title,
+              description: video.description || undefined,
+              platform: 'youtube',
+              videoUrl,
+              thumbnailUrl: video.thumbnailUrl,
+              category: input.category,
+              shareStatus: input.shareStatus || 'private',
+              uploadedBy: ctx.user.id,
+            });
+            
+            results.imported++;
+            results.videos.push({
+              videoId: video.videoId,
+              title: video.title,
+              status: 'imported',
+            });
+          } catch (error) {
+            console.error('[ImportPlaylist] Failed to import video:', video.videoId, error);
+            results.failed++;
+            results.videos.push({
+              videoId: video.videoId,
+              title: video.title,
+              status: 'failed',
+              reason: error instanceof Error ? error.message : '未知錯誤',
+            });
+          }
+        }
+        
+        return results;
+      }),
+
     // Create video (admin only)
     create: protectedProcedure
       .input(z.object({
