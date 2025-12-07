@@ -343,13 +343,16 @@ export async function createTag(tag: InsertTag): Promise<Tag> {
 /**
  * Update tag
  */
-export async function updateTag(id: number, tag: Partial<InsertTag>): Promise<void> {
+export async function updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag | undefined> {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return undefined;
   
-  await db.update(tags)
+  const result = await db.update(tags)
     .set({ ...tag, updatedAt: new Date() })
-    .where(eq(tags.id, id));
+    .where(eq(tags.id, id))
+    .returning();
+  
+  return result[0];
 }
 
 /**

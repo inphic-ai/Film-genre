@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, Youtube, Share2, Eye, Package, Tag as TagIcon, Plus, X, Edit3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { TagSelector } from "@/components/TagSelector";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface TimelineNote {
   timestamp: number;
@@ -17,6 +20,7 @@ interface TimelineNote {
 export default function VideoDetail() {
   const params = useParams();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const videoId = parseInt(params.id || "0");
 
   const { data: video, isLoading, error } = trpc.videos.getById.useQuery({ id: videoId });
@@ -27,6 +31,12 @@ export default function VideoDetail() {
   const [notes, setNotes] = useState<TimelineNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [currentTimestamp, setCurrentTimestamp] = useState(0);
+  const [editingTags, setEditingTags] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
+
+  const utils = trpc.useUtils();
+  const addTagMutation = trpc.videoTags.addTag.useMutation();
+  const removeTagMutation = trpc.videoTags.removeTag.useMutation();
 
   useEffect(() => {
     if (video) {
@@ -45,6 +55,18 @@ export default function VideoDetail() {
       }
     }
   }, [video]);
+
+  // Load existing tags when editing
+  useEffect(() => {
+    if (videoTags && editingTags) {
+      setSelectedTags(videoTags.map(t => ({
+        id: t.id,
+        name: t.name,
+        tagType: t.tagType,
+        color: t.color || undefined,
+      })));
+    }
+  }, [videoTags, editingTags]);
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
@@ -233,29 +255,113 @@ export default function VideoDetail() {
               </div>
 
               {/* Tags */}
-              {videoTags && videoTags.length > 0 && (
-                <div className="pt-4 border-t">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold flex items-center gap-2">
                     <TagIcon className="w-4 h-4" />
                     標籤
                   </h3>
+                  {user && (
+                    <Dialog open={editingTags} onOpenChange={setEditingTags}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Edit3 className="w-3 h-3 mr-2" />
+                          編輯標籤
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>編輯影片標籤</DialogTitle>
+                          <DialogDescription>
+                            為這部影片新增或移除標籤，最多 5 個標籤
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <TagSelector
+                            videoId={videoId}
+                            selectedTags={selectedTags}
+                            onTagsChange={setSelectedTags}
+                            maxTags={5}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setEditingTags(false)}
+                            >
+                              取消
+                            </Button>
+                            <Button
+                              onClick={async () => {
+                                try {
+                                  // Find tags to remove
+                                  const tagsToRemove = videoTags?.filter(
+                                    (et: { id: number }) => !selectedTags.some(st => st.id === et.id)
+                                  ) || [];
+                                  // Find tags to add
+                                  const tagsToAdd = selectedTags.filter(
+                                    st => !videoTags?.some((et: { id: number }) => et.id === st.id)
+                                  );
+
+                                  // Remove old tags
+                                  for (const tag of tagsToRemove) {
+                                    await removeTagMutation.mutateAsync({
+                                      videoId,
+                                      tagId: tag.id,
+                                    });
+                                  }
+
+                                  // Add new tags
+                                  for (const tag of tagsToAdd) {
+                                    await addTagMutation.mutateAsync({
+                                      videoId,
+                                      tagId: tag.id,
+                                      weight: 1,
+                                    });
+                                  }
+
+                                  // Refresh tags
+                                  await utils.videoTags.getVideoTags.invalidate({ videoId });
+                                  toast.success("標籤更新成功！");
+                                  setEditingTags(false);
+                                } catch (error) {
+                                  toast.error("標籤更新失敗");
+                                  console.error(error);
+                                }
+                              }}
+                            >
+                              儲存
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+                {videoTags && videoTags.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {videoTags.map((tag) => (
                       <Link key={tag.id} href={`/tag/${tag.id}`}>
                         <button
-                          className="px-3 py-1 rounded-full text-sm hover:opacity-80 transition-opacity"
+                          className="px-3 py-1 rounded-full text-sm hover:opacity-80 transition-opacity flex items-center gap-1"
                           style={{
                             backgroundColor: tag.color || '#3B82F6',
                             color: 'white',
                           }}
                         >
+                          {tag.tagType === "PRODUCT_CODE" ? (
+                            <Package className="w-3 h-3" />
+                          ) : (
+                            <TagIcon className="w-3 h-3" />
+                          )}
                           {tag.name}
                         </button>
                       </Link>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">尚無標籤</p>
+                )}
+              </div>
 
               {/* Share Button */}
               <div className="pt-4 border-t">

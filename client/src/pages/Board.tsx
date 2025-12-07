@@ -4,7 +4,11 @@ import { VideoCard } from "@/components/VideoCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Tag, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
 
@@ -20,10 +24,19 @@ export default function Board() {
   const [, setLocation] = useLocation();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [tagFilterOpen, setTagFilterOpen] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
+  const { data: allTags } = trpc.tags.list.useQuery();
+  
+  // Use smart score API when tags are selected
+  const { data: tagFilteredVideos, isLoading: tagFilterLoading } = trpc.videos.searchByTags.useQuery(
+    { tagIds: selectedTagIds },
+    { enabled: selectedTagIds.length > 0 }
+  );
 
   const deleteMutation = trpc.videos.delete.useMutation({
     onSuccess: () => {
@@ -31,7 +44,10 @@ export default function Board() {
     },
   });
 
-  const filteredVideos = allVideos?.filter(video => {
+  // Use tag-filtered videos if tags are selected, otherwise use all videos
+  const baseVideos = selectedTagIds.length > 0 ? tagFilteredVideos : allVideos;
+
+  const filteredVideos = baseVideos?.filter(video => {
     const matchesSearch = !searchKeyword || 
       video.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       video.description?.toLowerCase().includes(searchKeyword.toLowerCase());
@@ -55,7 +71,7 @@ export default function Board() {
     deleteMutation.mutate({ id: video.id });
   };
 
-  if (categoriesLoading || videosLoading) {
+  if (categoriesLoading || videosLoading || (selectedTagIds.length > 0 && tagFilterLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -80,8 +96,8 @@ export default function Board() {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-4">
+        {/* Search & Filters */}
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -91,6 +107,102 @@ export default function Board() {
               className="pl-9"
             />
           </div>
+
+          {/* Tag Filter */}
+          <Popover open={tagFilterOpen} onOpenChange={setTagFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Tag className="h-4 w-4" />
+                標籤篩選
+                {selectedTagIds.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedTagIds.length}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 max-h-96 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">選擇標籤</h4>
+                  {selectedTagIds.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTagIds([])}
+                    >
+                      清除
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {allTags?.map(tag => (
+                    <div key={tag.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`tag-${tag.id}`}
+                        checked={selectedTagIds.includes(tag.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTagIds([...selectedTagIds, tag.id]);
+                          } else {
+                            setSelectedTagIds(selectedTagIds.filter(id => id !== tag.id));
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor={`tag-${tag.id}`}
+                        className="flex-1 cursor-pointer flex items-center gap-2"
+                      >
+                        <Badge
+                          variant="secondary"
+                          className="text-xs"
+                          style={{ backgroundColor: tag.color ? `${tag.color}20` : undefined }}
+                        >
+                          {tag.name}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {tag.tagType === "PRODUCT_CODE" ? "商品編號" : "關鍵字"}
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
+                  {!allTags || allTags.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      尚無標籤
+                    </p>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Selected Tags Display */}
+          {selectedTagIds.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {selectedTagIds.map(tagId => {
+                const tag = allTags?.find(t => t.id === tagId);
+                if (!tag) return null;
+                return (
+                  <Badge
+                    key={tagId}
+                    variant="secondary"
+                    className="gap-1 pr-1"
+                    style={{ backgroundColor: tag.color ? `${tag.color}20` : undefined }}
+                  >
+                    {tag.name}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
+                      onClick={() => setSelectedTagIds(selectedTagIds.filter(id => id !== tagId))}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Category Tabs */}

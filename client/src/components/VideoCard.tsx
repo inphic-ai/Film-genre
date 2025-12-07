@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Edit, Trash2, Youtube, Eye } from "lucide-react";
+import { ExternalLink, Edit, Trash2, Youtube, Eye, Tag, Package } from "lucide-react";
 import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 import type { Video } from "../../../drizzle/schema";
 
 interface VideoCardProps {
@@ -10,6 +11,8 @@ interface VideoCardProps {
   onEdit?: (video: Video) => void;
   onDelete?: (video: Video) => void;
   showActions?: boolean;
+  showTags?: boolean;
+  maxTags?: number;
 }
 
 const platformLabels: Record<string, string> = {
@@ -18,8 +21,14 @@ const platformLabels: Record<string, string> = {
   redbook: '小紅書',
 };
 
-export function VideoCard({ video, onEdit, onDelete, showActions = false }: VideoCardProps) {
+export function VideoCard({ video, onEdit, onDelete, showActions = false, showTags = true, maxTags = 3 }: VideoCardProps) {
   const [, setLocation] = useLocation();
+
+  // Fetch tags for this video
+  const { data: videoTags } = trpc.videoTags.getVideoTags.useQuery(
+    { videoId: video.id },
+    { enabled: showTags }
+  );
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
@@ -81,6 +90,44 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false }: Vide
         {video.productId && (
           <div className="text-xs text-muted-foreground">
             商品編號：{video.productId}
+          </div>
+        )}
+        {/* Tags */}
+        {showTags && videoTags && videoTags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {videoTags
+              .sort((a, b) => {
+                // Prioritize PRODUCT_CODE tags
+                if (a.tagType === "PRODUCT_CODE" && b.tagType !== "PRODUCT_CODE") return -1;
+                if (a.tagType !== "PRODUCT_CODE" && b.tagType === "PRODUCT_CODE") return 1;
+                return 0;
+              })
+              .slice(0, maxTags)
+              .map(tag => (
+                <Badge
+                  key={tag.id}
+                  variant="secondary"
+                  className="text-xs px-2 py-0.5 gap-1"
+                  style={{ backgroundColor: tag.color ? `${tag.color}20` : undefined }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to tag detail page
+                    setLocation(`/tag/${tag.id}`);
+                  }}
+                >
+                  {tag.tagType === "PRODUCT_CODE" ? (
+                    <Package className="h-2.5 w-2.5" />
+                  ) : (
+                    <Tag className="h-2.5 w-2.5" />
+                  )}
+                  <span>{tag.name}</span>
+                </Badge>
+              ))}
+            {videoTags.length > maxTags && (
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                +{videoTags.length - maxTags}
+              </Badge>
+            )}
           </div>
         )}
       </CardHeader>

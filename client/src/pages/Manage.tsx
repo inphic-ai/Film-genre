@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Loader2, Save, Sparkles, Wand2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { TagSelector } from "@/components/TagSelector";
 
 export default function Manage() {
   const [, setLocation] = useLocation();
@@ -22,15 +23,38 @@ export default function Manage() {
   const [category, setCategory] = useState<string>("");
   const [productId, setProductId] = useState("");
   const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
+  const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
 
+  const utils = trpc.useUtils();
   const { data: categories } = trpc.categories.list.useQuery();
   const { data: existingVideo } = trpc.videos.getById.useQuery(
     { id: videoId! },
     { enabled: !!videoId }
   );
+  const { data: existingTags } = trpc.videoTags.getVideoTags.useQuery(
+    { videoId: videoId! },
+    { enabled: !!videoId }
+  );
+
+  const addTagMutation = trpc.videoTags.addTag.useMutation();
+  const removeTagMutation = trpc.videoTags.removeTag.useMutation();
 
   const createMutation = trpc.videos.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async (video) => {
+      // Add tags to the newly created video
+      if (selectedTags.length > 0) {
+        try {
+          for (const tag of selectedTags) {
+            await addTagMutation.mutateAsync({
+              videoId: video.id,
+              tagId: tag.id,
+              weight: 1,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to add tags:", error);
+        }
+      }
       toast.success("影片新增成功！");
       setLocation("/board");
     },
@@ -40,7 +64,39 @@ export default function Manage() {
   });
 
   const updateMutation = trpc.videos.update.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Update tags for the video
+      if (videoId && existingTags) {
+        try {
+          // Find tags to remove
+          const tagsToRemove = existingTags.filter(
+            (et: { id: number }) => !selectedTags.some(st => st.id === et.id)
+          );
+          // Find tags to add
+          const tagsToAdd = selectedTags.filter(
+            st => !existingTags.some((et: { id: number }) => et.id === st.id)
+          );
+
+          // Remove old tags
+          for (const tag of tagsToRemove) {
+            await removeTagMutation.mutateAsync({
+              videoId,
+              tagId: tag.id,
+            });
+          }
+
+          // Add new tags
+          for (const tag of tagsToAdd) {
+            await addTagMutation.mutateAsync({
+              videoId,
+              tagId: tag.id,
+              weight: 1,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to update tags:", error);
+        }
+      }
       toast.success("影片更新成功！");
       setLocation("/board");
     },
@@ -87,6 +143,7 @@ export default function Manage() {
       setCategory(existingVideo.category);
       setProductId(existingVideo.productId || "");
       setShareStatus(existingVideo.shareStatus || "private");
+      // Tags will be loaded by TagSelector component
     }
   }, [existingVideo]);
 
@@ -259,6 +316,14 @@ export default function Manage() {
                   placeholder="例：P-12345 (選填)"
                 />
               </div>
+
+              {/* Tags */}
+              <TagSelector
+                videoId={videoId || undefined}
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+                maxTags={5}
+              />
 
               {/* Share Status */}
               <div className="space-y-2">
