@@ -406,3 +406,112 @@
 - [ ] 設定 R2 Public URL（Custom Domain 或 Public Bucket）
 - [ ] 更新 R2_PUBLIC_URL 環境變數
 - [ ] 重新測試縮圖顯示
+
+## Phase 20.2：影片建議系統前端組件開發
+
+### 1. 建立前端組件架構
+- [ ] 建立 client/src/components/videoSuggestions/ 目錄
+- [ ] 定義組件介面與型別（types.ts）
+- [ ] 規劃組件層級結構
+
+### 2. 實作 VideoSuggestionCard 組件
+- [ ] 建立 VideoSuggestionCard.tsx
+- [ ] 顯示建議內容（標題、內容、優先級、狀態）
+- [ ] 顯示建立者資訊與時間戳記
+- [ ] 實作編輯/刪除按鈕（僅建立者或 Admin）
+- [ ] 實作狀態更新按鈕（Admin 專用）
+- [ ] 優先級與狀態的視覺化標籤
+
+### 3. 實作 AddSuggestionForm 組件
+- [ ] 建立 AddSuggestionForm.tsx
+- [ ] 標題輸入欄位（必填，最多 255 字元）
+- [ ] 內容輸入欄位（必填，多行文字）
+- [ ] 優先級選擇器（LOW/MEDIUM/HIGH）
+- [ ] 表單驗證與錯誤提示
+- [ ] 整合 tRPC mutation（videoSuggestions.create）
+- [ ] 成功/失敗提示訊息
+
+### 4. 實作 VideoSuggestionsList 組件
+- [ ] 建立 VideoSuggestionsList.tsx
+- [ ] 整合 tRPC query（videoSuggestions.listByVideo）
+- [ ] 實作篩選功能（優先級、狀態）
+- [ ] 實作排序功能（時間、優先級）
+- [ ] 實作分頁功能
+- [ ] 顯示建議數量統計
+- [ ] 空狀態提示（無建議時）
+- [ ] Loading 與錯誤處理
+
+### 5. 整合到 VideoDetail 頁面
+- [ ] 更新 VideoDetail.tsx 佈局（左右分欄）
+- [ ] 新增 Tab 切換功能（時間軸筆記 / 影片建議 / 文件資料）
+- [ ] 整合 VideoSuggestionsList 組件
+- [ ] 整合 AddSuggestionForm 組件
+- [ ] 實作響應式設計（手機版堆疊佈局）
+- [ ] 測試權限控制（登入/未登入、Admin/Staff）
+
+### 6. 測試與優化
+- [ ] 測試新增建議功能
+- [ ] 測試編輯/刪除建議功能
+- [ ] 測試篩選與排序功能
+- [ ] 測試權限控制（建立者/Admin）
+- [ ] 測試響應式設計（桌面/手機）
+- [ ] 優化 UI/UX（載入狀態、錯誤提示、成功訊息）
+
+### 7. 部署與驗證
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+## Phase 20.2：影片建議系統前端組件開發（已完成）
+
+### 1. 組件架構與型別定義
+- [x] 建立 videoSuggestions 組件目錄（client/src/components/videoSuggestions/）
+- [x] 建立 types.ts 型別定義檔案
+
+### 2. VideoSuggestionCard 組件
+- [x] 顯示建議標題、內容、優先級、狀態
+- [x] 顯示建立者與時間戳記
+- [x] 編輯/刪除按鈕（僅建立者或 Admin）
+- [x] 狀態更新選擇器（Admin 專用）
+- [x] 刪除確認對話框
+
+### 3. AddSuggestionForm 組件
+- [x] 標題輸入欄位（必填，最多 255 字元）
+- [x] 內容輸入欄位（必填，多行文字）
+- [x] 優先級選擇器（LOW/MEDIUM/HIGH）
+- [x] 表單驗證與錯誤提示
+- [x] 整合 tRPC mutation
+- [x] 成功/失敗提示訊息（使用 sonner toast）
+
+### 4. VideoSuggestionsList 組件
+- [x] 整合 tRPC query（listByVideo、getCount）
+- [x] 優先級篩選（LOW/MEDIUM/HIGH）
+- [x] 狀態篩選（PENDING/READ/RESOLVED）
+- [x] 分頁功能（每頁 10 則）
+- [x] 顯示建議數量統計
+- [x] 空狀態提示
+- [x] Loading 與錯誤處理
+
+### 5. 整合到 VideoDetail 頁面
+- [x] 新增 Tabs 組件（時間軸筆記 / 影片建議）
+- [x] 整合 VideoSuggestionsList 組件
+- [x] 保留原有的 TimelineNotes 功能
+
+### 6. 測試與優化
+- [x] 測試提交建議功能（✅ 成功）
+- [x] 測試篩選功能（✅ 成功）
+- [x] 測試狀態更新功能（✅ 成功）
+- [x] 測試刪除功能（✅ 成功）
+- [x] 測試權限控制（✅ 成功）
+- [x] TypeScript 編譯通過（0 errors）
+- [x] 開發伺服器正常運作
+
+### 測試結果摘要
+✅ **所有功能測試通過**：
+- Tab 切換正常
+- 建議列表顯示正確（共 2 則）
+- 提交建議成功（即時更新列表）
+- 優先級篩選正常（高/中/低）
+- 狀態更新成功（待處理 → 已讀）
+- 刪除確認對話框正常
+- 權限控制正確（Admin 可編輯/刪除所有建議）
+- UI/UX 正常（優先級顏色、狀態顏色、時間戳記）

@@ -10,7 +10,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { TagSelector } from "@/components/TagSelector";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TimelineNotes } from "@/components/TimelineNotes";
+import { VideoSuggestionsList } from "@/components/videoSuggestions/VideoSuggestionsList";
 import { YouTubePlayer, YouTubePlayerHandle } from "@/components/YouTubePlayer";
 
 
@@ -336,14 +338,27 @@ export default function VideoDetail() {
           </CardContent>
         </Card>
 
-        {/* Timeline Notes */}
+        {/* Tabs: Timeline Notes & Suggestions */}
         <Card>
           <CardContent className="p-6">
-            <TimelineNotes
-              videoId={videoId}
-              currentTime={currentTime}
-              onSeek={handleSeek}
-            />
+            <Tabs defaultValue="notes" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="notes">時間軸筆記</TabsTrigger>
+                <TabsTrigger value="suggestions">影片建議</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="notes" className="mt-6">
+                <TimelineNotes
+                  videoId={videoId}
+                  currentTime={currentTime}
+                  onSeek={handleSeek}
+                />
+              </TabsContent>
+              
+              <TabsContent value="suggestions" className="mt-6">
+                <VideoSuggestionsList videoId={videoId} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </main>
