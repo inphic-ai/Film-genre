@@ -193,5 +193,39 @@
 - [ ] 測試本地開發環境
 - [x] 建立 vitest 測試 - 8 個測試全部通過（Admin Settings 4 個 + Review Center 4 個）
 - [x] 建立 checkpoint (version: 7d5452a3)
+- [x] 推送到 GitHub (commit: c596863)
+- [ ] 驗證 Railway Production 部署
+
+## Phase 17：P2 階段功能（標籤管理、全文搜尋、通知系統、商品進階功能）
+- [x] 標籤管理系統
+  - [x] 資料庫 Schema 變更申請（tags 表）- 已在 Phase 3 完成
+  - [x] 後端 API：tags.list（取得所有標籤）- 已在 Phase 3 完成
+  - [x] 後端 API：tags.create（新增標籤，Admin 專用）- 已在 Phase 3 完成
+  - [x] 後端 API：tags.update（更新標籤，Admin 專用）- 已在 Phase 3 完成
+  - [x] 後端 API：tags.delete（刪除標籤，Admin 專用）- 已在 Phase 3 完成
+  - [x] 後端 API：tags.getStats（標籤統計）- 已在 Phase 3 完成
+  - [x] 前端頁面：標籤管理（/admin/tags）- 已在 Phase 3 完成
+  - [x] 側邊欄導航整合（新增「標籤管理」項目）- Phase 17 完成
+  - [x] 測試標籤管理頁面功能（見 docs/tags-management-test-results.md）
+- [x] tsvector 全文搜尋最佳化
+  - [x] 資料庫 Schema 變更申請（新增 videos.searchVector 欄位）
+  - [x] 後端 API：fullTextSearch.search（PostgreSQL tsvector 搜尋）
+  - [x] 後端 API：fullTextSearch.suggest（搜尋建議）
+  - [x] 前端：整合全文搜尋到全域搜尋框（DashboardLayout + Board.tsx）
+- [ ] 通知系統
+  - [ ] 資料庫 Schema 變更申請（notifications 表）
+  - [ ] 後端 API：notifications.list（取得我的通知）
+  - [ ] 後端 API：notifications.markAsRead（標記為已讀）
+  - [ ] 後端 API：notifications.markAllAsRead（全部標記為已讀）
+  - [ ] 前端：通知中心頁面（/notifications）
+  - [ ] 前端：頂部導航列通知圖示（未讀數量）
+- [ ] 商品知識中樞進階功能
+  - [ ] 後端 API：products.uploadThumbnail（商品縮圖上傳到 R2）
+  - [ ] 後端 API：products.importBatch（批次匯入 SKU 資料，CSV/Excel）
+  - [ ] 前端：商品縮圖上傳功能
+  - [ ] 前端：批次匯入 SKU 介面
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署

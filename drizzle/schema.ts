@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
@@ -81,6 +81,7 @@ export const videos = pgTable("videos", {
   viewCount: integer("viewCount").default(0).notNull(),
   notes: text("notes"), // JSON string for timeline notes
   duration: integer("duration"), // Video duration in seconds
+  searchVector: text("searchVector"), // tsvector for full-text search (PostgreSQL specific)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   uploadedBy: integer("uploadedBy").references(() => users.id),
@@ -159,6 +160,7 @@ export const products = pgTable("products", {
   familyCode: varchar("familyCode", { length: 20 }), // First 6 digits (PM612345)
   variant: varchar("variant", { length: 1 }), // Last digit (A/B/C)
   description: text("description"),
+  thumbnailUrl: text("thumbnailUrl"), // Product thumbnail image URL (Cloudflare R2)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -243,3 +245,31 @@ export const shareLogs = pgTable("share_logs", {
 
 export type ShareLog = typeof shareLogs.$inferSelect;
 export type InsertShareLog = typeof shareLogs.$inferInsert;
+
+/**
+ * Notification type enum - defines different types of notifications
+ */
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "REVIEW_APPROVED",
+  "REVIEW_REJECTED",
+  "SYSTEM_ANNOUNCEMENT",
+  "MENTION"
+]);
+
+/**
+ * Notifications table - stores user notifications for various system events
+ */
+export const notifications = pgTable("notifications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  content: text("content"),
+  relatedResourceType: varchar("relatedResourceType", { length: 50 }), // VIDEO / TIMELINE_NOTE / PRODUCT
+  relatedResourceId: integer("relatedResourceId"),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

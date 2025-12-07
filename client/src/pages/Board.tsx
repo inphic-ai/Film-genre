@@ -27,6 +27,7 @@ export default function Board() {
   // 從 URL 參數讀取搜尋關鍵字
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const searchFromUrl = urlParams.get('search') || '';
+  const useFullText = urlParams.get('useFullText') === 'true';
   
   const [searchKeyword, setSearchKeyword] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -37,6 +38,12 @@ export default function Board() {
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
   const { data: allTags } = trpc.tags.list.useQuery();
+  
+  // Use fullTextSearch API when useFullText is true
+  const { data: fullTextSearchResult, isLoading: fullTextSearchLoading } = trpc.fullTextSearch.search.useQuery(
+    { query: searchKeyword, limit: 50 },
+    { enabled: useFullText && searchKeyword.trim().length > 0 }
+  );
   
   // Use smart score API when tags are selected
   const { data: tagFilteredVideos, isLoading: tagFilterLoading } = trpc.videos.searchByTags.useQuery(
@@ -50,8 +57,12 @@ export default function Board() {
     },
   });
 
-  // Use tag-filtered videos if tags are selected, otherwise use all videos
-  const baseVideos = selectedTagIds.length > 0 ? tagFilteredVideos : allVideos;
+  // Use fullTextSearch results if enabled, tag-filtered videos if tags selected, otherwise all videos
+  const baseVideos = useFullText && fullTextSearchResult 
+    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null })) 
+    : selectedTagIds.length > 0 
+    ? tagFilteredVideos 
+    : allVideos;
 
   const filteredVideos = baseVideos?.filter(video => {
     const matchesSearch = !searchKeyword || 

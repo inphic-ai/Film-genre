@@ -31,7 +31,8 @@ import {
   CheckSquare,
   Film,
   Plus,
-  Search
+  Search,
+  Tag as TagIcon
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: Film, label: "影片看板", path: "/board", roles: ["admin", "staff", "viewer"] },
   { icon: Package, label: "商品知識中樞", path: "/products", roles: ["admin", "staff", "viewer"] },
   { icon: FileText, label: "我的貢獻", path: "/my-contributions", roles: ["admin", "staff"] },
+  { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
   { icon: CheckSquare, label: "審核中心", path: "/admin/review", roles: ["admin"] },
 ];
@@ -180,8 +182,8 @@ function DashboardLayoutContent({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // 導航到看板總覽並傳遞搜尋關鍵字
-      setLocation(`/board?search=${encodeURIComponent(searchQuery.trim())}`);
+      // 導航到看板總覽並傳遞搜尋關鍵字（使用 fullTextSearch API）
+      setLocation(`/board?search=${encodeURIComponent(searchQuery.trim())}&useFullText=true`);
       setSearchQuery(""); // 清空搜尋框
     }
   };
