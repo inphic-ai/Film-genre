@@ -98,4 +98,16 @@
 - [ ] 測試 Viewer 權限（無法存取審核中心）
 - [x] 建立 vitest 測試 (reviewCenter.test.ts - 5 個測試全部通過)
 - [x] 建立 checkpoint (version: d5e39e46)
+- [x] 推送到 GitHub (commit: 5def6ec)
+
+## Phase 13：UI 升級 - 導航與視覺設計優化
+- [x] 分析 UI 原型與規劃系統架構（docs/ui-upgrade-design.md）
+- [x] 提交資料庫 Schema 變更申請（新增 5 個表 + videos.duration 欄位）
+- [ ] 建立 DashboardLayout 組件（側邊欄 + 頂部導航）
+- [ ] 重構 Board.tsx 使用新的 DashboardLayout
+- [ ] 優化 VideoCard 組件設計
+- [ ] 新增全域搜尋功能
+- [ ] 新增影片描述與時長欄位
+- [ ] 測試所有頁面導航與視覺
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub

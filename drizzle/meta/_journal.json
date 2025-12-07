@@ -36,6 +36,13 @@
       "when": 1765070186209,
       "tag": "0004_elite_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765078158374,
+      "tag": "0005_tough_exodus",
+      "breakpoints": true
     }
   ]
 }

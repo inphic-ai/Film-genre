@@ -80,6 +80,7 @@ export const videos = pgTable("videos", {
   shareStatus: shareStatusEnum("shareStatus").default("private").notNull(),
   viewCount: integer("viewCount").default(0).notNull(),
   notes: text("notes"), // JSON string for timeline notes
+  duration: integer("duration"), // Video duration in seconds
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   uploadedBy: integer("uploadedBy").references(() => users.id),
@@ -147,3 +148,98 @@ export const timelineNotes = pgTable("timeline_notes", {
 
 export type TimelineNote = typeof timelineNotes.$inferSelect;
 export type InsertTimelineNote = typeof timelineNotes.$inferInsert;
+
+/**
+ * Products table - stores product information with SKU management
+ */
+export const products = pgTable("products", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  sku: varchar("sku", { length: 50 }).notNull().unique(), // PM6123456A
+  name: varchar("name", { length: 255 }).notNull(),
+  familyCode: varchar("familyCode", { length: 20 }), // First 6 digits (PM612345)
+  variant: varchar("variant", { length: 1 }), // Last digit (A/B/C)
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = typeof products.$inferInsert;
+
+/**
+ * Product relation type enum - defines relationship types between products
+ */
+export const relationTypeEnum = pgEnum("relation_type", ["SYNONYM", "FAMILY", "PART"]);
+
+/**
+ * Product Relations table - stores relationships between products
+ */
+export const productRelations = pgTable("product_relations", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  productAId: integer("productAId").notNull().references(() => products.id, { onDelete: "cascade" }),
+  productBId: integer("productBId").notNull().references(() => products.id, { onDelete: "cascade" }),
+  relationType: relationTypeEnum("relationType").notNull(), // SYNONYM / FAMILY / PART
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProductRelation = typeof productRelations.$inferSelect;
+export type InsertProductRelation = typeof productRelations.$inferInsert;
+
+/**
+ * Suggestion priority enum - defines priority levels for video suggestions
+ */
+export const suggestionPriorityEnum = pgEnum("suggestion_priority", ["LOW", "MEDIUM", "HIGH"]);
+
+/**
+ * Suggestion status enum - tracks suggestion processing status
+ */
+export const suggestionStatusEnum = pgEnum("suggestion_status", ["PENDING", "READ", "RESOLVED"]);
+
+/**
+ * Suggestions table - stores user-submitted video suggestions
+ */
+export const suggestions = pgTable("suggestions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  priority: suggestionPriorityEnum("priority").default("MEDIUM").notNull(),
+  status: suggestionStatusEnum("status").default("PENDING").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type Suggestion = typeof suggestions.$inferSelect;
+export type InsertSuggestion = typeof suggestions.$inferInsert;
+
+/**
+ * Audit Logs table - tracks all system operations for security and compliance
+ */
+export const auditLogs = pgTable("audit_logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("userId").references(() => users.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 100 }).notNull(), // CREATE_VIDEO / APPROVE_NOTE / etc.
+  resourceType: varchar("resourceType", { length: 50 }), // VIDEO / NOTE / PRODUCT
+  resourceId: integer("resourceId"),
+  details: text("details"), // JSON string for additional details
+  ipAddress: varchar("ipAddress", { length: 50 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+/**
+ * Share Logs table - tracks external sharing clicks for analytics
+ */
+export const shareLogs = pgTable("share_logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  sharedByUserId: integer("sharedByUserId").references(() => users.id, { onDelete: "set null" }),
+  clickedAt: timestamp("clickedAt").defaultNow().notNull(),
+  ipAddress: varchar("ipAddress", { length: 50 }),
+  userAgent: text("userAgent"),
+});
+
+export type ShareLog = typeof shareLogs.$inferSelect;
+export type InsertShareLog = typeof shareLogs.$inferInsert;
