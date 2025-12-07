@@ -9,13 +9,24 @@ let _pool: Pool | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  // Prioritize CUSTOM_DATABASE_URL (Railway PostgreSQL) over default DATABASE_URL (TiDB)
+  const databaseUrl = process.env.CUSTOM_DATABASE_URL || process.env.DATABASE_URL;
+  
+  if (!_db && databaseUrl) {
     try {
+      // Check if it's PostgreSQL
+      if (!databaseUrl.startsWith('postgresql://')) {
+        console.error('[Database] ❌ Only PostgreSQL is supported. Current URL starts with:', databaseUrl.split(':')[0]);
+        console.error('[Database] Please set CUSTOM_DATABASE_URL to Railway PostgreSQL connection string.');
+        return null;
+      }
+      
       _pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: databaseUrl,
         ssl: { rejectUnauthorized: false }, // Railway PostgreSQL requires SSL
       });
       _db = drizzle(_pool);
+      console.log('[Database] ✅ Connected to PostgreSQL:', databaseUrl.split('@')[1]?.split('/')[0] || 'unknown');
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;

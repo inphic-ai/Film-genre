@@ -54,5 +54,18 @@
 - [x] 移除 Home.tsx 中的「前往客戶專區」按鈕與說明
 - [x] 更新 Home.tsx 頁面文案（改為內部專用系統）
 - [x] 測試所有頁面導航正常
+- [x] 建立 checkpoint
+- [ ] 推送到 GitHub
+
+## Phase 9：修正資料庫連線（TiDB → Railway PostgreSQL）
+- [x] 修改 server/db.ts 優先使用 CUSTOM_DATABASE_URL
+- [x] 修改 drizzle.config.ts 支援 CUSTOM_DATABASE_URL 與 SSL
+- [x] 建立 scripts/db-push-railway.sh 腳本
+- [x] 測試連線到 Railway PostgreSQL (PostgreSQL 17.7)
+- [x] 重新執行 migration 推送
+- [x] 驗證所有資料表正確建立 (6 個表)
+- [x] 驗證 timeline_notes 表結構 (10 個欄位)
+- [x] 測試時間軸筆記功能（資料庫連線測試通過）
+- [x] 建立資料庫連線測試 (database.connection.test.ts)
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
