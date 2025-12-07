@@ -41,10 +41,11 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "看板總覽", path: "/board", roles: ["admin", "staff", "viewer"] },
+  { icon: LayoutDashboard, label: "數據視覺化", path: "/dashboard", roles: ["admin", "staff", "viewer"] },
+  { icon: Film, label: "影片看板", path: "/board", roles: ["admin", "staff", "viewer"] },
   { icon: Package, label: "商品知識中樞", path: "/products", roles: ["admin", "staff", "viewer"] },
   { icon: FileText, label: "我的貢獻", path: "/my-contributions", roles: ["admin", "staff"] },
-  { icon: Settings, label: "系統管理", path: "/admin", roles: ["admin"] },
+  { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
   { icon: CheckSquare, label: "審核中心", path: "/admin/review", roles: ["admin"] },
 ];
 

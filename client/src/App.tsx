@@ -16,6 +16,7 @@ import TagRankingPage from "./pages/TagRankingPage";
 import ReviewCenter from "./pages/ReviewCenter";
 import Products from "./pages/Products";
 import MyContributions from "./pages/MyContributions";
+import AdminSettings from "./pages/AdminSettings";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path={"/admin/review"} component={ReviewCenter} />
       <Route path={"/products"} component={Products} />
       <Route path={"/my-contributions"} component={MyContributions} />
+      <Route path={"/admin/settings"} component={AdminSettings} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

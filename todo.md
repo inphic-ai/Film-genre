@@ -172,5 +172,26 @@
 - [x] 測試本地開發環境（見 docs/phase15-local-test-results.md）
 - [x] 建立 vitest 測試 - 7 個測試全部通過（Dashboard API 4 個 + MyContributions API 3 個）
 - [x] 建立 checkpoint (version: 4a114e1e)
+- [x] 推送到 GitHub (commit: 87a9e55)
+- [ ] 驗證 Railway Production 部署
+
+## Phase 16：導航優化、審核中心進階功能、系統管理、影片播放體驗
+- [x] 修正導航順序（數據視覺化放在影片看板前面）
+- [x] 實作審核中心進階功能
+  - [x] 批次審核功能（全選、批次通過/拒絕）- 已存在
+  - [x] 審核歷史記錄（操作時間、操作者、審核結果）- 新增 Tab
+  - [x] 審核統計圖表（總筆記數、待審核、已核准、通過率、最近 7 天趨勢、拒絕原因分析）- 新增 Tab
+- [x] 建立系統管理頁面（/admin/settings）
+  - [x] 使用者管理（列表、編輯、刪除、角色設定）
+  - [x] 系統設定（預留擴充空間）
+  - [x] 操作日誌查詢（篩選、統計、操作類型分佈）
+- [x] 優化影片播放體驗（已存在，無需额外開發）
+  - [x] 整合 YouTube Player API（YouTubePlayer 組件）
+  - [x] 時間軸筆記即時顯示（TimelineNotes 組件）
+  - [x] 筆記跳轉播放（handleSeek 函數）
+  - [x] 影片速度控制（YouTube Player 原生控制）
+- [ ] 測試本地開發環境
+- [x] 建立 vitest 測試 - 8 個測試全部通過（Admin Settings 4 個 + Review Center 4 個）
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署

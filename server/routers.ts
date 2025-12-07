@@ -11,6 +11,8 @@ import * as ai from "./ai";
 import { productsRouter } from "./trpc/routers/products";
 import { dashboardRouter } from "./trpc/routers/dashboard";
 import { myContributionsRouter } from "./trpc/routers/myContributions";
+import { reviewCenterRouter } from "./trpc/routers/reviewCenter";
+import { adminSettingsRouter } from "./trpc/routers/adminSettings";
 
 export const appRouter = router({
   system: systemRouter,
@@ -592,6 +594,8 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   // My contributions
   myContributions: myContributionsRouter,
+  reviewCenter: reviewCenterRouter,
+  adminSettings: adminSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;
