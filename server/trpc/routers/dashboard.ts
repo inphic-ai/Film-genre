@@ -151,6 +151,77 @@ export const dashboardRouter = router({
     };
   }),
 
+  // 創作者統計
+  getCreatorStats: protectedProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    // 總創作者數（去重）
+    const creatorsWithCount = await db
+      .select({
+        creator: videos.creator,
+        videoCount: count(),
+      })
+      .from(videos)
+      .where(sql`${videos.creator} IS NOT NULL AND ${videos.creator} != ''`)
+      .groupBy(videos.creator)
+      .orderBy(desc(count()));
+    
+    const totalCreators = creatorsWithCount.length;
+    const totalVideosWithCreator = creatorsWithCount.reduce((sum, c) => sum + Number(c.videoCount), 0);
+    
+    // 創作者影片數量分佈
+    const distribution = {
+      single: creatorsWithCount.filter(c => Number(c.videoCount) === 1).length,
+      few: creatorsWithCount.filter(c => Number(c.videoCount) >= 2 && Number(c.videoCount) <= 5).length,
+      many: creatorsWithCount.filter(c => Number(c.videoCount) > 5).length,
+    };
+    
+    // Top 10 創作者
+    const topCreators = creatorsWithCount.slice(0, 10);
+    
+    return {
+      totalCreators,
+      totalVideosWithCreator,
+      distribution,
+      topCreators,
+    };
+  }),
+
+  // 創作者列表（支援搜尋與分頁）
+  getCreatorList: protectedProcedure
+    .input(z.object({
+      search: z.string().optional(),
+      limit: z.number().default(20),
+      offset: z.number().default(0),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      
+      let query = db
+        .select({
+          creator: videos.creator,
+          videoCount: count(),
+        })
+        .from(videos)
+        .where(sql`${videos.creator} IS NOT NULL AND ${videos.creator} != ''`)
+        .groupBy(videos.creator)
+        .$dynamic();
+      
+      // 搜尋過濾
+      if (input.search) {
+        query = query.where(sql`${videos.creator} ILIKE ${'%' + input.search + '%'}`);
+      }
+      
+      const creators = await query
+        .orderBy(desc(count()))
+        .limit(input.limit)
+        .offset(input.offset);
+      
+      return creators;
+    }),
+
   // 綜合統計（快速總覽）
   getOverview: protectedProcedure.query(async () => {
     const db = await getDb();

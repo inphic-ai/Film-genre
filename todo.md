@@ -1237,3 +1237,37 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+
+## Phase 41：整合 YouTube API 自動取得創作者資訊並實作數據視覺化創作者卡片（進行中）
+- [x] 分析現有影片 URL 格式
+  - [x] 查詢資料庫中所有影片的 videoUrl（無法從 URL 直接解析創作者）
+  - [x] 決定使用 YouTube Data API v3 自動取得創作者資訊
+- [x] 資料庫 Schema 變更
+  - [x] 在 videos 表新增 creator 欄位（varchar(255), nullable）
+  - [x] 執行 pnpm db:push 推送到 Railway PostgreSQL（✅ 19 columns）
+- [x] YouTube API 整合
+  - [x] 安裝 googleapis npm 套件
+  - [x] 請求 YOUTUBE_API_KEY 環境變數
+  - [x] 建立 server/_core/youtube.ts（extractYouTubeVideoId, getYouTubeVideoDetails, getYouTubeCreator）
+  - [x] 建立 vitest 測試（youtube.api.test.ts - 6 個測試全部通過）
+- [x] 後端 API 實作
+  - [x] dashboard.getCreatorStats（創作者統計：總數、影片分佈、Top 10）
+  - [x] dashboard.getCreatorList（創作者列表，支援搜尋與分頁）
+- [ ] 修改影片新增/編輯表單
+  - [ ] 新增「創作者」輸入欄位
+  - [ ] 新增「自動偵測創作者」按鈕（呼叫 YouTube API）
+  - [ ] 修改 createVideo 和 updateVideo tRPC procedures
+- [ ] 前端實作
+  - [ ] Dashboard.tsx 新增「創作者」卡片（顯示創作者數量）
+  - [ ] 點擊卡片跳轉到創作者列表頁面（/admin/creators）
+  - [ ] 建立 Creators.tsx 頁面（創作者列表、搜尋、篩選、影片數量）
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試（創作者統計 API）
+
+## Phase 42：我的貢獻頁面影片列表「更多」按鈕
+- [ ] 前端實作
+  - [ ] MyContributions.tsx 影片列表新增「查看更多」按鈕
+  - [ ] MyContributions.tsx 筆記列表新增「查看更多」按鈕
+  - [ ] 實作分頁載入邏輯（初始顯示 6 筆，點擊載入更多）
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試（前端分頁邏輯）

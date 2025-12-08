@@ -78,6 +78,7 @@ export const videos = pgTable("videos", {
   category: categoryEnum("category").notNull(),
   // New fields for enhanced functionality
   productId: varchar("productId", { length: 100 }),
+  creator: varchar("creator", { length: 255 }), // Creator name (e.g., @心灵之音 for YouTube)
   shareStatus: shareStatusEnum("shareStatus").default("private").notNull(),
   viewCount: integer("viewCount").default(0).notNull(),
   notes: text("notes"), // JSON string for timeline notes

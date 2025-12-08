@@ -589,6 +589,7 @@ export async function getTagVideos(tagId: number): Promise<(Video & { weight: nu
       customThumbnailUrl: videos.customThumbnailUrl,
       category: videos.category,
       productId: videos.productId,
+      creator: videos.creator,
       shareStatus: videos.shareStatus,
       viewCount: videos.viewCount,
       notes: videos.notes,
