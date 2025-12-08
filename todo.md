@@ -816,9 +816,14 @@
   - [x] 新增 products 表索引（2 個）
   - [x] 執行索引 SQL 推送到本地測試環境
   - [x] 驗證索引正確建立（16 個索引全部成功）
-  - [ ] 測試查詢效能改善（使用 EXPLAIN ANALYZE）
-  - [ ] 部署到 Railway 生產環境
-  - [ ] 驗證生產環境效能改善
+  - [x] 測試查詢效能改善（使用 EXPLAIN ANALYZE）
+    - [x] 建立查詢效能測試腳本
+    - [x] 執行 11 個關鍵查詢測試
+    - [x] 分析 EXPLAIN ANALYZE 結果
+    - [x] 驗證索引生效（idx_videos_created_at、idx_videos_view_count）
+    - [x] 建立查詢效能測試報告（docs/query-performance-test-results.md）
+  - [x] 部署到 Railway 生產環境（psql -f 0012_performance_indexes.sql）
+  - [x] 驗證生產環境索引（16 個索引全部存在）
 - [ ] API 速率限制實作
   - [ ] 安裝 express-rate-limit 套件
   - [ ] 設定 Redis 儲存（Railway Redis）
@@ -880,8 +885,9 @@
   - [x] 將 value="" 改為 value="all"
   - [x] 修改篩選邏輯（處理 "all" 值）
   - [x] 修改預設值為 "all"
-  - [ ] 測試本地開發環境
-- [ ] 部署到 Railway 生產環境
-  - [ ] 建立 checkpoint
-  - [ ] 推送到 GitHub
-  - [ ] 驗證生產環境修復成功
+  - [x] 測試本地開發環境
+- [x] 部署到 Railway 生產環境
+  - [x] 建立 checkpoint (d873175b)
+  - [x] 推送到 GitHub (commit: d873175)
+  - [x] 驗證生產環境修復成功（操作類型篩選正常運作）
+  - [x] 測試篩選功能（全部/更新使用者角色/核准筆記等）
