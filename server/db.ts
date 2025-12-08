@@ -284,12 +284,42 @@ export async function updateVideo(id: number, video: Partial<InsertVideo>): Prom
 }
 
 /**
- * Delete video
+ * Delete video and associated S3 thumbnail
  */
 export async function deleteVideo(id: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
+
+  // Get video data before deletion to retrieve customThumbnailUrl
+  const [video] = await db.select().from(videos).where(eq(videos.id, id)).limit(1);
+  
+  if (!video) {
+    console.warn(`[deleteVideo] Video ${id} not found`);
+    return;
+  }
+
+  // Delete custom thumbnail from S3 if exists
+  if (video.customThumbnailUrl) {
+    try {
+      // Extract key from URL (assuming format: https://domain/bucket/key)
+      const url = new URL(video.customThumbnailUrl);
+      const key = url.pathname.split('/').slice(2).join('/'); // Remove leading /bucket/
+      
+      console.log(`[deleteVideo] Deleting custom thumbnail: ${key}`);
+      
+      const { storageDelete } = await import('./storage');
+      await storageDelete(key);
+      
+      console.log(`[deleteVideo] Custom thumbnail deleted successfully: ${key}`);
+    } catch (error) {
+      console.error(`[deleteVideo] Failed to delete custom thumbnail:`, error);
+      // Continue with video deletion even if thumbnail deletion fails
+    }
+  }
+
+  // Delete video record from database
   await db.delete(videos).where(eq(videos.id, id));
+  console.log(`[deleteVideo] Video ${id} deleted successfully`);
 }
 
 /**
@@ -584,13 +614,23 @@ export async function getRelatedTags(tagId: number, limit: number = 10): Promise
  */
 export async function getTagStats() {
   const db = await getDb();
-  if (!db) return { totalTags: 0, totalRelationships: 0, avgTagsPerVideo: 0 };
+  if (!db) return { 
+    totalTags: 0, 
+    productCodeTagsCount: 0, 
+    keywordTagsCount: 0, 
+    totalRelationships: 0, 
+    avgTagsPerVideo: 0 
+  };
   
   const totalTags = await db.select({ count: sql<number>`COUNT(*)::int` }).from(tags);
+  const productCodeTags = await db.select({ count: sql<number>`COUNT(*)::int` }).from(tags).where(eq(tags.tagType, 'PRODUCT_CODE'));
+  const keywordTags = await db.select({ count: sql<number>`COUNT(*)::int` }).from(tags).where(eq(tags.tagType, 'KEYWORD'));
   const totalRelationships = await db.select({ count: sql<number>`COUNT(*)::int` }).from(videoTags);
   const totalVideos = await db.select({ count: sql<number>`COUNT(*)::int` }).from(videos);
   
   const tagsCount = Number(totalTags[0].count);
+  const productCodeTagsCount = Number(productCodeTags[0].count);
+  const keywordTagsCount = Number(keywordTags[0].count);
   const relationshipsCount = Number(totalRelationships[0].count);
   const videosCount = Number(totalVideos[0].count);
   
@@ -600,6 +640,8 @@ export async function getTagStats() {
   
   return {
     totalTags: tagsCount,
+    productCodeTagsCount,
+    keywordTagsCount,
     totalRelationships: relationshipsCount,
     avgTagsPerVideo: Math.round(avgTagsPerVideo * 10) / 10,
   };

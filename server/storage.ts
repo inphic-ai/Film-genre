@@ -1,7 +1,7 @@
 // Cloudflare R2 storage helpers using AWS S3 SDK
 // R2 is S3-compatible, so we use @aws-sdk/client-s3
 
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ENV } from "./_core/env";
 
@@ -125,6 +125,46 @@ export async function storageGet(
   } catch (error) {
     throw new Error(
       `R2 get URL failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+/**
+ * Delete file from Cloudflare R2
+ * @param relKey - Relative key (path) for the file in R2
+ * @returns Object with key and success status
+ */
+export async function storageDelete(
+  relKey: string
+): Promise<{ key: string; success: boolean }> {
+  const { client, bucketName } = getR2Config();
+  const key = normalizeKey(relKey);
+
+  const command = new DeleteObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+  });
+
+  try {
+    console.log('[R2 Delete] Starting delete:', {
+      key,
+      bucketName,
+    });
+
+    await client.send(command);
+    
+    console.log('[R2 Delete] Delete successful:', { key });
+
+    return { key, success: true };
+  } catch (error) {
+    console.error('[R2 Delete] Delete failed:', {
+      key,
+      bucketName,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw new Error(
+      `R2 delete failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }

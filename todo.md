@@ -915,15 +915,16 @@
   - [x] 測試搜尋功能（SKU: tst123456a → 2 個結果，名稱: 測試商品 → 2 個結果）
 - [ ] 部署到生產環境並驗證
 
-## Phase 31：影片刪除連動縮圖刪除（P1）
-- [ ] 分析影片刪除流程
-  - [ ] 檢查 videos.delete API（server/routers.ts）
-  - [ ] 檢查縮圖儲存位置（S3 或本地）
-  - [ ] 檢查縮圖檔案命名規則
-- [ ] 實作縮圖刪除功能
-  - [ ] 在 videos.delete API 中新增縮圖刪除邏輯
-  - [ ] 使用 storageDelete 刪除 S3 縮圖檔案
-  - [ ] 處理縮圖不存在的情況（避免錯誤）
+## Phase 31：影片刪除連動縮圖刪除（P1，完成）
+- [x] 分析影片刪除流程
+  - [x] 檢查 videos.delete API（server/routers.ts 第 575 行）
+  - [x] 檢查縮圖儲存位置（S3 Cloudflare R2）
+  - [x] 檢查縮圖欄位（thumbnailUrl、customThumbnailUrl）
+- [x] 實作縮圖刪除功能
+  - [x] 新增 storageDelete 函數（server/storage.ts）
+  - [x] 修改 deleteVideo 函數，刪除 customThumbnailUrl（server/db.ts）
+  - [x] 處理縮圖不存在的情況（try-catch + console.error）
+  - [x] 新增詳細日誌（console.log）
 - [ ] 測試刪除功能
   - [ ] 測試刪除影片（驗證縮圖同時刪除）
   - [ ] 測試刪除不存在縮圖的影片（驗證不報錯）
