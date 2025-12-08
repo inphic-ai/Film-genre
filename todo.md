@@ -498,6 +498,54 @@
 
 ### 6. 測試與優化
 - [x] 測試提交建議功能（✅ 成功）
+
+## Phase 46：Board.tsx 批次選擇整合（進行中）
+- [x] 後端 API 實作
+  - [x] videos.batchDelete（批次刪除影片）
+  - [x] videos.batchUpdateCategory（批次修改分類）
+  - [x] videos.batchUpdateShareStatus（批次修改分享狀態）
+- [ ] 前端實作
+  - [x] 建立 BatchOperationToolbar 組件
+  - [x] Board.tsx 新增批次選擇狀態
+  - [ ] 影片卡片與清單視圖新增 checkbox
+  - [ ] Board.tsx 整合 BatchOperationToolbar 組件
+  - [ ] 實作全選/取消全選功能
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試
+
+## Phase 47：創作者詳情頁面（待開發）
+- [ ] 後端 API 實作
+  - [ ] dashboard.getCreatorDetail（創作者詳情、影片列表、統計數據）
+- [ ] 前端實作
+  - [ ] 建立 CreatorDetail.tsx 頁面
+  - [ ] 顯示創作者資訊
+  - [ ] 顯示該創作者的所有影片列表
+  - [ ] 統計數據圖表（recharts）
+  - [ ] 新增 /creators/:creatorName 路由
+  - [ ] Creators.tsx 列表頁面：點擊影片數量連結
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試
+
+## Phase 48：搜尋排序優化（待開發）
+- [ ] Board.tsx 新增排序方向切換（升序/降序）
+- [ ] 排序按鈕 UI 優化
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試
+
+## Phase 49：後台操作日誌（✅ 已完成）
+- [x] 後端 API 已存在
+  - [x] adminSettings.getAuditLogs
+  - [x] adminSettings.getAuditStats
+  - [x] auditLogs 表已存在
+- [x] 前端實作
+  - [x] 建立 OperationLogs.tsx 頁面
+  - [x] 新增 /admin/logs 路由
+  - [x] DashboardLayout 側邊欄新增「操作日誌」
+- [x] 安裝必要的依賴（recharts, date-fns）
+- [ ] 影片操作日誌記錄整合（create, update, delete, batch operations）
+- [x] 測試本地開發環境（TypeScript 0 errors）
+- [x] 建立 checkpoint（version: d792bf51）
+- [x] 推送到 GitHub（commit: d792bf5）
 - [x] 測試篩選功能（✅ 成功）
 - [x] 測試狀態更新功能（✅ 成功）
 - [x] 測試刪除功能（✅ 成功）
