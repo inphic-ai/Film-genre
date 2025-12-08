@@ -82,7 +82,7 @@ export async function getYouTubeVideoDetails(videoId: string): Promise<{
       channelId: snippet.channelId || '',
       channelCustomUrl: channelCustomUrl ? `@${channelCustomUrl.replace(/^@/, '')}` : undefined,
       duration,
-      thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
+      thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || undefined,
     };
   } catch (error: any) {
     console.error('[YouTube] API error:', error.message);

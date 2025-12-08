@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { VideoCard } from "@/components/VideoCard";
+import { VideoListView } from "@/components/VideoListView";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter, Sparkles, XCircle } from "lucide-react";
+import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter, Sparkles, XCircle, LayoutGrid, List } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,7 +53,16 @@ export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration'>('createdAt');
+  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration'>('viewCount');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>(() => {
+    const saved = localStorage.getItem('board-view-mode');
+    return (saved === 'card' || saved === 'list') ? saved : 'card';
+  });
+
+  // Save view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem('board-view-mode', viewMode);
+  }, [viewMode]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedShareStatus, setSelectedShareStatus] = useState<string[]>([]);
 
@@ -89,7 +99,7 @@ export default function Board() {
   const baseVideos = isAiSearch && aiSearchResult
     ? aiSearchResult.videos
     : useFullText && fullTextSearchResult 
-    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null })) 
+    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null, creator: null })) 
     : selectedTagIds.length > 0 
     ? tagFilteredVideos 
     : allVideos;
@@ -216,6 +226,28 @@ export default function Board() {
               onChange={(e) => setSearchKeyword(e.target.value)}
               className="pl-9"
             />
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 border rounded-md">
+            <Button
+              variant={viewMode === 'card' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('card')}
+              className="gap-2"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              卡片
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="gap-2"
+            >
+              <List className="h-4 w-4" />
+              清單
+            </Button>
           </div>
 
           {/* Sort Selector */}
@@ -444,15 +476,51 @@ export default function Board() {
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
-            {categories?.map(category => {
-              const videos = videosByCategory?.[category.key] || [];
-              if (videos.length === 0) return null;
-              
-              return (
-                <div key={category.key} className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">{category.name}</h2>
+            {viewMode === 'card' ? (
+              <>
+                {categories?.map(category => {
+                  const videos = videosByCategory?.[category.key] || [];
+                  if (videos.length === 0) return null;
+                  
+                  return (
+                    <div key={category.key} className="mb-8">
+                      <h2 className="text-xl font-semibold mb-4">{category.name}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {videos.map(video => (
+                          <VideoCard
+                            key={video.id}
+                            video={video}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            showActions
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredVideos?.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    沒有找到符合條件的影片
+                  </div>
+                )}
+              </>
+            ) : (
+              <VideoListView
+                videos={filteredVideos || []}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                showActions
+              />
+            )}
+          </TabsContent>
+
+          {categories?.map(category => (
+            <TabsContent key={category.key} value={category.key} className="mt-6">
+              {viewMode === 'card' ? (
+                <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {videos.map(video => (
+                    {videosByCategory?.[category.key]?.map(video => (
                       <VideoCard
                         key={video.id}
                         video={video}
@@ -462,33 +530,19 @@ export default function Board() {
                       />
                     ))}
                   </div>
-                </div>
-              );
-            })}
-            {filteredVideos?.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                沒有找到符合條件的影片
-              </div>
-            )}
-          </TabsContent>
-
-          {categories?.map(category => (
-            <TabsContent key={category.key} value={category.key} className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {videosByCategory?.[category.key]?.map(video => (
-                  <VideoCard
-                    key={video.id}
-                    video={video}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    showActions
-                  />
-                ))}
-              </div>
-              {videosByCategory?.[category.key]?.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  此分類尚無影片
-                </div>
+                  {videosByCategory?.[category.key]?.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      此分類尚無影片
+                    </div>
+                  )}
+                </>
+              ) : (
+                <VideoListView
+                  videos={videosByCategory?.[category.key] || []}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  showActions
+                />
               )}
             </TabsContent>
           ))}
