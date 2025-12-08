@@ -21,6 +21,7 @@ import TagsManagement from "./pages/TagsManagement";
 import Notifications from "./pages/Notifications";
 import PerformanceMonitor from "./pages/PerformanceMonitor";
 import Creators from "./pages/Creators";
+import OperationLogs from "./pages/OperationLogs";
 
 function Router() {
   return (
@@ -42,7 +43,8 @@ function Router() {
       <Route path={"/admin/tags"} component={TagsManagement} />
       <Route path={"/notifications"} component={Notifications} />
       <Route path={"/admin/performance"} component={PerformanceMonitor} />
-      <Route path={"/creators"} component={Creators} />
+        <Route path="/creators" component={Creators} />
+        <Route path="/admin/logs" component={OperationLogs} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

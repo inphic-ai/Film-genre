@@ -29,6 +29,7 @@ import {
   FileText, 
   Settings, 
   CheckSquare,
+  FileText as FileTextIcon,
   Film,
   Plus,
   Search,
@@ -54,6 +55,7 @@ const menuItems = [
   { icon: Bell, label: "通知中心", path: "/notifications", roles: ["admin", "staff", "viewer"] },
   { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
+  { icon: FileTextIcon, label: "操作日誌", path: "/admin/logs", roles: ["admin"] },
   { icon: Activity, label: "效能監控", path: "/admin/performance", roles: ["admin"] },
   { icon: CheckSquare, label: "審核中心", path: "/admin/review", roles: ["admin"] },
 ];
