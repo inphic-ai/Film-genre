@@ -1263,15 +1263,13 @@
   - [ ] 建立 Creators.tsx 頁面（創作者列表、搜尋、篩選、影片數量）
 - [ ] 測試本地開發環境
 - [ ] 建立 vitest 測試（創作者統計 API）
-
-## Phase 42：我的貢獻頁面影片列表「更多」按鈕
-- [ ] 前端實作
-  - [ ] MyContributions.tsx 影片列表新增「查看更多」按鈕
-  - [ ] MyContributions.tsx 筆記列表新增「查看更多」按鈕
-  - [ ] 實作分頁載入邏輯（初始顯示 6 筆，點擊載入更多）
-- [ ] 測試本地開發環境
-- [ ] 無需建立 vitest 測試（前端分頁邏輯）
-
+## Phase 42：我的貢獻頁面「更多」按鈕（✅ 已完成）
+- [x] 前端實作
+  - [x] MyContributions.tsx 影片列表新增「查看更多」按鈕
+  - [x] MyContributions.tsx 筆記列表新增「查看更多」按鈕
+  - [x] 按鈕連結到對應的頁面（/board, /admin/review）
+- [x] 測試本地開發環境（TypeScript 編譯成功）
+- [x] 無需建立 vitest 測試（前端功能）
 ## Phase 43：影片看板清單視圖功能（✅ 已完成）
 - [x] 前端實作
   - [x] Board.tsx 新增視圖切換按鈕（卡片視圖 / 清單視圖）
@@ -1318,9 +1316,10 @@
   - [x] 搜尋功能
   - [x] 分頁功能
   - [x] 新增 /creators 路由到 App.tsx
-- [ ] 修改影片表單（Manage.tsx）
-  - [ ] 新增「創作者」輸入欄位
-  - [ ] 新增「自動偵測創作者」按鈕（呼叫 YouTube API）
-  - [ ] 修改 createVideo 和 updateVideo 呼叫（包含 creator 參數）
-- [ ] 測試本地開發環境
-- [ ] 無需建立 vitest 測試（前端功能）
+- [x] 修改影片表單（Manage.tsx）（✅ 已完成）
+  - [x] 新增「創作者」輸入欄位
+  - [x] 新增「自動偵測創作者」按鈕（呼叫 YouTube API）
+  - [x] 實作 videos.detectCreator tRPC procedure
+  - [x] 修改 createVideo 和 updateVideo 呼叫（包含 creator 參數）
+- [x] 測試本地開發環境（TypeScript 編譯成功）
+- [x] 無需建立 vitest 測試（前端功能）

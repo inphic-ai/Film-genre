@@ -518,6 +518,7 @@ ${tagsListText}
         thumbnailUrl: z.string().url().optional(),
         category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
         productId: z.string().optional(),
+        creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -541,6 +542,7 @@ ${tagsListText}
         thumbnailUrl: z.string().url().optional(),
         category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
         productId: z.string().optional(),
+        creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -634,6 +636,24 @@ ${tagsListText}
         // Remove custom thumbnail URL from database
         await db.updateVideo(input.videoId, { thumbnailUrl: null });
         return { success: true };
+      }),
+
+    // Detect creator from YouTube URL (admin only)
+    detectCreator: protectedProcedure
+      .input(z.object({ videoUrl: z.string().url() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        const { getYouTubeCreator } = await import('./_core/youtube');
+        const creator = await getYouTubeCreator(input.videoUrl);
+        
+        if (!creator) {
+          throw new Error('無法偵測創作者（僅支援 YouTube 影片）');
+        }
+        
+        return { creator };
       }),
   }),
 

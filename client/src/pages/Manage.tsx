@@ -28,6 +28,8 @@ export default function Manage() {
   const [duration, setDuration] = useState<number | null>(null);
   const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
   const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
+  const [creator, setCreator] = useState<string>("");
+  const [isDetectingCreator, setIsDetectingCreator] = useState(false);
   const [customThumbnailUrl, setCustomThumbnailUrl] = useState<string | null>(null);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
@@ -190,6 +192,8 @@ export default function Manage() {
       setProductId(existingVideo.productId || "");
       setDuration(existingVideo.duration || null);
       setShareStatus(existingVideo.shareStatus || "private");
+      // @ts-ignore - creator may exist in existingVideo
+      setCreator(existingVideo.creator || "");
       // @ts-ignore - customThumbnailUrl may exist in existingVideo
       setCustomThumbnailUrl(existingVideo.customThumbnailUrl || null);
       // Tags will be loaded by TagSelector component
@@ -304,6 +308,7 @@ export default function Manage() {
       thumbnailUrl: thumbnailUrl || undefined,
       category: category as "product_intro" | "maintenance" | "case_study" | "faq" | "other",
       productId: productId || undefined,
+      creator: creator || undefined,
       duration: duration || undefined,
       shareStatus,
     };
@@ -402,6 +407,33 @@ export default function Manage() {
   const handleDeleteThumbnail = async () => {
     if (!videoId) return;
     await deleteThumbnailMutation.mutateAsync({ videoId });
+  };
+
+  const handleDetectCreator = async () => {
+    if (!videoUrl) {
+      toast.error("請先輸入影片連結");
+      return;
+    }
+    if (platform !== "youtube") {
+      toast.error("僅支援 YouTube 影片自動偵測創作者");
+      return;
+    }
+    
+    setIsDetectingCreator(true);
+    try {
+      const result = await utils.client.videos.detectCreator.mutate({ videoUrl });
+      if (result.creator) {
+        setCreator(result.creator);
+        toast.success(`偵測到創作者：${result.creator}`);
+      } else {
+        toast.error("無法偵測創作者");
+      }
+    } catch (error: any) {
+      console.error('Failed to detect creator:', error);
+      toast.error(error.message || "偵測失敗，請稍後再試！");
+    } finally {
+      setIsDetectingCreator(false);
+    }
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
@@ -590,6 +622,46 @@ export default function Manage() {
                 <p className="text-xs text-slate-500">
                   ℹ️ 僅允許英文字母與數字，特殊字元會自動過濾，小寫會自動轉換為大寫
                 </p>
+              </div>
+
+              {/* Creator */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="creator">創作者</Label>
+                  {platform === "youtube" && videoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDetectCreator}
+                      disabled={isDetectingCreator || !videoUrl}
+                    >
+                      {isDetectingCreator ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          偵測中...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          自動偵測
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <Input
+                  id="creator"
+                  type="text"
+                  value={creator}
+                  onChange={(e) => setCreator(e.target.value)}
+                  placeholder="例：@心靈之音 (選填，YouTube 影片可自動偵測)"
+                />
+                {platform !== "youtube" && (
+                  <p className="text-xs text-slate-500">
+                    ℹ️ 僅 YouTube 影片支援自動偵測創作者
+                  </p>
+                )}
               </div>
 
               {/* Duration */}

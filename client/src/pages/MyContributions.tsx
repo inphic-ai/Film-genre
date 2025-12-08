@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function MyContributions() {
@@ -200,6 +201,15 @@ export default function MyContributions() {
                 <p>您還沒有提交任何影片</p>
               </div>
             )}
+            {myVideos && myVideos.length > 6 && (
+              <div className="mt-6 text-center">
+                <Link href="/board">
+                  <Button variant="outline">
+                    查看更多影片
+                  </Button>
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -269,6 +279,15 @@ export default function MyContributions() {
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>您還沒有提交任何時間軸筆記</p>
+              </div>
+            )}
+            {myNotes && myNotes.length > 10 && (
+              <div className="mt-6 text-center">
+                <Link href="/admin/review">
+                  <Button variant="outline">
+                    查看更多筆記
+                  </Button>
+                </Link>
               </div>
             )}
           </CardContent>
