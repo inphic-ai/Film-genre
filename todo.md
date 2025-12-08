@@ -1213,13 +1213,16 @@
   - [x] 筆記卡片包裹在 Link 中，點擊跳轉到 /video/:videoId
   - [x] 新增 hover 效果（shadow-md）
 - [x] 測試本地開發環境（影片與筆記卡片均可點選）
-- [x] 無需建立 vitest 測試（前端點擊功能）## Phase 40：標籤管理商品編號篩選修正
-- [ ] 診斷標籤管理頁面商品編號篩選問題
-  - [ ] 檢查 TagsManagement.tsx 的商品編號篩選邏輯
-  - [ ] 檢查 tags.getByType API 的商品編號篩選實作
-- [ ] 修正商品編號篩選邏輯（統一大寫比對）
-- [ ] 測試標籤管理頁面商品編號篩選
-- [ ] 無需建立 vitest 測試（前端篩選邏輯）
+- [x] 無需建立 vitest 測試（前端點擊功能）## Phase 40：標籤管理商品編號篩選修正（已完成）
+- [x] 診斷標籤管理頁面商品編號篩選問題
+  - [x] 檢查 tags 表資料（發現缺少 PRODUCT_CODE 標籤）
+  - [x] 查詢現有影片的商品編號（5 部影片有 productId）
+- [x] 實作自動建立商品編號標籤功能
+  - [x] 新增 ensureProductCodeTag 函數（server/db.ts）
+  - [x] 修改 createVideo 函數（整合自動建立標籤）
+  - [x] 修改 updateVideo 函數（整合自動建立標籤）
+- [x] 測試標籤管理頁面商品編號篩選（✅ 正常運作）
+- [x] 建立 vitest 測試（tags.productCode.test.ts - 4 個測試全部通過）
 
 ## Phase 41：數據視覺化增加創作者卡片
 - [ ] 後端 API 實作

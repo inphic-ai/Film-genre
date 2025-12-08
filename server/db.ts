@@ -268,7 +268,14 @@ export async function createVideo(video: InsertVideo): Promise<Video> {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(videos).values(video).returning();
-  return result[0]!;
+  const createdVideo = result[0]!;
+  
+  // Auto-create PRODUCT_CODE tag if productId exists
+  if (video.productId) {
+    await ensureProductCodeTag(video.productId);
+  }
+  
+  return createdVideo;
 }
 
 /**
@@ -281,6 +288,11 @@ export async function updateVideo(id: number, video: Partial<InsertVideo>): Prom
   await db.update(videos)
     .set({ ...video, updatedAt: new Date() })
     .where(eq(videos.id, id));
+  
+  // Auto-create PRODUCT_CODE tag if productId exists
+  if (video.productId) {
+    await ensureProductCodeTag(video.productId);
+  }
 }
 
 /**
@@ -354,6 +366,36 @@ export async function updateVideoNotes(id: number, notes: string): Promise<void>
 /**
  * Get all tags
  */
+/**
+ * Ensure a PRODUCT_CODE tag exists for the given product ID
+ * Auto-creates the tag if it doesn't exist
+ */
+export async function ensureProductCodeTag(productId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    // Check if tag already exists
+    const existingTag = await db.select()
+      .from(tags)
+      .where(and(eq(tags.name, productId), eq(tags.tagType, 'PRODUCT_CODE')))
+      .limit(1);
+    
+    if (existingTag.length === 0) {
+      // Create new PRODUCT_CODE tag
+      await db.insert(tags).values({
+        name: productId,
+        tagType: 'PRODUCT_CODE',
+        description: `商品編號：${productId}`,
+        usageCount: 0,
+      });
+      console.log(`[Tags] ✅ Auto-created PRODUCT_CODE tag: ${productId}`);
+    }
+  } catch (error) {
+    console.error(`[Tags] ❌ Failed to ensure PRODUCT_CODE tag: ${productId}`, error);
+  }
+}
+
 export async function getAllTags(): Promise<Tag[]> {
   const db = await getDb();
   if (!db) return [];
