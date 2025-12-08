@@ -1435,3 +1435,19 @@
 - [x] 卡片/清單切換改為選單式（使用 Select 組件，節省空間） - Board.tsx 已修改
 - [x] 排序方式增加升序/降序切換功能（熱門度、評分、建立時間、標題、影片長度） - Board.tsx 已修改
 - [x] 商品知識中樞增加標籤篩選機制（多選標籤篩選商品） - Products.tsx + products.listByTags API 已實作
+
+
+## Phase 21：縮圖上傳系統前端實作
+- [x] 新增影片對話框新增「自訂縮圖」上傳欄位 - Manage.tsx 已存在
+- [x] 實作縮圖上傳到 S3（使用 storagePut） - videos.uploadThumbnail API 已存在
+- [x] 預設顯示 YouTube 圖示（當無自訂縮圖時） - VideoCard.tsx 已實作
+- [x] 測試本地開發環境
+- [x] 建立 vitest 測試
+
+## Phase 17：商品知識中樞進階功能
+- [x] products.uploadThumbnail（商品縮圖上傳到 S3） - products.ts 已實作
+- [x] products.importBatch（批次匯入 SKU 資料，CSV/Excel） - products.ts 已實作
+- [x] 前端實作商品縮圖上傳功能 - Products.tsx 已新增縮圖顯示
+- [x] 前端實作批次匯入功能（CSV/Excel 解析） - ProductBatchImportDialog.tsx 已建立
+- [x] 測試本地開發環境
+- [x] 建立 vitest 測試

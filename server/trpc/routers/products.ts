@@ -536,4 +536,132 @@ export const productsRouter = router({
         hasMore: offset + productsResult.length < total,
       };
     }),
+
+  /**
+   * 上傳商品縮圖到 S3（Admin 專用）
+   */
+  uploadThumbnail: protectedProcedure
+    .input(
+      z.object({
+        sku: z.string().min(1, "商品編號不可為空"),
+        imageData: z.string().min(1, "圖片資料不可為空"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // 檢查權限
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "僅管理員可上傳商品縮圖",
+        });
+      }
+
+      const { sku, imageData } = input;
+
+      // 解析 base64 圖片
+      const matches = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (!matches) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "無效的圖片格式",
+        });
+      }
+
+      const imageType = matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // 上傳到 S3
+      const { storagePut } = await import("../../storage");
+      const fileKey = `products/${sku}-${Date.now()}.${imageType}`;
+      const { url } = await storagePut(fileKey, buffer, `image/${imageType}`);
+
+      // 更新資料庫
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "資料庫連線失敗",
+        });
+      }
+
+      await db
+        .update(products)
+        .set({ thumbnailUrl: url })
+        .where(eq(products.sku, sku));
+
+      return { url };
+    }),
+
+  /**
+   * 批次匯入商品資料（CSV/Excel）（Admin 專用）
+   */
+  importBatch: protectedProcedure
+    .input(
+      z.object({
+        products: z.array(
+          z.object({
+            sku: z.string().min(1, "商品編號不可為空"),
+            name: z.string().min(1, "商品名稱不可為空"),
+            description: z.string().optional(),
+            thumbnailUrl: z.string().optional(),
+          })
+        ).min(1, "至少匯入一個商品"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // 檢查權限
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "僅管理員可批次匯入商品",
+        });
+      }
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "資料庫連線失敗",
+        });
+      }
+
+      const results = {
+        success: 0,
+        skipped: 0,
+        failed: 0,
+        errors: [] as string[],
+      };
+
+      for (const product of input.products) {
+        try {
+          // 檢查是否已存在
+          const existing = await db
+            .select()
+            .from(products)
+            .where(eq(products.sku, product.sku))
+            .limit(1);
+
+          if (existing.length > 0) {
+            results.skipped++;
+            continue;
+          }
+
+          // 新增商品
+          await db.insert(products).values({
+            sku: product.sku,
+            name: product.name,
+            description: product.description || null,
+            thumbnailUrl: product.thumbnailUrl || null,
+          });
+
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          results.errors.push(`${product.sku}: ${error instanceof Error ? error.message : '未知錯誤'}`);
+        }
+      }
+
+      return results;
+    }),
 });

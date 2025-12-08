@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Package, Link as LinkIcon, Film, Loader2, X, Tag, Filter } from "lucide-react";
+import { Search, Package, Link as LinkIcon, Film, Loader2, X, Tag, Filter, Upload } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { ProductBatchImportDialog } from "@/components/ProductBatchImportDialog";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -28,6 +29,7 @@ export default function Products() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
+  const [isBatchImportDialogOpen, setIsBatchImportDialogOpen] = useState(false);
 
   // 搜尋商品
   const utils = trpc.useUtils();
@@ -110,13 +112,24 @@ export default function Products() {
           </div>
         </div>
 
-        {/* 搜尋框 */}
+        {/* 搜尋商品 */}
         <Card className="border-slate-200/70 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">SKU 搜尋</CardTitle>
-            <CardDescription>輸入商品編號、名稱或描述進行搜尋</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl font-bold text-slate-900">商品搜尋</CardTitle>
+                <CardDescription>輸入商品編號（SKU）、名稱或描述來搜尋商品</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setIsBatchImportDialogOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                批次匯入
+              </Button>
+            </div>
+          </CardHeader>      <CardContent>
             <form onSubmit={handleSearch} className="flex gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -292,9 +305,19 @@ export default function Products() {
               {displayProducts.map((product: any) => (
                 <Card
                   key={product.id}
-                  className="border-slate-200/70 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer"
+                  className="border-slate-200/70 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer overflow-hidden"
                   onClick={() => handleProductClick(product.sku)}
                 >
+                  {/* 商品縮圖 */}
+                  {product.thumbnailUrl && (
+                    <div className="relative w-full h-48 bg-slate-100">
+                      <img
+                        src={product.thumbnailUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -334,6 +357,12 @@ export default function Products() {
           )}
         </div>
       </div>
+
+      {/* 批次匯入對話框 */}
+      <ProductBatchImportDialog
+        open={isBatchImportDialogOpen}
+        onOpenChange={setIsBatchImportDialogOpen}
+      />
     </DashboardLayout>
   );
 }
