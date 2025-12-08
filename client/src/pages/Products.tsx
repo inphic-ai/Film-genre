@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Package, Link as LinkIcon, Film, Loader2, X } from "lucide-react";
+import { Search, Package, Link as LinkIcon, Film, Loader2, X, Tag, Filter } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -23,14 +26,25 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [tagFilterOpen, setTagFilterOpen] = useState(false);
 
   // 搜尋商品
   const utils = trpc.useUtils();
+  
+  // 取得所有標籤（所有類型）
+  const { data: allTags } = trpc.tags.list.useQuery();
 
   // 列出所有商品（預設模式）
   const productsListQuery = trpc.products.list.useQuery(
     { limit: 50, offset: 0, sortBy: "createdAt", sortOrder: "desc" },
-    { enabled: !isSearchMode }
+    { enabled: !isSearchMode && selectedTagIds.length === 0 }
+  );
+  
+  // 根據標籤篩選商品
+  const tagFilteredProductsQuery = trpc.products.listByTags.useQuery(
+    { tagIds: selectedTagIds, limit: 50, offset: 0 },
+    { enabled: selectedTagIds.length > 0 && !isSearchMode }
   );
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -59,8 +73,28 @@ export default function Products() {
   };
 
   // 決定顯示的商品列表
-  const displayProducts = isSearchMode ? searchResults : (productsListQuery.data?.products || []);
-  const isLoading = isSearchMode ? false : productsListQuery.isLoading;
+  let displayProducts: any[] = [];
+  let totalCount = 0;
+  
+  if (isSearchMode) {
+    // 搜尋模式
+    displayProducts = searchResults;
+    totalCount = searchResults.length;
+  } else if (selectedTagIds.length > 0) {
+    // 標籤篩選模式
+    displayProducts = tagFilteredProductsQuery.data?.products || [];
+    totalCount = tagFilteredProductsQuery.data?.total || 0;
+  } else {
+    // 預設模式（所有商品）
+    displayProducts = productsListQuery.data?.products || [];
+    totalCount = productsListQuery.data?.total || 0;
+  }
+  
+  const isLoading = isSearchMode 
+    ? false 
+    : selectedTagIds.length > 0 
+    ? tagFilteredProductsQuery.isLoading 
+    : productsListQuery.isLoading;
 
   return (
     <DashboardLayout>
@@ -113,6 +147,84 @@ export default function Products() {
               </Button>
             </form>
 
+            {/* 標籤篩選器 */}
+            <div className="mt-3 flex items-center gap-3">
+              <Popover open={tagFilterOpen} onOpenChange={setTagFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    商品標籤
+                    {selectedTagIds.length > 0 && (
+                      <Badge variant="secondary" className="ml-1">
+                        {selectedTagIds.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">選擇商品標籤</h4>
+                      {selectedTagIds.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedTagIds([])}
+                        >
+                          清除
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {allTags && allTags.length > 0 ? (
+                        allTags.map(tag => (
+                          <div key={tag.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`tag-${tag.id}`}
+                              checked={selectedTagIds.includes(tag.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedTagIds([...selectedTagIds, tag.id]);
+                                } else {
+                                  setSelectedTagIds(selectedTagIds.filter(id => id !== tag.id));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`tag-${tag.id}`} className="flex-1 cursor-pointer flex items-center gap-2">
+                              <Tag className="h-3 w-3" style={{ color: tag.color || undefined }} />
+                              <span>{tag.name}</span>
+                            </Label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500">無可用的商品標籤</p>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              {/* 顯示已選標籤 */}
+              {selectedTagIds.length > 0 && allTags && (
+                <div className="flex flex-wrap gap-2">
+                  {allTags
+                    .filter(tag => selectedTagIds.includes(tag.id))
+                    .map(tag => (
+                      <Badge
+                        key={tag.id}
+                        variant="secondary"
+                        className="gap-1 cursor-pointer hover:bg-slate-200"
+                        onClick={() => setSelectedTagIds(selectedTagIds.filter(id => id !== tag.id))}
+                      >
+                        <Tag className="h-3 w-3" style={{ color: tag.color || undefined }} />
+                        {tag.name}
+                        <X className="h-3 w-3 ml-1" />
+                      </Badge>
+                    ))}
+                </div>
+              )}
+            </div>
+
             {/* 搜尋模式提示 */}
             {isSearchMode && (
               <div className="mt-3 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2">
@@ -136,11 +248,15 @@ export default function Products() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-slate-900">
-              {isSearchMode ? "搜尋結果" : "所有商品"}
+              {isSearchMode 
+                ? "搜尋結果" 
+                : selectedTagIds.length > 0 
+                ? "標籤篩選結果" 
+                : "所有商品"}
             </h2>
-            {!isSearchMode && productsListQuery.data && (
+            {totalCount > 0 && (
               <span className="text-sm text-slate-600">
-                共 {productsListQuery.data.total} 個商品
+                共 {totalCount} 個商品
               </span>
             )}
           </div>

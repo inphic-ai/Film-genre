@@ -2,7 +2,7 @@ import { router, protectedProcedure, publicProcedure } from "../../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../../db";
-import { products, productRelations, videos } from "../../../drizzle/schema";
+import { products, productRelations, videos, videoTags } from "../../../drizzle/schema";
 import { eq, like, or, and, inArray, sql } from "drizzle-orm";
 
 /**
@@ -451,5 +451,89 @@ export const productsRouter = router({
       }
 
       return { success: true };
+    }),
+
+  /**
+   * 根據標籤篩選商品（查詢有這些標籤的影片 → 取得商品編號 → 顯示商品）
+   */
+  listByTags: publicProcedure
+    .input(
+      z.object({
+        tagIds: z.array(z.number()).min(1, "至少選擇一個標籤"),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const { tagIds, limit, offset } = input;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "資料庫連線失敗",
+        });
+      }
+
+      // Step 1: 找出有這些標籤的影片 ID
+      const videoIdsResult = await db
+        .selectDistinct({ videoId: videoTags.videoId })
+        .from(videoTags)
+        .where(inArray(videoTags.tagId, tagIds));
+
+      const videoIds = videoIdsResult.map(v => v.videoId);
+
+      if (videoIds.length === 0) {
+        return {
+          products: [],
+          total: 0,
+          hasMore: false,
+        };
+      }
+
+      // Step 2: 從這些影片中取得商品編號（productId）
+      const videosResult = await db
+        .selectDistinct({ productId: videos.productId })
+        .from(videos)
+        .where(
+          and(
+            inArray(videos.id, videoIds),
+            sql`${videos.productId} IS NOT NULL AND ${videos.productId} != ''`
+          )
+        );
+
+      const productIds = videosResult
+        .map(v => v.productId)
+        .filter((id): id is string => id !== null && id !== '');
+
+      if (productIds.length === 0) {
+        return {
+          products: [],
+          total: 0,
+          hasMore: false,
+        };
+      }
+
+      // Step 3: 查詢這些商品的詳細資訊
+      const productsResult = await db
+        .select()
+        .from(products)
+        .where(inArray(products.sku, productIds))
+        .limit(limit)
+        .offset(offset);
+
+      // Step 4: 計算總數
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(products)
+        .where(inArray(products.sku, productIds));
+
+      const total = Number(totalResult[0]?.count || 0);
+
+      return {
+        products: productsResult,
+        total,
+        hasMore: offset + productsResult.length < total,
+      };
     }),
 });

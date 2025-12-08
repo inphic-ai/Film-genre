@@ -1428,3 +1428,10 @@
   - [ ] DashboardLayout 側邊欄新增「操作日誌」選項
 - [ ] 測試本地開發環境
 - [ ] 建立 vitest 測試（logs API）
+
+
+## Phase 50：使用者回饋功能改進
+- [x] 影片卡片增加影片時間區塊（顯示 duration，格式：HH:MM:SS 或 MM:SS） - 已存在
+- [x] 卡片/清單切換改為選單式（使用 Select 組件，節省空間） - Board.tsx 已修改
+- [x] 排序方式增加升序/降序切換功能（熱門度、評分、建立時間、標題、影片長度） - Board.tsx 已修改
+- [x] 商品知識中樞增加標籤篩選機制（多選標籤篩選商品） - Products.tsx + products.listByTags API 已實作

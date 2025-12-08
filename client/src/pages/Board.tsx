@@ -119,17 +119,22 @@ export default function Board() {
     
     return matchesSearch && matchesCategory && matchesPlatform && matchesShareStatus;
   }).sort((a, b) => {
+    let result = 0;
+    
     if (sortBy === 'viewCount') {
-      return (b.viewCount || 0) - (a.viewCount || 0);
+      result = (b.viewCount || 0) - (a.viewCount || 0);
     } else if (sortBy === 'createdAt') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      result = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (sortBy === 'rating') {
-      return (b.rating || 0) - (a.rating || 0);
+      result = (b.rating || 0) - (a.rating || 0);
     } else if (sortBy === 'duration') {
-      return (b.duration || 0) - (a.duration || 0); // 長到短
+      result = (b.duration || 0) - (a.duration || 0);
     } else { // title
-      return a.title.localeCompare(b.title);
+      result = a.title.localeCompare(b.title);
     }
+    
+    // Apply sort order (asc/desc)
+    return sortOrder === 'asc' ? -result : result;
   });
 
   const videosByCategory = categories?.reduce((acc, category) => {
@@ -232,42 +237,65 @@ export default function Board() {
             />
           </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 border rounded-md">
-            <Button
-              variant={viewMode === 'card' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('card')}
-              className="gap-2"
-            >
-              <LayoutGrid className="h-4 w-4" />
-              卡片
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="gap-2"
-            >
-              <List className="h-4 w-4" />
-              清單
-            </Button>
-          </div>
-
-          {/* Sort Selector */}
-          <Select value={sortBy} onValueChange={(value: 'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration') => setSortBy(value)}>
-            <SelectTrigger className="w-[180px]">
-              <ArrowUpDown className="h-4 w-4 mr-2" />
+          {/* View Mode Selector */}
+          <Select value={viewMode} onValueChange={(value: 'card' | 'list') => setViewMode(value)}>
+            <SelectTrigger className="w-[120px]">
+              {viewMode === 'card' ? <LayoutGrid className="h-4 w-4 mr-2" /> : <List className="h-4 w-4 mr-2" />}
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="viewCount">熱門度（點擊數）</SelectItem>
-              <SelectItem value="rating">評分（高到低）</SelectItem>
-              <SelectItem value="duration">影片長度（長到短）</SelectItem>
-              <SelectItem value="createdAt">建立時間</SelectItem>
-              <SelectItem value="title">標題（A-Z）</SelectItem>
+              <SelectItem value="card">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4" />
+                  卡片視圖
+                </div>
+              </SelectItem>
+              <SelectItem value="list">
+                <div className="flex items-center gap-2">
+                  <List className="h-4 w-4" />
+                  清單視圖
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Sort Selector */}
+          <div className="flex items-center gap-2">
+            <Select value={sortBy} onValueChange={(value: 'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration') => setSortBy(value)}>
+              <SelectTrigger className="w-[180px]">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="viewCount">熱門度（點擊數）</SelectItem>
+                <SelectItem value="rating">評分</SelectItem>
+                <SelectItem value="duration">影片長度</SelectItem>
+                <SelectItem value="createdAt">建立時間</SelectItem>
+                <SelectItem value="title">標題</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Sort Order Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="gap-2"
+              title={sortOrder === 'asc' ? '升序排列' : '降序排列'}
+            >
+              {sortOrder === 'asc' ? (
+                <>
+                  <ArrowUpDown className="h-4 w-4" />
+                  升序
+                </>
+              ) : (
+                <>
+                  <ArrowUpDown className="h-4 w-4" />
+                  降序
+                </>
+              )}
+            </Button>
+          </div>
 
           {/* Platform Filter */}
           <Popover>
