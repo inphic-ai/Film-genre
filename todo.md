@@ -1451,3 +1451,23 @@
 - [x] 前端實作批次匯入功能（CSV/Excel 解析） - ProductBatchImportDialog.tsx 已建立
 - [x] 測試本地開發環境
 - [x] 建立 vitest 測試
+
+
+## Phase 46 & 47：影片批次操作功能前端整合 & 創作者詳情頁面
+- [x] Phase 46：完成影片批次操作功能前端整合
+  - [x] VideoCard 新增 checkbox（批次選擇模式）
+  - [x] VideoListView 新增 checkbox（批次選擇模式）
+  - [x] Board.tsx 整合 BatchOperationToolbar 組件
+  - [x] 實作全選/取消全選功能
+  - [x] 批次模式切換按鈕
+- [x] Phase 47：創作者詳情頁面後端 API
+  - [x] dashboard.getCreatorDetail（創作者詳情、影片列表、統計數據）
+- [x] Phase 47：創作者詳情頁面前端實作
+  - [x] 建立 CreatorDetail.tsx 頁面
+  - [x] 顯示創作者資訊（名稱、影片數量、總觀看次數、平均評分）
+  - [x] 顯示該創作者的所有影片列表
+  - [x] 統計數據圖表（影片分類分佈、平台分佈、每月趨勢）
+  - [x] 新增 /creators/:creatorName 路由到 App.tsx
+  - [x] VideoCard 與 VideoListView：點擊創作者名稱跳轉到創作者詳情頁
+- [x] 測試本地開發環境
+- [x] 建立 vitest 測試

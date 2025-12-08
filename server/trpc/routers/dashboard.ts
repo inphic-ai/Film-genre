@@ -235,6 +235,93 @@ export const dashboardRouter = router({
       };
     }),
 
+  // 創作者詳情（影片列表、統計數據）
+  getCreatorDetail: protectedProcedure
+    .input(
+      z.object({
+        creatorName: z.string().min(1, "創作者名稱不可為空"),
+      })
+    )
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // 查詢該創作者的所有影片
+      const creatorVideos = await db
+        .select()
+        .from(videos)
+        .where(eq(videos.creator, input.creatorName))
+        .orderBy(desc(videos.createdAt));
+
+      if (creatorVideos.length === 0) {
+        return {
+          creator: input.creatorName,
+          videos: [],
+          stats: {
+            totalVideos: 0,
+            totalViewCount: 0,
+            averageRating: 0,
+            categoryDistribution: [],
+            platformDistribution: [],
+            monthlyTrend: [],
+          },
+        };
+      }
+
+      // 統計數據
+      const totalViewCount = creatorVideos.reduce((sum, v) => sum + (v.viewCount || 0), 0);
+      const ratingsCount = creatorVideos.filter(v => v.rating !== null).length;
+      const averageRating = ratingsCount > 0
+        ? creatorVideos.reduce((sum, v) => sum + (v.rating || 0), 0) / ratingsCount
+        : 0;
+
+      // 分類分佈
+      const categoryMap = new Map<string, number>();
+      creatorVideos.forEach(v => {
+        categoryMap.set(v.category, (categoryMap.get(v.category) || 0) + 1);
+      });
+      const categoryDistribution = Array.from(categoryMap.entries()).map(([category, count]) => ({
+        category,
+        count,
+      }));
+
+      // 平台分佈
+      const platformMap = new Map<string, number>();
+      creatorVideos.forEach(v => {
+        platformMap.set(v.platform, (platformMap.get(v.platform) || 0) + 1);
+      });
+      const platformDistribution = Array.from(platformMap.entries()).map(([platform, count]) => ({
+        platform,
+        count,
+      }));
+
+      // 每月趨勢（最近 6 個月）
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const recentVideos = creatorVideos.filter(v => new Date(v.createdAt) >= sixMonthsAgo);
+      const monthMap = new Map<string, number>();
+      recentVideos.forEach(v => {
+        const month = new Date(v.createdAt).toISOString().slice(0, 7); // YYYY-MM
+        monthMap.set(month, (monthMap.get(month) || 0) + 1);
+      });
+      const monthlyTrend = Array.from(monthMap.entries())
+        .map(([month, count]) => ({ month, count }))
+        .sort((a, b) => a.month.localeCompare(b.month));
+
+      return {
+        creator: input.creatorName,
+        videos: creatorVideos,
+        stats: {
+          totalVideos: creatorVideos.length,
+          totalViewCount,
+          averageRating: Math.round(averageRating * 10) / 10,
+          categoryDistribution,
+          platformDistribution,
+          monthlyTrend,
+        },
+      };
+    }),
+
   // 綜合統計（快速總覽）
   getOverview: protectedProcedure.query(async () => {
     const db = await getDb();

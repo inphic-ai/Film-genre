@@ -5,7 +5,7 @@ import { VideoListView } from "@/components/VideoListView";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter, Sparkles, XCircle, LayoutGrid, List } from "lucide-react";
+import { Search, Plus, Loader2, Tag, X, ArrowUpDown, Filter, Sparkles, XCircle, LayoutGrid, List, CheckSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,6 +98,31 @@ export default function Board() {
       utils.videos.listAll.invalidate();
     },
   });
+
+  // 批次操作功能
+  const handleToggleSelect = (videoId: number) => {
+    setSelectedVideoIds(prev => 
+      prev.includes(videoId) 
+        ? prev.filter(id => id !== videoId)
+        : [...prev, videoId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (filteredVideos) {
+      setSelectedVideoIds(filteredVideos.map(v => v.id));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedVideoIds([]);
+  };
+
+  const handleOperationComplete = () => {
+    setSelectedVideoIds([]);
+    setBatchMode(false);
+    utils.videos.listAll.invalidate();
+  };
 
   // Use AI search results if enabled, fullTextSearch results if enabled, tag-filtered videos if tags selected, otherwise all videos
   const baseVideos = isAiSearch && aiSearchResult
@@ -296,6 +321,32 @@ export default function Board() {
               )}
             </Button>
           </div>
+
+          {/* Batch Mode Toggle */}
+          <Button
+            variant={batchMode ? "default" : "outline"}
+            onClick={() => {
+              setBatchMode(!batchMode);
+              if (batchMode) {
+                setSelectedVideoIds([]);
+              }
+            }}
+            className="gap-2"
+          >
+            <CheckSquare className="h-4 w-4" />
+            {batchMode ? '退出批次模式' : '批次操作'}
+          </Button>
+
+          {/* Select All Button (only in batch mode) */}
+          {batchMode && (
+            <Button
+              variant="outline"
+              onClick={handleSelectAll}
+              disabled={!filteredVideos || filteredVideos.length === 0}
+            >
+              全選
+            </Button>
+          )}
 
           {/* Platform Filter */}
           <Popover>
@@ -496,6 +547,16 @@ export default function Board() {
           )}
         </div>
 
+        {/* Batch Operation Toolbar */}
+        {batchMode && selectedVideoIds.length > 0 && (
+          <BatchOperationToolbar
+            selectedCount={selectedVideoIds.length}
+            selectedIds={selectedVideoIds}
+            onClearSelection={handleClearSelection}
+            onOperationComplete={handleOperationComplete}
+          />
+        )}
+
         {/* Category Tabs */}
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList>
@@ -524,7 +585,10 @@ export default function Board() {
                             video={video}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
-                            showActions
+                            showActions={!batchMode}
+                            batchMode={batchMode}
+                            isSelected={selectedVideoIds.includes(video.id)}
+                            onToggleSelect={handleToggleSelect}
                           />
                         ))}
                       </div>
@@ -542,7 +606,10 @@ export default function Board() {
                 videos={filteredVideos || []}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                showActions
+                showActions={!batchMode}
+                batchMode={batchMode}
+                selectedVideoIds={selectedVideoIds}
+                onToggleSelect={handleToggleSelect}
               />
             )}
           </TabsContent>
@@ -558,7 +625,10 @@ export default function Board() {
                         video={video}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
-                        showActions
+                        showActions={!batchMode}
+                        batchMode={batchMode}
+                        isSelected={selectedVideoIds.includes(video.id)}
+                        onToggleSelect={handleToggleSelect}
                       />
                     ))}
                   </div>
@@ -573,7 +643,10 @@ export default function Board() {
                   videos={videosByCategory?.[category.key] || []}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  showActions
+                  showActions={!batchMode}
+                  batchMode={batchMode}
+                  selectedVideoIds={selectedVideoIds}
+                  onToggleSelect={handleToggleSelect}
                 />
               )}
             </TabsContent>

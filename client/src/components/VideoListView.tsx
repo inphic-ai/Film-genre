@@ -1,7 +1,9 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash2, ExternalLink, Star } from "lucide-react";
+import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
 
 interface VideoListViewProps {
@@ -9,6 +11,9 @@ interface VideoListViewProps {
   onEdit: (video: Video) => void;
   onDelete: (video: Video) => void;
   showActions?: boolean;
+  batchMode?: boolean;
+  selectedVideoIds?: number[];
+  onToggleSelect?: (videoId: number) => void;
 }
 
 const platformLabels: Record<string, string> = {
@@ -42,12 +47,15 @@ function formatDuration(seconds: number | null): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function VideoListView({ videos, onEdit, onDelete, showActions = false }: VideoListViewProps) {
+export function VideoListView({ videos, onEdit, onDelete, showActions = false, batchMode = false, selectedVideoIds = [], onToggleSelect }: VideoListViewProps) {
+  const [, setLocation] = useLocation();
+  
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
+            {batchMode && <TableHead className="w-[50px]"></TableHead>}
             <TableHead className="w-[100px]">縮圖</TableHead>
             <TableHead>標題</TableHead>
             <TableHead className="w-[100px]">分類</TableHead>
@@ -62,7 +70,15 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false }:
         </TableHeader>
         <TableBody>
           {videos.map((video) => (
-            <TableRow key={video.id}>
+            <TableRow key={video.id} className={batchMode && selectedVideoIds.includes(video.id) ? 'bg-primary/5' : ''}>
+              {batchMode && (
+                <TableCell>
+                  <Checkbox
+                    checked={selectedVideoIds.includes(video.id)}
+                    onCheckedChange={() => onToggleSelect?.(video.id)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <div className="relative w-16 h-12 bg-muted rounded overflow-hidden">
                   {(video.customThumbnailUrl || video.thumbnailUrl) ? (
@@ -112,9 +128,17 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false }:
                 </span>
               </TableCell>
               <TableCell>
-                <span className="text-sm text-muted-foreground truncate block max-w-[150px]" title={video.creator || undefined}>
-                  {video.creator || '-'}
-                </span>
+                {video.creator ? (
+                  <span 
+                    className="text-sm text-primary hover:underline cursor-pointer truncate block max-w-[150px]"
+                    title={video.creator}
+                    onClick={() => setLocation(`/creator/${encodeURIComponent(video.creator || '')}`)}
+                  >
+                    {video.creator}
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">-</span>
+                )}
               </TableCell>
               <TableCell>
                 {video.rating ? (

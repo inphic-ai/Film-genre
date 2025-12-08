@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Edit, Trash2, Youtube, Eye, Tag, Package, Star, Clock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ExternalLink, Edit, Trash2, Youtube, Eye, Tag, Package, Star, Clock, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import type { Video } from "../../../drizzle/schema";
@@ -13,6 +14,9 @@ interface VideoCardProps {
   showActions?: boolean;
   showTags?: boolean;
   maxTags?: number;
+  batchMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (videoId: number) => void;
 }
 
 const platformLabels: Record<string, string> = {
@@ -33,7 +37,7 @@ const formatDuration = (seconds: number): string => {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 };
 
-export function VideoCard({ video, onEdit, onDelete, showActions = false, showTags = true, maxTags = 3 }: VideoCardProps) {
+export function VideoCard({ video, onEdit, onDelete, showActions = false, showTags = true, maxTags = 3, batchMode = false, isSelected = false, onToggleSelect }: VideoCardProps) {
   const [, setLocation] = useLocation();
 
   // Fetch tags for this video
@@ -57,11 +61,36 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false, showTa
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={() => setLocation(`/video/${video.id}`)}
+      className={`overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
+        batchMode && isSelected ? 'ring-2 ring-primary' : ''
+      }`}
+      onClick={() => {
+        if (batchMode && onToggleSelect) {
+          onToggleSelect(video.id);
+        } else {
+          setLocation(`/video/${video.id}`);
+        }
+      }}
     >
       {/* Thumbnail with overlays */}
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        {/* Batch Mode Checkbox */}
+        {batchMode && (
+          <div 
+            className="absolute top-2 left-2 z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onToggleSelect) {
+                onToggleSelect(video.id);
+              }
+            }}
+          >
+            <Checkbox
+              checked={isSelected}
+              className="h-5 w-5 bg-background/90 backdrop-blur-sm"
+            />
+          </div>
+        )}
         {video.thumbnailUrl && (
           <img
             src={video.thumbnailUrl}
@@ -118,6 +147,18 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false, showTa
         {video.productId && (
           <div className="text-xs text-muted-foreground">
             商品編號：{video.productId}
+          </div>
+        )}
+        {video.creator && (
+          <div 
+            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-primary cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLocation(`/creator/${encodeURIComponent(video.creator || '')}`);
+            }}
+          >
+            <User className="h-3 w-3" />
+            {video.creator}
           </div>
         )}
         {/* Tags */}
