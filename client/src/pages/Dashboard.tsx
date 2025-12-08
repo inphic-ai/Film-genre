@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Film, Tag, Eye, TrendingUp, Youtube, Video as VideoIcon, Package, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Film, Tag, Eye, TrendingUp, Youtube, Video as VideoIcon, Package, Users, FileText, Clock, CheckCircle, XCircle, UserCircle } from "lucide-react";
 import { Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -10,12 +10,13 @@ export default function Dashboard() {
   const { data: videoStats, isLoading: videoStatsLoading } = trpc.dashboard.getVideoStats.useQuery();
   const { data: productStats, isLoading: productStatsLoading } = trpc.dashboard.getProductStats.useQuery();
   const { data: userActivity, isLoading: activityLoading } = trpc.dashboard.getUserActivity.useQuery();
+  const { data: creatorStats, isLoading: creatorStatsLoading } = trpc.dashboard.getCreatorStats.useQuery();
   
   // 保留舊的 API 用於熱門標籤
   const { data: popularTags, isLoading: tagsLoading } = trpc.tags.getPopular.useQuery({ limit: 15 });
   const { data: allVideos } = trpc.videos.listAll.useQuery();
 
-  const isLoading = overviewLoading || videoStatsLoading || productStatsLoading || activityLoading || tagsLoading;
+  const isLoading = overviewLoading || videoStatsLoading || productStatsLoading || activityLoading || tagsLoading || creatorStatsLoading;
 
   if (isLoading) {
     return (
@@ -88,16 +89,16 @@ export default function Dashboard() {
             </Card>
           </Link>
 
-          <Link href="/review-center">
+          <Link href="/creators">
             <Card className="cursor-pointer hover:bg-accent transition-colors">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">待審核筆記</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">創作者</CardTitle>
+                <UserCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{overview?.pendingNotes || 0}</div>
+                <div className="text-2xl font-bold">{creatorStats?.totalCreators || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  點擊查看審核中心
+                  點擊查看創作者列表
                 </p>
               </CardContent>
             </Card>

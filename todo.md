@@ -1294,3 +1294,33 @@
   - [ ] 新增儲存與取消按鈕
 - [ ] 測試本地開發環境
 - [ ] 無需建立 vitest 測試（前端表單功能）
+
+## Phase 44：系統管理分類編輯功能（✅ 已完成）
+- [x] 後端 API 實作
+  - [x] 確認 categories.list 可用（✅ 已存在）
+  - [x] 確認 categories.update 可用（✅ 已存在）
+- [x] 前端實作
+  - [x] AdminSettings.tsx 新增「分類管理」頁籤
+  - [x] 分類列表（顯示 key, name, description）
+  - [x] 編輯對話框（修改 name 與 description）
+  - [x] 防呆機制：key 不可修改，確保分類名稱不為空
+- [x] 測試本地開發環境（TypeScript 編譯成功）
+- [x] 無需建立 vitest 測試（前端功能）
+
+## Phase 41 前端：創作者功能完整實作（進行中）
+- [x] Dashboard 新增創作者卡片
+  - [x] 呼叫 dashboard.getCreatorStats API
+  - [x] 顯示創作者總數
+  - [x] 點擊跳轉到 /creators
+- [x] 建立創作者列表頁面（Creators.tsx）
+  - [x] 呼叫 dashboard.getCreatorList API
+  - [x] 顯示創作者列表（名稱、影片數量）
+  - [x] 搜尋功能
+  - [x] 分頁功能
+  - [x] 新增 /creators 路由到 App.tsx
+- [ ] 修改影片表單（Manage.tsx）
+  - [ ] 新增「創作者」輸入欄位
+  - [ ] 新增「自動偵測創作者」按鈕（呼叫 YouTube API）
+  - [ ] 修改 createVideo 和 updateVideo 呼叫（包含 creator 參數）
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試（前端功能）

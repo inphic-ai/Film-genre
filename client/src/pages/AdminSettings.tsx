@@ -43,7 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users, FileText, Settings, Trash2, Edit } from "lucide-react";
+import { Users, FileText, Settings, Trash2, Edit, FolderTree } from "lucide-react";
 
 export default function AdminSettings() {
   const [, setLocation] = useLocation();
@@ -58,6 +58,10 @@ export default function AdminSettings() {
   // Audit logs state
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [resourceTypeFilter, setResourceTypeFilter] = useState<string>("all");
+
+  // Category management state
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   // Fetch users
   const { data: usersData, refetch: refetchUsers } = trpc.adminSettings.listUsers.useQuery(
@@ -80,6 +84,9 @@ export default function AdminSettings() {
   const { data: auditStats } = trpc.adminSettings.getAuditStats.useQuery(undefined, {
     enabled: user?.role === "admin",
   });
+
+  // Fetch categories
+  const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
 
   // Mutations
   const updateUserRoleMutation = trpc.adminSettings.updateUserRole.useMutation({
@@ -163,6 +170,36 @@ export default function AdminSettings() {
     updateUserRoleMutation.mutate({ userId, role });
   };
 
+  // Category mutations
+  const updateCategoryMutation = trpc.categories.update.useMutation({
+    onSuccess: () => {
+      toast.success("分類已更新");
+      setCategoryDialogOpen(false);
+      setEditingCategory(null);
+      refetchCategories();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleEditCategory = (category: any) => {
+    setEditingCategory({ ...category });
+    setCategoryDialogOpen(true);
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !editingCategory.name.trim()) {
+      toast.error("分類名稱不可為空");
+      return;
+    }
+    updateCategoryMutation.mutate({
+      key: editingCategory.key,
+      name: editingCategory.name,
+      description: editingCategory.description || "",
+    });
+  };
+
   // Format date
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("zh-TW");
@@ -201,6 +238,10 @@ export default function AdminSettings() {
             <TabsTrigger value="logs">
               <FileText className="mr-2 h-4 w-4" />
               操作日誌
+            </TabsTrigger>
+            <TabsTrigger value="categories">
+              <FolderTree className="mr-2 h-4 w-4" />
+              分類管理
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="mr-2 h-4 w-4" />
@@ -420,6 +461,54 @@ export default function AdminSettings() {
             )}
           </TabsContent>
 
+          {/* Categories Tab */}
+          <TabsContent value="categories" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>分類管理</CardTitle>
+                <CardDescription>管理影片分類名稱與描述</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {categories && categories.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>分類 Key</TableHead>
+                        <TableHead>分類名稱</TableHead>
+                        <TableHead>描述</TableHead>
+                        <TableHead className="w-[100px]">操作</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categories.map((category) => (
+                        <TableRow key={category.id}>
+                          <TableCell>
+                            <Badge variant="outline">{category.key}</Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">{category.name}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {category.description || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditCategory(category)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-sm text-muted-foreground">尚無分類</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <Card>
@@ -495,6 +584,58 @@ export default function AdminSettings() {
                 disabled={deleteUserMutation.isPending}
               >
                 確認刪除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Category Dialog */}
+        <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>編輯分類</DialogTitle>
+              <DialogDescription>
+                修改分類名稱與描述（Key 不可修改）
+              </DialogDescription>
+            </DialogHeader>
+            {editingCategory && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">分類 Key</label>
+                  <Input
+                    value={editingCategory.key}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">分類名稱 *</label>
+                  <Input
+                    value={editingCategory.name}
+                    onChange={(e) =>
+                      setEditingCategory({ ...editingCategory, name: e.target.value })
+                    }
+                    placeholder="請輸入分類名稱"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">描述</label>
+                  <Input
+                    value={editingCategory.description || ""}
+                    onChange={(e) =>
+                      setEditingCategory({ ...editingCategory, description: e.target.value })
+                    }
+                    placeholder="請輸入分類描述（可選）"
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+                取消
+              </Button>
+              <Button onClick={handleUpdateCategory}>
+                儲存
               </Button>
             </DialogFooter>
           </DialogContent>

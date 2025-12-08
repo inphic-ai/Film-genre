@@ -214,12 +214,25 @@ export const dashboardRouter = router({
         query = query.where(sql`${videos.creator} ILIKE ${'%' + input.search + '%'}`);
       }
       
+      // 獲取總數
+      const totalQuery = db
+        .select({ count: count() })
+        .from(videos)
+        .where(sql`${videos.creator} IS NOT NULL AND ${videos.creator} != ''`)
+        .groupBy(videos.creator);
+      
+      const totalResult = await totalQuery;
+      const total = totalResult.length;
+      
       const creators = await query
         .orderBy(desc(count()))
         .limit(input.limit)
         .offset(input.offset);
       
-      return creators;
+      return {
+        creators,
+        total,
+      };
     }),
 
   // 綜合統計（快速總覽）
