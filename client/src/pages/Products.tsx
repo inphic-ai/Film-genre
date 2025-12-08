@@ -26,10 +26,7 @@ export default function Products() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // 搜尋商品
-  const searchMutation = trpc.products.search.useQuery(
-    { query: searchQuery.trim(), limit: 20 },
-    { enabled: false }
-  );
+  const utils = trpc.useUtils();
 
   // 取得商品詳情
   const productQuery = trpc.products.getBySku.useQuery(
@@ -60,10 +57,10 @@ export default function Products() {
     if (!searchQuery.trim()) return;
 
     try {
-      const results = await searchMutation.refetch();
-      if (results.data && results.data.length > 0) {
-        setSearchResults(results.data);
-        setSelectedSku(results.data[0].sku);
+      const results = await utils.products.search.fetch({ query: searchQuery.trim(), limit: 20 });
+      if (results && results.length > 0) {
+        setSearchResults(results);
+        setSelectedSku(results[0].sku);
       } else {
         setSearchResults([]);
       }
@@ -132,10 +129,10 @@ export default function Products() {
             </div>
             <Button
               type="submit"
-              disabled={searchMutation.isPending || !searchQuery.trim()}
+              disabled={!searchQuery.trim()}
               className="bg-emerald-500 hover:bg-emerald-600 rounded-xl h-11 px-6"
             >
-              {searchMutation.isPending ? (
+              {false ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   搜尋中...

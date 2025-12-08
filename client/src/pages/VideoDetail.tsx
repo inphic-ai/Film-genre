@@ -412,7 +412,8 @@ export default function VideoDetail() {
 
 // Helper function to extract YouTube video ID
 function extractYouTubeId(url: string): string {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  // Support YouTube Shorts format: youtube.com/shorts/{videoId}
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? match[2] : "";
 }

@@ -891,3 +891,108 @@
   - [x] 推送到 GitHub (commit: d873175)
   - [x] 驗證生產環境修復成功（操作類型篩選正常運作）
   - [x] 測試篩選功能（全部/更新使用者角色/核准筆記等）
+## Phase 29：修復短影音播放異常（P0，完成）
+- [x] 診斷 video/48 播放異常問題
+  - [x] 檢查影片資料（https://youtube.com/shorts/aSan4IuF2ws?si=7w9J-_vkvhluqAqm）
+  - [x] 分析短影音（YouTube Shorts）與一般影片的播放連結差異
+  - [x] 檢查 VideoDetail.tsx 的 extractYouTubeId 函數
+- [x] 修復短影音播放功能
+  - [x] 支援 YouTube Shorts 連結格式（/shorts/）
+  - [x] 修改 extractYouTubeId 正則表達式
+  - [x] 測試短影音播放功能（video/48 正常顯示）
+  - [x] 測試一般影片播放功能（video/32 正常顯示）
+- [ ] 部署到生產環境並驗證
+
+## Phase 30：修復 Products 搜尋功能（P0，完成）
+- [x] 診斷 Products 搜尋功能問題
+  - [x] 檢查 Products.tsx 的搜尋邏輯（enabled: false）
+  - [x] 檢查 server/trpc/routers/products.ts 的 products.search API
+  - [x] 發現大小寫敏感問題（LIKE 應改為 ILIKE）
+- [x] 修復搜尋功能
+  - [x] 修正搜尋 API 邏輯（使用 LOWER + LIKE 支援大小寫不敏感搜尋）
+  - [x] 處理 description NULL 值（使用 COALESCE）
+  - [x] 修正前端搜尋觸發邏輯（改用 utils.products.search.fetch）
+  - [x] 測試搜尋功能（SKU: tst123456a → 2 個結果，名稱: 測試商品 → 2 個結果）
+- [ ] 部署到生產環境並驗證
+
+## Phase 31：影片刪除連動縮圖刪除（P1）
+- [ ] 分析影片刪除流程
+  - [ ] 檢查 videos.delete API（server/routers.ts）
+  - [ ] 檢查縮圖儲存位置（S3 或本地）
+  - [ ] 檢查縮圖檔案命名規則
+- [ ] 實作縮圖刪除功能
+  - [ ] 在 videos.delete API 中新增縮圖刪除邏輯
+  - [ ] 使用 storageDelete 刪除 S3 縮圖檔案
+  - [ ] 處理縮圖不存在的情況（避免錯誤）
+- [ ] 測試刪除功能
+  - [ ] 測試刪除影片（驗證縮圖同時刪除）
+  - [ ] 測試刪除不存在縮圖的影片（驗證不報錯）
+- [ ] 部署到生產環境並驗證
+
+## Phase 32：優化標籤管理頁面（P1）
+- [ ] 新增標籤統計卡片
+  - [ ] 總標籤數卡片
+  - [ ] 商品編號標籤數卡片（tagType = 'PRODUCT_CODE'）
+  - [ ] 關鍵字標籤數卡片（tagType = 'KEYWORD'）
+  - [ ] 使用 trpc.tags.getStats API 取得統計資料
+- [ ] 新增視角切換功能
+  - [ ] 依標籤類型視角（分組顯示：商品編號、關鍵字）
+  - [ ] 依使用次數視角（排序顯示：使用次數 DESC）
+  - [ ] 使用 Tabs 或 Select 組件切換視角
+- [ ] 實作後端 API
+  - [ ] tags.getStats：統計各類型標籤數量
+  - [ ] 修改 tags.getAll：支援 groupBy 參數（type、usageCount）
+- [ ] 測試與部署
+
+## Phase 33：完成我的貢獻頁面優化（P1）
+- [ ] 新增統計卡片
+  - [ ] 我提交的影片數卡片
+  - [ ] 時間軸筆記數卡片
+  - [ ] 待審核筆記數卡片
+  - [ ] 使用 trpc.myContributions.getStats API 取得統計資料
+- [ ] 新增人員下拉選單（Admin 專用）
+  - [ ] 檢查當前使用者角色（useAuth().user?.role）
+  - [ ] Admin 可查看所有人員的貢獻
+  - [ ] 使用 Select 組件選擇人員
+  - [ ] 切換人員時重新載入貢獻資料
+- [ ] 實作後端 API
+  - [ ] myContributions.getStats：統計使用者貢獻數量
+  - [ ] myContributions.getByUserId：Admin 查詢指定使用者貢獻
+  - [ ] users.getAll：取得所有使用者列表（Admin 專用）
+- [ ] 測試與部署
+
+## Phase 34：Dashboard 超連結與 Board 排序功能（P2）
+- [ ] Dashboard 最新上傳影片超連結
+  - [ ] 限制最新上傳影片最多 10 筆
+  - [ ] 新增「查看更多」超連結
+  - [ ] 連結到影片看板頁面（/board?sort=latest）
+- [ ] Board 頁面排序功能
+  - [ ] 新增排序下拉選單（最新上傳、評分高低、觀看次數）
+  - [ ] 支援多欄位排序（例如：評分高→觀看次數多）
+  - [ ] 支援升序/降序切換
+  - [ ] URL 參數同步（?sort=rating-desc）
+- [ ] 測試與部署
+
+## Phase 35：索引成果部署與效能數據收集（P2）
+- [ ] 建立效能數據收集機制
+  - [ ] 記錄查詢執行時間（使用 performance.now()）
+  - [ ] 記錄索引使用統計（pg_stat_user_indexes）
+  - [ ] 建立效能數據儲存表（performance_metrics）
+- [ ] 建立效能報告頁面
+  - [ ] 顯示索引使用統計（掃描次數、讀取行數）
+  - [ ] 顯示查詢效能趨勢（執行時間折線圖）
+  - [ ] 顯示優化前後對比（改善幅度）
+- [ ] 測試與部署
+
+## Phase 36：開發效能監控儀表板（P3）
+- [ ] 後端 API 開發
+  - [ ] system.getPerformanceMetrics：系統效能指標（CPU、記憶體、資料庫連線）
+  - [ ] system.getAPIPerformance：API 效能監控（回應時間、錯誤率）
+  - [ ] system.getDatabasePerformance：資料庫效能（查詢時間、慢查詢列表）
+- [ ] 前端頁面開發
+  - [ ] 整合到數據視覺化頁面（/dashboard）
+  - [ ] 新增「效能監控」Tab
+  - [ ] 顯示系統效能指標（即時數據）
+  - [ ] 顯示 API 效能監控（圖表）
+  - [ ] 顯示資料庫效能（慢查詢列表）
+- [ ] 測試與部署

@@ -38,14 +38,15 @@ export const productsRouter = router({
         });
       }
 
+      // Use case-insensitive search (ILIKE in PostgreSQL)
       const results = await db
         .select()
         .from(products)
         .where(
           or(
-            like(products.sku, `%${query}%`),
-            like(products.name, `%${query}%`),
-            like(products.description, `%${query}%`)
+            sql`LOWER(${products.sku}) LIKE LOWER(${'%' + query + '%'})`,
+            sql`LOWER(${products.name}) LIKE LOWER(${'%' + query + '%'})`,
+            sql`LOWER(COALESCE(${products.description}, '')) LIKE LOWER(${'%' + query + '%'})`
           )
         )
         .limit(limit);
