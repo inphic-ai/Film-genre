@@ -655,6 +655,84 @@ ${tagsListText}
         
         return { creator };
       }),
+
+    // Batch delete videos (admin only)
+    batchDelete: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        let successCount = 0;
+        let failedCount = 0;
+        
+        for (const id of input.ids) {
+          try {
+            await db.deleteVideo(id);
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to delete video ${id}:`, error);
+            failedCount++;
+          }
+        }
+        
+        return { successCount, failedCount, total: input.ids.length };
+      }),
+
+    // Batch update category (admin only)
+    batchUpdateCategory: protectedProcedure
+      .input(z.object({
+        ids: z.array(z.number()),
+        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        let successCount = 0;
+        let failedCount = 0;
+        
+        for (const id of input.ids) {
+          try {
+            await db.updateVideo(id, { category: input.category });
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to update video ${id}:`, error);
+            failedCount++;
+          }
+        }
+        
+        return { successCount, failedCount, total: input.ids.length };
+      }),
+
+    // Batch update share status (admin only)
+    batchUpdateShareStatus: protectedProcedure
+      .input(z.object({
+        ids: z.array(z.number()),
+        shareStatus: z.enum(['private', 'public']),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        
+        let successCount = 0;
+        let failedCount = 0;
+        
+        for (const id of input.ids) {
+          try {
+            await db.updateVideo(id, { shareStatus: input.shareStatus });
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to update video ${id}:`, error);
+            failedCount++;
+          }
+        }
+        
+        return { successCount, failedCount, total: input.ids.length };
+      }),
   }),
 
   // Tags management

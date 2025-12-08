@@ -1323,3 +1323,37 @@
   - [x] 修改 createVideo 和 updateVideo 呼叫（包含 creator 參數）
 - [x] 測試本地開發環境（TypeScript 編譯成功）
 - [x] 無需建立 vitest 測試（前端功能）
+
+## Phase 45：為現有影片補充創作者資訊（✅ 已完成）
+- [x] 建立 migration script（migrate-creators.mjs）
+  - [x] 查詢所有 platform='youtube' 且 creator IS NULL 的影片
+  - [x] 使用 YouTube API 自動取得創作者資訊
+  - [x] 更新 videos 表的 creator 欄位
+  - [x] 輸出執行結果（成功/失敗數量）
+- [x] 執行 migration script（✅ 3 部影片成功，23 部測試影片跳過）
+- [x] 驗證資料庫中的 creator 欄位已正確填充
+
+## Phase 46：影片批次操作功能（進行中）
+- [x] 後端 API 實作
+  - [x] videos.batchDelete（批次刪除影片）
+  - [x] videos.batchUpdateCategory（批次修改分類）
+  - [x] videos.batchUpdateShareStatus（批次修改分享狀態）
+- [ ] 前端實作
+  - [ ] Board.tsx 新增批次選擇模式（checkbox）
+  - [ ] 新增批次操作工具列（刪除、修改分類、修改分享狀態）
+  - [ ] 批次操作確認對話框
+  - [ ] 批次操作成功/失敗提示
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試（批次操作 API）
+
+## Phase 47：創作者詳情頁面
+- [ ] 後端 API 實作
+  - [ ] dashboard.getCreatorDetail（創作者詳情、影片列表、統計數據）
+- [ ] 前端實作
+  - [ ] 建立 CreatorDetail.tsx 頁面
+  - [ ] 顯示創作者資訊（名稱、影片數量、總觀看次數）
+  - [ ] 顯示該創作者的所有影片列表（支援篩選與排序）
+  - [ ] 統計數據圖表（影片分類分佈、時間趨勢）
+  - [ ] 新增 /creators/:creatorName 路由到 App.tsx
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試（前端功能）
