@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
@@ -321,3 +321,44 @@ export type KnowledgeNode = typeof knowledgeNodes.$inferSelect;
 export type InsertKnowledgeNode = typeof knowledgeNodes.$inferInsert;
 
 
+/**
+ * Log type enum - categorizes different log types
+ */
+export const logTypeEnum = pgEnum("log_type", ["API", "DB_QUERY"]);
+
+/**
+ * Performance Logs table - tracks API response times and database query performance
+ */
+export const performanceLogs = pgTable("performance_logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  logType: logTypeEnum("logType").notNull(),
+  endpoint: varchar("endpoint", { length: 255 }),
+  method: varchar("method", { length: 10 }),
+  responseTime: integer("responseTime").notNull(), // in milliseconds
+  statusCode: integer("statusCode"),
+  userId: integer("userId").references(() => users.id, { onDelete: "set null" }),
+  errorMessage: text("errorMessage"),
+  metadata: jsonb("metadata"), // Additional info (request params, SQL query, etc.)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PerformanceLog = typeof performanceLogs.$inferSelect;
+export type InsertPerformanceLog = typeof performanceLogs.$inferInsert;
+
+/**
+ * User Activity Logs table - tracks user actions and behaviors
+ */
+export const userActivityLogs = pgTable("user_activity_logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  action: varchar("action", { length: 100 }).notNull(), // VIDEO_CREATE, NOTE_SUBMIT, SEARCH, REVIEW_APPROVE, etc.
+  targetType: varchar("targetType", { length: 50 }), // VIDEO, NOTE, TAG, PRODUCT
+  targetId: integer("targetId"),
+  details: text("details"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: varchar("userAgent", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+export type InsertUserActivityLog = typeof userActivityLogs.$inferInsert;

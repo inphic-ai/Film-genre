@@ -19,6 +19,7 @@ import MyContributions from "./pages/MyContributions";
 import AdminSettings from "./pages/AdminSettings";
 import TagsManagement from "./pages/TagsManagement";
 import Notifications from "./pages/Notifications";
+import PerformanceMonitor from "./pages/PerformanceMonitor";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function Router() {
       <Route path={"/admin/settings"} component={AdminSettings} />
       <Route path={"/admin/tags"} component={TagsManagement} />
       <Route path={"/notifications"} component={Notifications} />
+      <Route path={"/admin/performance"} component={PerformanceMonitor} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

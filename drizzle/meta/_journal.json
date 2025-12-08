@@ -85,6 +85,13 @@
       "when": 1765111590578,
       "tag": "0011_dear_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1765155253090,
+      "tag": "0012_rich_mentor",
+      "breakpoints": true
     }
   ]
 }

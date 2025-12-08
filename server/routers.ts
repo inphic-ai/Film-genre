@@ -17,6 +17,7 @@ import { fullTextSearchRouter } from "./trpc/routers/fullTextSearch";
 import { notificationsRouter } from "./trpc/routers/notifications";
 import { videoSuggestionsRouter } from "./trpc/routers/videoSuggestions";
 import { aiSearchRouter } from "./trpc/routers/aiSearch";
+import { performanceMonitorRouter } from "./trpc/routers/performanceMonitor";
 
 export const appRouter = router({
   system: systemRouter,
@@ -974,6 +975,7 @@ ${tagsListText}
   videoSuggestions: videoSuggestionsRouter,
   // AI Smart Search
   aiSearch: aiSearchRouter,
+  performanceMonitor: performanceMonitorRouter,
 });
 
 export type AppRouter = typeof appRouter;

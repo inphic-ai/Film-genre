@@ -947,7 +947,7 @@
   - [x] 使用後端 API 數據取代前端計算
 - [ ] 測試與部署
 
-## Phase 33：完成我的貢獻頁面優化（P1，完成）
+## Phase 33：完成我的貢獻頁面優化（P1，已部署）
 - [x] 新增統計卡片
   - [x] 我提交的影片數卡片（totalVideos）
   - [x] 時間軸筆記數卡片（totalNotes）
@@ -1019,3 +1019,69 @@
   - [ ] 顯示 API 效能監控（圖表）
   - [ ] 顯示資料庫效能（慢查詢列表）
 - [ ] 測試與部署
+
+## Phase 34：Dashboard 超連結與 Board 排序功能（P2，已完成）
+- [x] Dashboard 最新上傳影片超連結
+  - [x] Dashboard.tsx 的影片卡片已使用 Link 組件（第 381 行）
+  - [x] 點擊跳轉到 /video/:id 詳情頁
+  - [x] 功能已存在，無需修改
+- [x] Board 頁面排序功能
+  - [x] 排序選擇器已實作（第 220-231 行）
+  - [x] 支援 4 種排序：熱門度、評分、建立時間、標題
+  - [x] 排序邏輯已實作（第 107-116 行）
+  - [x] 功能已存在，無需修改
+- [x] 無需建立 vitest 測試（功能已存在）
+- [x] 無需測試本地開發環境（功能已存在）
+- [x] 無需建立 checkpoint（功能已存在）
+- [x] 無需推送到 GitHub（功能已存在）
+- [x] 無需驗證 Railway Production 部署（功能已存在）
+
+## Phase 35：影片刪除連動縮圖刪除（P1，已完成）
+- [x] 後端 API 修改
+  - [x] deleteVideo 函數已實作（server/db.ts 第 289-323 行）
+  - [x] 刪除前先查詢影片資料（第 294 行）
+  - [x] 檢查 customThumbnailUrl 是否存在（第 302 行）
+  - [x] 從 URL 提取 R2 key（第 305-306 行）
+  - [x] 呼叫 storageDelete(key) 刪除 R2 縮圖（第 310-311 行）
+  - [x] 錯誤處理：R2 刪除失敗時繼續刪除影片（第 314-317 行）
+  - [x] 刪除影片資料庫記錄（第 321 行）
+- [x] 無需建立 vitest 測試（功能已存在）
+- [x] 無需測試本地開發環境（功能已存在）
+- [x] 無需建立 checkpoint（功能已存在）
+- [x] 無需推送到 GitHub（功能已存在）
+- [x] 無需驗證 Railway Production 部署（功能已存在）
+
+## Phase 36：效能監控儀表板（P3，完成）
+- [x] 資料庫 Schema 變更申請（docs/DB_CHANGE_REQUEST_PHASE36.md）
+  - [x] performance_logs 表（10 個欄位）
+  - [x] user_activity_logs 表（9 個欄位）
+  - [x] log_type enum（API / DB_QUERY）
+  - [x] 執行 pnpm db:push（migration 0012_rich_mentor.sql）
+- [x] 後端 API 實作（server/trpc/routers/performanceMonitor.ts）
+  - [x] performanceMonitor.getApiStats（API 效能統計）
+  - [x] performanceMonitor.getDbStats（資料庫查詢效能）
+  - [x] performanceMonitor.getUserActivity（使用者活動統計）
+  - [x] performanceMonitor.getSystemHealth（系統健康狀態）
+  - [x] performanceMonitor.logApiPerformance（記錄 API 效能）
+  - [x] performanceMonitor.logUserActivity（記錄使用者活動）
+  - [x] 整合到主 appRouter
+- [x] 前端頁面實作（client/src/pages/PerformanceMonitor.tsx）
+  - [x] 系統健康概覽（4 個卡片）
+  - [x] API 效能 Tab（總請求數、平均回應時間、狀態碼分佈、最慢端點）
+  - [x] 資料庫效能 Tab（總查詢數、平均查詢時間、慢查詢列表）
+  - [x] 使用者活動 Tab（總活動數、操作類型分佈、最活躍使用者）
+  - [x] 時間範圍選擇器（1/7/30/90 天）
+- [x] 路由整合（App.tsx）
+- [x] 側邊欄導航整合（DashboardLayout.tsx）
+- [x] 建立 vitest 測試（10 個測試全部通過）
+  - [x] getApiStats：API 統計結構測試
+  - [x] getDbStats：資料庫統計結構測試
+  - [x] getUserActivity：使用者活動統計測試
+  - [x] getSystemHealth：系統健康狀態測試
+  - [x] logApiPerformance：記錄 API 效能測試
+  - [x] logUserActivity：記錄使用者活動測試
+  - [x] 權限測試：非 Admin 無法存取
+- [x] 測試本地開發環境（見 docs/phase34-36-local-test-results.md）
+- [ ] 建立 checkpoint (version: 待建立)
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署

@@ -34,6 +34,7 @@ import {
   Search,
   Tag as TagIcon,
   Bell,
+  Activity,
   Sparkles
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -53,6 +54,7 @@ const menuItems = [
   { icon: Bell, label: "通知中心", path: "/notifications", roles: ["admin", "staff", "viewer"] },
   { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
+  { icon: Activity, label: "效能監控", path: "/admin/performance", roles: ["admin"] },
   { icon: CheckSquare, label: "審核中心", path: "/admin/review", roles: ["admin"] },
 ];
 
