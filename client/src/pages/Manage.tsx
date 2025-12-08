@@ -25,6 +25,7 @@ export default function Manage() {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [category, setCategory] = useState<string>("");
   const [productId, setProductId] = useState("");
+  const [duration, setDuration] = useState<number | null>(null);
   const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
   const [selectedTags, setSelectedTags] = useState<Array<{ id: number; name: string; tagType: string; color?: string }>>([]);
   const [customThumbnailUrl, setCustomThumbnailUrl] = useState<string | null>(null);
@@ -187,6 +188,7 @@ export default function Manage() {
       setThumbnailUrl(existingVideo.thumbnailUrl || "");
       setCategory(existingVideo.category);
       setProductId(existingVideo.productId || "");
+      setDuration(existingVideo.duration || null);
       setShareStatus(existingVideo.shareStatus || "private");
       // @ts-ignore - customThumbnailUrl may exist in existingVideo
       setCustomThumbnailUrl(existingVideo.customThumbnailUrl || null);
@@ -302,6 +304,7 @@ export default function Manage() {
       thumbnailUrl: thumbnailUrl || undefined,
       category: category as "product_intro" | "maintenance" | "case_study" | "faq" | "other",
       productId: productId || undefined,
+      duration: duration || undefined,
       shareStatus,
     };
 
@@ -576,9 +579,36 @@ export default function Manage() {
                   id="productId"
                   type="text"
                   value={productId}
-                  onChange={(e) => setProductId(e.target.value)}
-                  placeholder="例：P-12345 (選填)"
+                  onChange={(e) => {
+                    // 防呆機制：只允許英文字母和數字，強制轉換為大寫
+                    const filtered = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                    setProductId(filtered);
+                  }}
+                  placeholder="例：PM6123456A (選填，僅英數，自動大寫)"
+                  className="uppercase"
                 />
+                <p className="text-xs text-slate-500">
+                  ℹ️ 僅允許英文字母與數字，特殊字元會自動過濾，小寫會自動轉換為大寫
+                </p>
+              </div>
+
+              {/* Duration */}
+              <div className="space-y-2">
+                <Label htmlFor="duration">影片長度（秒）</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min="0"
+                  value={duration || ""}
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value, 10) : null;
+                    setDuration(value);
+                  }}
+                  placeholder="例：120 (選填，單位：秒)"
+                />
+                <p className="text-xs text-slate-500">
+                  ℹ️ 影片長度，單位為秒（例：120 秒 = 2 分鐘），選填
+                </p>
               </div>
 
               {/* Tags */}

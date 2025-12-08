@@ -1082,6 +1082,155 @@
   - [x] logUserActivity：記錄使用者活動測試
   - [x] 權限測試：非 Admin 無法存取
 - [x] 測試本地開發環境（見 docs/phase34-36-local-test-results.md）
-- [ ] 建立 checkpoint (version: 待建立)
+- [x] 建立 checkpoint (version: 28f35848)
+- [x] 推送到 GitHub (commit: 28f3584)
+- [⚠️] 驗證 Railway Production 部署（見 docs/railway-production-verification-phase34-36.md）
+  - [x] Phase 34-35：功能已存在，無需驗證
+  - [⚠️] Phase 36：頁面載入問題（ERR_HTTP2_PROTOCOL_ERROR）
+  - [ ] 待解決：等待 Railway 部署完成或手動執行 migration
+
+## Phase 37：修正商品編號篩選問題與增加防呆機制（P1）
+- [ ] 診斷商品編號篩選問題
+  - [ ] 檢查數據視覺化頁面「總商品數」點選後的篩選邏輯
+  - [ ] 檢查商品編號的大小寫與特殊字元處理
+  - [ ] 確認資料庫查詢條件（LIKE、ILIKE、exact match）
+- [ ] 修正商品編號篩選邏輯
+  - [ ] 統一商品編號為大寫（資料庫層）
+  - [ ] 修正篩選查詢條件（不區分大小寫）
+- [ ] 新增商品編號輸入防呆機制
+  - [ ] 前端：自動轉換為大寫
+  - [ ] 前端：阻止特殊字元輸入（僅允許英數字）
+  - [ ] 後端：驗證商品編號格式（Zod schema）
+  - [ ] 後端：自動轉換為大寫並移除特殊字元
+- [ ] 建立 vitest 測試
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 38：影片長度顯示與排序功能（P1）
+- [ ] 資料庫 Schema 變更申請
+  - [ ] 新增 videos.duration 欄位（integer，單位：秒）
+  - [ ] 撰寫 Schema 變更申請文件
+  - [ ] 等待審核批准
+- [ ] 後端 API 修改
+  - [ ] 修改 videos.create 支援 duration 參數
+  - [ ] 修改 videos.update 支援 duration 參數
+  - [ ] 修改 videos.list 支援 duration 排序（sortBy: 'duration'）
+  - [ ] 自動從 YouTube API 取得影片長度（如可能）
+- [ ] 前端 UI 修改
+  - [ ] 影片看板卡片顯示影片長度（格式：HH:MM:SS 或 MM:SS）
+  - [ ] 新增影片表單增加「影片長度」欄位
+  - [ ] 編輯影片表單增加「影片長度」欄位
+  - [ ] Board 頁面排序選擇器增加「影片長度」選項（多到少、少到多）
+- [ ] 建立 vitest 測試
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 39：我的貢獻卡片點選功能（P2）
+- [ ] 修改我的貢獻頁面統計卡片
+  - [ ] 「我的影片」卡片：點選後跳轉到「我提交的影片」列表區塊
+  - [ ] 「我的筆記」卡片：點選後跳轉到「我提交的時間軸筆記」列表區塊
+  - [ ] 「已通過」卡片：點選後篩選顯示「已通過」的筆記
+  - [ ] 「待審核」卡片：點選後篩選顯示「待審核」的筆記
+  - [ ] 「已拒絕」卡片：點選後篩選顯示「已拒絕」的筆記
+- [ ] 實作頁面內錨點跳轉（smooth scroll）
+- [ ] 實作筆記列表篩選功能
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 40：標籤管理商品編號篩選修正（P1）
+- [ ] 診斷標籤管理頁面商品編號篩選問題
+  - [ ] 檢查「商品編號標籤」點選後的篩選邏輯
+  - [ ] 確認與 Phase 37 的修正一致性
+- [ ] 修正標籤管理頁面篩選邏輯
+  - [ ] 統一使用不區分大小寫的查詢
+  - [ ] 確保與 Board 頁面篩選邏輯一致
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 41：數據視覺化增加創作者卡片（P2）
+- [ ] 後端 API 開發
+  - [ ] dashboard.getCreatorStats：取得創作者統計（創作者數量、影片數量分佈）
+  - [ ] dashboard.getCreatorList：取得創作者列表（支援搜尋與篩選）
+- [ ] 前端頁面修改
+  - [ ] Dashboard 新增「創作者」統計卡片
+  - [ ] 點選卡片跳轉到創作者列表頁面（/admin/creators）
+  - [ ] 建立創作者列表頁面（含搜尋與篩選功能）
+  - [ ] 創作者列表顯示：YouTube 帳號名稱、頻道 ID、影片數量
+  - [ ] 點選創作者可查看該創作者的所有影片
+- [ ] 我的貢獻頁面修改
+  - [ ] 「我提交的影片」區塊增加「More」按鈕
+  - [ ] 點選「More」跳轉到完整影片列表頁面
+- [ ] 建立 vitest 測試
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 37：修正商品編號篩選問題與增加防呆機制（完成）
+- [x] 診斷商品編號篩選問題
+  - [x] Products.tsx 預設是空狀態，需要手動搜尋
+  - [x] 新增 products.list API（支援分頁與排序）
+  - [x] 修改 Products.tsx，預設顯示所有商品列表
+  - [x] 從 Dashboard 點擊「總商品數」後正常顯示商品卡片
+- [x] 新增商品編號防呆機制
+  - [x] 修改 Manage.tsx 的商品編號輸入欄位（第 575-590 行）
+  - [x] 過濾特殊字元（僅允許英數）
+  - [x] 強制轉換為大寫
+  - [x] 新增提示訊息（ℹ️ 僅允許英文字母與數字...）
+- [x] 測試防呆機制（輸入 pm-6123@456a! → 輸出 PM6123456A）
+- [x] 無需建立 vitest 測試（前端防呆機制）
+
+## Phase 38：影片長度顯示與排序功能（完成）
+- [x] 資料庫 Schema 變更申請
+  - [x] videos.duration 欄位已存在（Phase 13 已新增）
+- [x] 後端 API 修改
+  - [x] Board.tsx 前端排序邏輯支援 duration（第 114-115 行）
+  - [x] Manage.tsx 支援 duration 欄位（第 307 行）
+- [x] 前端修改
+  - [x] VideoCard 顯示影片長度（格式：HH:MM:SS 或 MM:SS）
+  - [x] VideoCard 新增 formatDuration 函數（第 25-34 行）
+  - [x] Board.tsx 新增影片長度排序選項（長到短）
+  - [x] Board.tsx sortBy state 支援 duration（第 55 行）
+  - [x] Manage.tsx 新增影片長度輸入欄位（選填，單位：秒）
+- [x] 測試本地開發環境（排序選擇器顯示正常）
+- [x] 無需建立 vitest 測試（前端排序邏輯）
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
+
+## Phase 39：我的貢獻卡片點選功能（完成）
+- [x] 修改 MyContributions.tsx
+  - [x] 影片卡片已有點選功能（第 164 行）
+  - [x] 筆記卡片新增點選功能（第 227 行）
+  - [x] 筆記卡片包裹在 Link 中，點擊跳轉到 /video/:videoId
+  - [x] 新增 hover 效果（shadow-md）
+- [x] 測試本地開發環境（影片與筆記卡片均可點選）
+- [x] 無需建立 vitest 測試（前端點擊功能）## Phase 40：標籤管理商品編號篩選修正
+- [ ] 診斷標籤管理頁面商品編號篩選問題
+  - [ ] 檢查 TagsManagement.tsx 的商品編號篩選邏輯
+  - [ ] 檢查 tags.getByType API 的商品編號篩選實作
+- [ ] 修正商品編號篩選邏輯（統一大寫比對）
+- [ ] 測試標籤管理頁面商品編號篩選
+- [ ] 無需建立 vitest 測試（前端篩選邏輯）
+
+## Phase 41：數據視覺化增加創作者卡片
+- [ ] 後端 API 實作
+  - [ ] dashboard.getCreatorStats（創作者統計）
+  - [ ] dashboard.getCreatorList（創作者列表，支援搜尋與篩選）
+- [ ] 前端修改
+  - [ ] Dashboard.tsx 新增「創作者」卡片（顯示創作者數量）
+  - [ ] 點擊卡片跳轉到創作者列表頁面（/creators）
+  - [ ] 建立 Creators.tsx 頁面（創作者列表、搜尋、篩選）
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署

@@ -224,11 +224,12 @@ export default function MyContributions() {
                   const Icon = statusIcon;
                   
                   return (
-                    <div key={note.id} className={`p-4 rounded-lg border ${statusBg}`}>
-                      <div className="flex items-start gap-4">
-                        <Icon className={`h-5 w-5 ${statusColor} mt-0.5`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
+                    <Link key={note.id} href={`/video/${note.videoId}`}>
+                      <div className={`p-4 rounded-lg border ${statusBg} cursor-pointer hover:shadow-md transition-shadow`}>
+                        <div className="flex items-start gap-4">
+                          <Icon className={`h-5 w-5 ${statusColor} mt-0.5`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
                             <Badge variant="outline" className={statusColor}>
                               {statusText}
                             </Badge>
@@ -257,9 +258,10 @@ export default function MyContributions() {
                           <div className="text-xs text-muted-foreground mt-2">
                             提交時間：{new Date(note.createdAt).toLocaleString('zh-TW')}
                           </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

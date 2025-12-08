@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Edit, Trash2, Youtube, Eye, Tag, Package, Star } from "lucide-react";
+import { ExternalLink, Edit, Trash2, Youtube, Eye, Tag, Package, Star, Clock } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import type { Video } from "../../../drizzle/schema";
@@ -19,6 +19,18 @@ const platformLabels: Record<string, string> = {
   youtube: 'YouTube',
   tiktok: '抖音',
   redbook: '小紅書',
+};
+
+// Format duration from seconds to HH:MM:SS or MM:SS
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
 };
 
 export function VideoCard({ video, onEdit, onDelete, showActions = false, showTags = true, maxTags = 3 }: VideoCardProps) {
@@ -79,13 +91,21 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false, showTa
           </div>
         )}
 
-        {/* View Count */}
-        {video.viewCount > 0 && (
-          <div className="absolute bottom-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            <span className="text-xs">{video.viewCount}</span>
-          </div>
-        )}
+        {/* Duration & View Count */}
+        <div className="absolute bottom-2 right-2 flex items-center gap-2">
+          {video.duration && (
+            <div className="bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span className="text-xs">{formatDuration(video.duration)}</span>
+            </div>
+          )}
+          {video.viewCount > 0 && (
+            <div className="bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              <span className="text-xs">{video.viewCount}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <CardHeader className="space-y-2">

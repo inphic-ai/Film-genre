@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, name, type, description, usage_count FROM tags ORDER BY created_at DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute SELECT id, name, type, description, usage_count FROM tags ORDER BY created_at DESC LIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'vzskie7tbgmy9wer2tyay4.tags' doesn't exist"
+  ]
+}

@@ -52,7 +52,7 @@ export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating'>('createdAt');
+  const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration'>('createdAt');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedShareStatus, setSelectedShareStatus] = useState<string[]>([]);
 
@@ -111,6 +111,8 @@ export default function Board() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (sortBy === 'rating') {
       return (b.rating || 0) - (a.rating || 0);
+    } else if (sortBy === 'duration') {
+      return (b.duration || 0) - (a.duration || 0); // 長到短
     } else { // title
       return a.title.localeCompare(b.title);
     }
@@ -217,7 +219,7 @@ export default function Board() {
           </div>
 
           {/* Sort Selector */}
-          <Select value={sortBy} onValueChange={(value: 'viewCount' | 'createdAt' | 'title') => setSortBy(value)}>
+          <Select value={sortBy} onValueChange={(value: 'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration') => setSortBy(value)}>
             <SelectTrigger className="w-[180px]">
               <ArrowUpDown className="h-4 w-4 mr-2" />
               <SelectValue />
@@ -225,6 +227,7 @@ export default function Board() {
             <SelectContent>
               <SelectItem value="viewCount">熱門度（點擊數）</SelectItem>
               <SelectItem value="rating">評分（高到低）</SelectItem>
+              <SelectItem value="duration">影片長度（長到短）</SelectItem>
               <SelectItem value="createdAt">建立時間</SelectItem>
               <SelectItem value="title">標題（A-Z）</SelectItem>
             </SelectContent>

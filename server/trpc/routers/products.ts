@@ -18,6 +18,61 @@ import { eq, like, or, and, inArray, sql } from "drizzle-orm";
 
 export const productsRouter = router({
   /**
+   * 列出所有商品（支援分頁與排序）
+   */
+  list: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+        sortBy: z.enum(["createdAt", "sku", "name"]).default("createdAt"),
+        sortOrder: z.enum(["asc", "desc"]).default("desc"),
+      })
+    )
+    .query(async ({ input }) => {
+      const { limit, offset, sortBy, sortOrder } = input;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "資料庫連線失敗",
+        });
+      }
+
+      // 建立查詢
+      let query = db.select().from(products);
+
+      // 排序與分頁
+      let results;
+      if (sortBy === "createdAt") {
+        results = sortOrder === "asc" 
+          ? await query.orderBy(products.createdAt).limit(limit).offset(offset)
+          : await query.orderBy(sql`${products.createdAt} DESC`).limit(limit).offset(offset);
+      } else if (sortBy === "sku") {
+        results = sortOrder === "asc" 
+          ? await query.orderBy(products.sku).limit(limit).offset(offset)
+          : await query.orderBy(sql`${products.sku} DESC`).limit(limit).offset(offset);
+      } else if (sortBy === "name") {
+        results = sortOrder === "asc" 
+          ? await query.orderBy(products.name).limit(limit).offset(offset)
+          : await query.orderBy(sql`${products.name} DESC`).limit(limit).offset(offset);
+      } else {
+        results = await query.limit(limit).offset(offset);
+      }
+
+      // 總數
+      const totalResult = await db.select({ count: sql<number>`count(*)` }).from(products);
+      const total = Number(totalResult[0]?.count || 0);
+
+      return {
+        products: results,
+        total,
+        hasMore: offset + results.length < total,
+      };
+    }),
+
+  /**
    * 搜尋商品（支援 SKU、名稱、描述）
    */
   search: publicProcedure
