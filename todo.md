@@ -1338,15 +1338,14 @@
   - [x] videos.batchDelete（批次刪除影片）
   - [x] videos.batchUpdateCategory（批次修改分類）
   - [x] videos.batchUpdateShareStatus（批次修改分享狀態）
-- [ ] 前端實作
+- [ ] 前端實作（進行中）
+  - [x] 建立 BatchOperationToolbar 組件（批次操作工具列、確認對話框、成功/失敗提示）
   - [ ] Board.tsx 新增批次選擇模式（checkbox）
-  - [ ] 新增批次操作工具列（刪除、修改分類、修改分享狀態）
-  - [ ] 批次操作確認對話框
-  - [ ] 批次操作成功/失敗提示
+  - [ ] Board.tsx 整合 BatchOperationToolbar 組件
 - [ ] 測試本地開發環境
 - [ ] 建立 vitest 測試（批次操作 API）
 
-## Phase 47：創作者詳情頁面
+## Phase 47：創作者詳情頁面（進行中）
 - [ ] 後端 API 實作
   - [ ] dashboard.getCreatorDetail（創作者詳情、影片列表、統計數據）
 - [ ] 前端實作
@@ -1355,5 +1354,29 @@
   - [ ] 顯示該創作者的所有影片列表（支援篩選與排序）
   - [ ] 統計數據圖表（影片分類分佈、時間趨勢）
   - [ ] 新增 /creators/:creatorName 路由到 App.tsx
+  - [ ] Creators.tsx 列表頁面：點擊影片數量連結到該創作者的影片清單
 - [ ] 測試本地開發環境
 - [ ] 無需建立 vitest 測試（前端功能）
+
+## Phase 48：搜尋排序優化
+- [ ] Board.tsx 新增排序方向切換（升序/降序）
+- [ ] 排序按鈕 UI 優化（顯示當前排序方向）
+- [ ] 測試本地開發環境
+- [ ] 無需建立 vitest 測試（前端功能）
+
+## Phase 49：後台操作日誌
+- [ ] 資料庫 Schema 變更
+  - [ ] 新增 operation_logs 表（id, userId, operation, targetType, targetId, details, createdAt）
+- [ ] 後端 API 實作
+  - [ ] logs.create（建立操作日誌）
+  - [ ] logs.list（查詢操作日誌，支援篩選與分頁）
+  - [ ] 整合到現有 API（影片新增/編輯/刪除、標籤管理、批次操作）
+- [ ] 前端實作
+  - [ ] 建立 OperationLogs.tsx 頁面
+  - [ ] 顯示操作日誌列表（時間、操作者、操作類型、目標、詳情）
+  - [ ] 篩選功能（操作類型、時間範圍、操作者）
+  - [ ] 分頁功能
+  - [ ] 新增 /admin/logs 路由到 App.tsx
+  - [ ] DashboardLayout 側邊欄新增「操作日誌」選項
+- [ ] 測試本地開發環境
+- [ ] 建立 vitest 測試（logs API）

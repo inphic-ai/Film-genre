@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
 import DashboardLayout from "@/components/DashboardLayout";
+import { BatchOperationToolbar } from "@/components/BatchOperationToolbar";
 
 const categoryLabels: Record<string, string> = {
   product_intro: '使用介紹',
@@ -65,6 +66,9 @@ export default function Board() {
   }, [viewMode]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedShareStatus, setSelectedShareStatus] = useState<string[]>([]);
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedVideoIds, setSelectedVideoIds] = useState<number[]>([]);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const utils = trpc.useUtils();
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
