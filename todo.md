@@ -1471,3 +1471,12 @@
   - [x] VideoCard 與 VideoListView：點擊創作者名稱跳轉到創作者詳情頁
 - [x] 測試本地開發環境
 - [x] 建立 vitest 測試
+
+
+## 修正創作者列表頁面點擊跳轉功能
+- [x] Creators.tsx 創作者名稱新增點擊跳轉到創作者詳情頁
+- [x] Creators.tsx 影片數量新增點擊跳轉到創作者詳情頁
+- [x] 新增 hover 效果（text-primary、underline、cursor-pointer）
+- [x] 測試本地開發環境
+- [x] 建立 checkpoint
+- [x] 推送到 GitHub

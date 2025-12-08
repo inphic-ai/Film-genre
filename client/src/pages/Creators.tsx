@@ -92,17 +92,25 @@ export default function Creators() {
                   </TableHeader>
                   <TableBody>
                     {creators.map((creator: { creator: string | null; videoCount: number }, index: number) => (
-                      <TableRow key={index}>
+                      <TableRow 
+                        key={index}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => {
+                          if (creator.creator) {
+                            setLocation(`/creator/${encodeURIComponent(creator.creator)}`);
+                          }
+                        }}
+                      >
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <UserCircle className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{creator.creator}</span>
+                            <span className="font-medium text-primary hover:underline">{creator.creator}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Film className="h-4 w-4 text-muted-foreground" />
-                            <span>{creator.videoCount} 部影片</span>
+                            <span className="text-primary hover:underline">{creator.videoCount} 部影片</span>
                           </div>
                         </TableCell>
                       </TableRow>
