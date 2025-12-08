@@ -253,7 +253,7 @@ export default function TagsManagement() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">關鍵字標籤</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{allTags?.filter(t => t.tagType === 'KEYWORD').length || 0}</div>
+                <div className="text-2xl font-bold">{tagStats.keywordTagsCount || 0}</div>
               </CardContent>
             </Card>
             <Card>
@@ -261,7 +261,7 @@ export default function TagsManagement() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">商品編號標籤</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{allTags?.filter(t => t.tagType === 'PRODUCT_CODE').length || 0}</div>
+                <div className="text-2xl font-bold">{tagStats.productCodeTagsCount || 0}</div>
               </CardContent>
             </Card>
           </div>

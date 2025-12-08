@@ -118,7 +118,7 @@ export const myContributionsRouter = router({
 
   // Admin 專屬：取得指定使用者的影片
   getUserVideos: protectedProcedure
-    .input(z.object({ userId: z.string() }))
+    .input(z.object({ userId: z.number() }))
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "僅管理員可存取" });
@@ -138,7 +138,7 @@ export const myContributionsRouter = router({
 
   // Admin 專屬：取得指定使用者的筆記
   getUserNotes: protectedProcedure
-    .input(z.object({ userId: z.string() }))
+    .input(z.object({ userId: z.number() }))
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "僅管理員可存取" });
@@ -155,11 +155,9 @@ export const myContributionsRouter = router({
       
       return userNotes;
     }),
-
-  // Admin 專屬：取得指定使用者的統計
+  // Admin 專屬：取得指定使用者的貢獻統計
   getUserStats: protectedProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .input(z.object({ userId: z.number() }))    .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "僅管理員可存取" });
       }

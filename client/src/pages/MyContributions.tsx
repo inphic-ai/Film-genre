@@ -11,7 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function MyContributions() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   
   // Admin 專屬：列出所有使用者
   const { data: allUsers } = trpc.myContributions.listUsers.useQuery(undefined, {
@@ -63,8 +63,8 @@ export default function MyContributions() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <Select
-                  value={selectedUserId || "me"}
-                  onValueChange={(value) => setSelectedUserId(value === "me" ? null : value)}
+                  value={selectedUserId?.toString() || "me"}
+                  onValueChange={(value) => setSelectedUserId(value === "me" ? null : parseInt(value))}
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="選擇人員" />
@@ -72,7 +72,7 @@ export default function MyContributions() {
                   <SelectContent>
                     <SelectItem value="me">我的貢獻</SelectItem>
                     {allUsers.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
+                      <SelectItem key={u.id} value={u.id.toString()}>
                         {u.name} ({u.email})
                       </SelectItem>
                     ))}

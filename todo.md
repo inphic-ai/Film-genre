@@ -930,37 +930,59 @@
   - [ ] 測試刪除不存在縮圖的影片（驗證不報錯）
 - [ ] 部署到生產環境並驗證
 
-## Phase 32：優化標籤管理頁面（P1）
-- [ ] 新增標籤統計卡片
-  - [ ] 總標籤數卡片
-  - [ ] 商品編號標籤數卡片（tagType = 'PRODUCT_CODE'）
-  - [ ] 關鍵字標籤數卡片（tagType = 'KEYWORD'）
-  - [ ] 使用 trpc.tags.getStats API 取得統計資料
-- [ ] 新增視角切換功能
-  - [ ] 依標籤類型視角（分組顯示：商品編號、關鍵字）
-  - [ ] 依使用次數視角（排序顯示：使用次數 DESC）
-  - [ ] 使用 Tabs 或 Select 組件切換視角
-- [ ] 實作後端 API
-  - [ ] tags.getStats：統計各類型標籤數量
-  - [ ] 修改 tags.getAll：支援 groupBy 參數（type、usageCount）
+## Phase 32：優化標籤管理頁面（P1，完成）
+- [x] 新增標籤統計卡片
+  - [x] 總標籤數卡片（tagStats.totalTags）
+  - [x] 商品編號標籤數卡片（tagStats.productCodeTagsCount）
+  - [x] 關鍵字標籤數卡片（tagStats.keywordTagsCount）
+  - [x] 使用 trpc.tags.getStats API 取得統計資料
+- [x] 新增視角切換功能
+  - [x] 依標籤類型視角（按鈕篩選：全部/商品編號/關鍵字）
+  - [x] 依使用次數視角（Select 排序：高到低/低到高/建立時間）
+  - [x] 使用 Button + Select 組件切換視角
+- [x] 實作後端 API
+  - [x] tags.getStats：統計各類型標籤數量（修改 server/db.ts）
+  - [x] 新增 productCodeTagsCount、keywordTagsCount 欄位
+- [x] 前端 UI 優化
+  - [x] 使用後端 API 數據取代前端計算
 - [ ] 測試與部署
 
-## Phase 33：完成我的貢獻頁面優化（P1）
-- [ ] 新增統計卡片
-  - [ ] 我提交的影片數卡片
-  - [ ] 時間軸筆記數卡片
-  - [ ] 待審核筆記數卡片
-  - [ ] 使用 trpc.myContributions.getStats API 取得統計資料
-- [ ] 新增人員下拉選單（Admin 專用）
-  - [ ] 檢查當前使用者角色（useAuth().user?.role）
-  - [ ] Admin 可查看所有人員的貢獻
-  - [ ] 使用 Select 組件選擇人員
-  - [ ] 切換人員時重新載入貢獻資料
-- [ ] 實作後端 API
-  - [ ] myContributions.getStats：統計使用者貢獻數量
-  - [ ] myContributions.getByUserId：Admin 查詢指定使用者貢獻
-  - [ ] users.getAll：取得所有使用者列表（Admin 專用）
-- [ ] 測試與部署
+## Phase 33：完成我的貢獻頁面優化（P1，完成）
+- [x] 新增統計卡片
+  - [x] 我提交的影片數卡片（totalVideos）
+  - [x] 時間軸筆記數卡片（totalNotes）
+  - [x] 已通過筆記數卡片（approvedNotes）
+  - [x] 待審核筆記數卡片（pendingNotes）
+  - [x] 已拒絕筆記數卡片（rejectedNotes）
+  - [x] 使用 trpc.myContributions.getStats API 取得統計資料
+- [x] 新增人員下拉選單（Admin 專用）
+  - [x] 檢查當前使用者角色（useAuth().user?.role）
+  - [x] Admin 可查看所有人員的貢獻
+  - [x] 使用 Select 組件選擇人員（Users 圖示 + 下拉選單）
+  - [x] 切換人員時重新載入貢獻資料（動態切換 userId）
+- [x] 實作後端 API
+  - [x] myContributions.getStats：統計使用者貢獻數量（5 個指標）
+  - [x] myContributions.getUserStats：Admin 查詢指定使用者統計（Admin 專用）
+  - [x] myContributions.getUserVideos：Admin 查詢指定使用者影片（Admin 專用）
+  - [x] myContributions.getUserNotes：Admin 查詢指定使用者筆記（Admin 專用）
+  - [x] myContributions.listUsers：取得所有使用者列表（Admin 專用）
+- [x] 前端 UI 優化
+  - [x] 我提交的影片列表（含縮圖、觀看次數、平台標籤、分類標籤）
+  - [x] 我提交的時間軸筆記列表（含審核狀態、時間戳記、筆記內容、提交時間）
+  - [x] 空狀態提示（當無資料時）
+- [x] 建立 vitest 測試（11 個測試全部通過）
+  - [x] getMyVideos：取得我的影片
+  - [x] getMyNotes：取得我的筆記
+  - [x] getStats：取得我的統計
+  - [x] listUsers：Admin 列出所有使用者
+  - [x] getUserVideos：Admin 查詢指定使用者影片
+  - [x] getUserNotes：Admin 查詢指定使用者筆記
+  - [x] getUserStats：Admin 查詢指定使用者統計
+  - [x] 權限測試：非 Admin 無法存取 Admin 專用 API
+- [x] 測試本地開發環境（見 docs/my-contributions-test-results.md）
+- [x] 建立 checkpoint (version: 待建立)
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署
 
 ## Phase 34：Dashboard 超連結與 Board 排序功能（P2）
 - [ ] Dashboard 最新上傳影片超連結
