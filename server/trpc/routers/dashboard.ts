@@ -3,12 +3,14 @@ import { z } from "zod";
 import { getDb } from "../../db";
 import { videos, products, productRelations, timelineNotes, auditLogs } from "../../../drizzle/schema";
 import { sql, desc, and, gte, count, eq } from "drizzle-orm";
+import { withCache } from "../../_core/redis";
 
 export const dashboardRouter = router({
   // 影片統計（分類分佈）
   getVideoStats: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    return withCache('dashboard:video_stats:v1', 300, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
     
     // 使用 Promise.all 並行執行所有查詢
     const thirtyDaysAgo = new Date();
@@ -50,19 +52,21 @@ export const dashboardRouter = router({
       .orderBy(sql`DATE(${videos.createdAt})`),
     ]);
     
-    return {
-      totalVideos: totalVideos[0]?.count || 0,
-      categoryDistribution,
-      platformDistribution,
-      shareStatusDistribution,
-      recentTrend: recentVideos,
-    };
+      return {
+        totalVideos: totalVideos[0]?.count || 0,
+        categoryDistribution,
+        platformDistribution,
+        shareStatusDistribution,
+        recentTrend: recentVideos,
+      };
+    });
   }),
 
   // 商品分析統計
   getProductStats: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    return withCache('dashboard:product_stats:v1', 300, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
     
     // 使用 Promise.all 並行執行所有查詢
     const [
@@ -91,18 +95,20 @@ export const dashboardRouter = router({
       .limit(10),
     ]);
     
-    return {
-      totalProducts: totalProducts[0]?.count || 0,
-      totalRelations: totalRelations[0]?.count || 0,
-      relationTypeDistribution,
-      topRelatedProducts,
-    };
+      return {
+        totalProducts: totalProducts[0]?.count || 0,
+        totalRelations: totalRelations[0]?.count || 0,
+        relationTypeDistribution,
+        topRelatedProducts,
+      };
+    });
   }),
 
   // 使用者活動追蹤
   getUserActivity: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    return withCache('dashboard:user_activity:v1', 300, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
     
     // 使用 Promise.all 並行執行所有查詢
     const sevenDaysAgo = new Date();
@@ -136,17 +142,19 @@ export const dashboardRouter = router({
       .orderBy(sql`DATE(${auditLogs.createdAt})`),
     ]);
     
-    return {
-      noteStats,
-      recentAudits,
-      activityTrend,
-    };
+      return {
+        noteStats,
+        recentAudits,
+        activityTrend,
+      };
+    });
   }),
 
   // 創作者統計
   getCreatorStats: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    return withCache('dashboard:creator_stats:v1', 300, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
     
     // 總創作者數（去重）
     const creatorsWithCount = await db
@@ -172,12 +180,13 @@ export const dashboardRouter = router({
     // Top 10 創作者
     const topCreators = creatorsWithCount.slice(0, 10);
     
-    return {
-      totalCreators,
-      totalVideosWithCreator,
-      distribution,
-      topCreators,
-    };
+      return {
+        totalCreators,
+        totalVideosWithCreator,
+        distribution,
+        topCreators,
+      };
+    });
   }),
 
   // 創作者列表（支援搜尋與分頁）
@@ -334,8 +343,9 @@ export const dashboardRouter = router({
 
   // 綜合統計（快速總覽）
   getOverview: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
+    return withCache('dashboard:overview:v1', 300, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
     
     const [
       totalVideos,
@@ -349,11 +359,12 @@ export const dashboardRouter = router({
       db.select({ count: count() }).from(timelineNotes).where(eq(timelineNotes.status, "PENDING")),
     ]);
     
-    return {
-      totalVideos: totalVideos[0]?.count || 0,
-      totalProducts: totalProducts[0]?.count || 0,
-      totalNotes: totalNotes[0]?.count || 0,
-      pendingNotes: pendingNotes[0]?.count || 0,
-    };
+      return {
+        totalVideos: totalVideos[0]?.count || 0,
+        totalProducts: totalProducts[0]?.count || 0,
+        totalNotes: totalNotes[0]?.count || 0,
+        pendingNotes: pendingNotes[0]?.count || 0,
+      };
+    });
   }),
 });

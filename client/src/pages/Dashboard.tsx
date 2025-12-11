@@ -336,11 +336,11 @@ export default function Dashboard() {
           <CardContent>
             {popularTags && popularTags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {popularTags.map((tag) => {
+                {popularTags.map((tag: any) => {
                   // Calculate font size based on usage count
                   const minSize = 14;
                   const maxSize = 32;
-                  const maxUsage = Math.max(...popularTags.map(t => t.usageCount));
+                  const maxUsage = Math.max(...popularTags.map((t: any) => t.usageCount));
                   const fontSize = minSize + ((tag.usageCount / maxUsage) * (maxSize - minSize));
                   
                   return (

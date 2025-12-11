@@ -8,6 +8,7 @@ import { ENV } from "./_core/env";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as ai from "./ai";
+import { withCache } from "./_core/redis";
 import { productsRouter } from "./trpc/routers/products";
 import { dashboardRouter } from "./trpc/routers/dashboard";
 import { myContributionsRouter } from "./trpc/routers/myContributions";
@@ -801,7 +802,10 @@ ${tagsListText}
     getPopular: publicProcedure
       .input(z.object({ limit: z.number().optional() }))
       .query(async ({ input }) => {
-        return await db.getPopularTags(input.limit);
+        const limit = input.limit || 20;
+        return withCache(`tags:popular:${limit}:v1`, 300, async () => {
+          return await db.getPopularTags(limit);
+        });
       }),
 
     // Search tags (public)
