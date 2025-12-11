@@ -18,6 +18,7 @@ import { notificationsRouter } from "./trpc/routers/notifications";
 import { videoSuggestionsRouter } from "./trpc/routers/videoSuggestions";
 import { aiSearchRouter } from "./trpc/routers/aiSearch";
 import { performanceMonitorRouter } from "./trpc/routers/performanceMonitor";
+import { videoCategoriesRouter } from "./trpc/routers/videoCategories";
 
 export const appRouter = router({
   system: systemRouter,
@@ -106,19 +107,43 @@ export const appRouter = router({
 
     // Get videos by category (internal - admin only)
     listByCategory: protectedProcedure
-      .input(z.object({ category: z.string() }))
+      .input(z.object({ 
+        category: z.string().optional(),
+        categoryId: z.number().optional(),
+      }))
       .query(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        return await db.getVideosByCategory(input.category);
+        // 優先使用 categoryId，如果沒有則使用 category
+        if (input.categoryId) {
+          return await db.getVideosByCategoryId(input.categoryId);
+        } else if (input.category) {
+          return await db.getVideosByCategory(input.category);
+        }
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '請提供 category 或 categoryId',
+        });
       }),
 
     // Get YouTube videos by category (client portal - public)
     listYouTubeByCategory: publicProcedure
-      .input(z.object({ category: z.string() }))
+      .input(z.object({ 
+        category: z.string().optional(),
+        categoryId: z.number().optional(),
+      }))
       .query(async ({ input }) => {
-        return await db.getYouTubeVideosByCategory(input.category);
+        // 優先使用 categoryId，如果沒有則使用 category
+        if (input.categoryId) {
+          return await db.getYouTubeVideosByCategoryId(input.categoryId);
+        } else if (input.category) {
+          return await db.getYouTubeVideosByCategory(input.category);
+        }
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '請提供 category 或 categoryId',
+        });
       }),
 
     // Search videos (internal - admin only)
@@ -416,7 +441,8 @@ ${tagsListText}
       .input(z.object({
         playlistUrl: z.string().url(),
         apiKey: z.string(),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
+        categoryId: z.number().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -476,13 +502,16 @@ ${tagsListText}
             }
             
             // 建立影片記錄
+            // 向後相容：如果沒有提供 category 也沒有 categoryId，預設使用 'other'
+            const category = input.category || 'other';
             await db.createVideo({
               title: video.title,
               description: video.description || undefined,
               platform: 'youtube',
               videoUrl,
               thumbnailUrl: video.thumbnailUrl,
-              category: input.category,
+              category,
+              categoryId: input.categoryId,
               shareStatus: input.shareStatus || 'private',
               uploadedBy: ctx.user.id,
             });
@@ -516,7 +545,8 @@ ${tagsListText}
         platform: z.enum(['youtube', 'tiktok', 'redbook']),
         videoUrl: z.string().url(),
         thumbnailUrl: z.string().url().optional(),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
+        categoryId: z.number().optional(),
         productId: z.string().optional(),
         creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
@@ -525,8 +555,11 @@ ${tagsListText}
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
+        // 向後相容：如果沒有提供 category 也沒有 categoryId，預設使用 'other'
+        const category = input.category || 'other';
         return await db.createVideo({
           ...input,
+          category,
           uploadedBy: ctx.user.id,
         });
       }),
@@ -541,6 +574,7 @@ ${tagsListText}
         videoUrl: z.string().url().optional(),
         thumbnailUrl: z.string().url().optional(),
         category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
+        categoryId: z.number().optional(),
         productId: z.string().optional(),
         creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
@@ -684,11 +718,20 @@ ${tagsListText}
     batchUpdateCategory: protectedProcedure
       .input(z.object({
         ids: z.array(z.number()),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']),
+        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
+        categoryId: z.number().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
+        }
+        
+        // 向後相容：如果沒有提供 category 也沒有 categoryId，拋錯
+        if (!input.category && !input.categoryId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: '請提供 category 或 categoryId',
+          });
         }
         
         let successCount = 0;
@@ -696,7 +739,14 @@ ${tagsListText}
         
         for (const id of input.ids) {
           try {
-            await db.updateVideo(id, { category: input.category });
+            const updateData: any = {};
+            if (input.categoryId) {
+              updateData.categoryId = input.categoryId;
+            }
+            if (input.category) {
+              updateData.category = input.category;
+            }
+            await db.updateVideo(id, updateData);
             successCount++;
           } catch (error) {
             console.error(`Failed to update video ${id}:`, error);
@@ -1074,6 +1124,7 @@ ${tagsListText}
   // AI Smart Search
   aiSearch: aiSearchRouter,
   performanceMonitor: performanceMonitorRouter,
+  videoCategories: videoCategoriesRouter,
 });
 
 export type AppRouter = typeof appRouter;

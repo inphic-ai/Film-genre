@@ -200,6 +200,17 @@ export async function getVideosByCategory(category: string): Promise<Video[]> {
 }
 
 /**
+ * Get videos by categoryId (NEW)
+ */
+export async function getVideosByCategoryId(categoryId: number): Promise<Video[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(videos)
+    .where(eq(videos.categoryId, categoryId))
+    .orderBy(desc(videos.createdAt));
+}
+
+/**
  * Get YouTube videos by category (for client portal)
  */
 export async function getYouTubeVideosByCategory(category: string): Promise<Video[]> {
@@ -209,6 +220,20 @@ export async function getYouTubeVideosByCategory(category: string): Promise<Vide
     .where(and(
       eq(videos.platform, 'youtube' as any),
       eq(videos.category, category as any)
+    ))
+    .orderBy(desc(videos.createdAt));
+}
+
+/**
+ * Get YouTube videos by categoryId (NEW)
+ */
+export async function getYouTubeVideosByCategoryId(categoryId: number): Promise<Video[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(videos)
+    .where(and(
+      eq(videos.platform, 'youtube' as any),
+      eq(videos.categoryId, categoryId)
     ))
     .orderBy(desc(videos.createdAt));
 }
