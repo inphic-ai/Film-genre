@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash2, ExternalLink, Star } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import type { Video } from "../../../drizzle/schema";
 
@@ -114,12 +114,18 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false, b
               </TableCell>
               <TableCell className="font-medium max-w-[300px]">
                 <div className="flex items-center gap-2">
-                  <span className="truncate">{video.title}</span>
+                  <Link 
+                    to={`/video/${video.id}`}
+                    className="truncate hover:text-primary hover:underline cursor-pointer"
+                  >
+                    {video.title}
+                  </Link>
                   <a
                     href={video.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-primary flex-shrink-0"
+                    title="在 YouTube 觀看"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>

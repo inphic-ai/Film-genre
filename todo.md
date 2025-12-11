@@ -1644,3 +1644,15 @@
 - [ ] 建立 vitest 測試
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
+
+
+## Phase 26：修復知識庫入口問題
+- [ ] 修改 VideoListView.tsx 影片標題連結指向 /video/:id
+- [ ] 修改 Board.tsx 卡片點擊進入 /video/:id
+- [ ] 測試清單視圖點擊影片標題
+- [ ] 測試卡片視圖點擊卡片
+- [ ] 測試影片詳情頁載入
+- [ ] 測試時間軸筆記功能入口
+- [ ] 測試影片建議功能入口
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
