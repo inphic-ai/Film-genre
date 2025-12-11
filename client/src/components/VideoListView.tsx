@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash2, ExternalLink, Star } from "lucide-react";
-import { useLocation, Link } from "wouter";
-import { trpc } from "@/lib/trpc";
+import { useLocation } from "wouter";
 import type { Video } from "../../../drizzle/schema";
 
 interface VideoListViewProps {
@@ -50,23 +49,6 @@ function formatDuration(seconds: number | null): string {
 
 export function VideoListView({ videos, onEdit, onDelete, showActions = false, batchMode = false, selectedVideoIds = [], onToggleSelect }: VideoListViewProps) {
   const [, setLocation] = useLocation();
-  const { data: videoCategories } = trpc.videoCategories.list.useQuery({ includeDisabled: false });
-  
-  // 建立 categoryId 到 name 的對應表
-  const categoryIdToName = videoCategories?.reduce((acc, cat) => {
-    acc[cat.id] = cat.name;
-    return acc;
-  }, {} as Record<number, string>) || {};
-  
-  // 取得分類名稱（優先使用 categoryId，fallback 到舊 category）
-  const getCategoryName = (video: Video) => {
-    if (video.categoryId && categoryIdToName[video.categoryId]) {
-      return categoryIdToName[video.categoryId];
-    } else if (video.category) {
-      return categoryLabels[video.category] || video.category;
-    }
-    return '未分類';
-  };
   
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -114,18 +96,12 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false, b
               </TableCell>
               <TableCell className="font-medium max-w-[300px]">
                 <div className="flex items-center gap-2">
-                  <Link 
-                    to={`/video/${video.id}`}
-                    className="truncate hover:text-primary hover:underline cursor-pointer"
-                  >
-                    {video.title}
-                  </Link>
+                  <span className="truncate">{video.title}</span>
                   <a
                     href={video.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary flex-shrink-0"
-                    title="在 YouTube 觀看"
+                    className="text-muted-foreground hover:text-primary"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
@@ -133,7 +109,7 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false, b
               </TableCell>
               <TableCell>
                 <Badge variant="outline">
-                  {getCategoryName(video)}
+                  {categoryLabels[video.category] || video.category}
                 </Badge>
               </TableCell>
               <TableCell>

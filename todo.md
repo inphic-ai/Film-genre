@@ -1599,30 +1599,17 @@
 - [ ] 實作資料遷移邏輯（將舊 category 對應到新 categoryId）
 - [ ] 執行 migration script 並驗證結果
 
-### 2. 標記舊欄位為 deprecated 並停止寫入（✅ Phase 23.2 已完成）
-- [x] 在 drizzle/schema.ts 標記 `videos.category` 為 `@deprecated`
-- [x] 更新 videos.create procedure：移除 category 寫入，僅寫入 categoryId
-- [x] 更新 videos.update procedure：移除 category 寫入，僅寫入 categoryId
-- [x] 更新 videos.importPlaylist procedure：移除 category 寫入，僅寫入 categoryId
-- [x] 更新 videos.batchUpdateCategory procedure：移除 category 寫入，僅寫入 categoryId
-- [x] 更新前端元件：BatchImportDialog, BatchOperationToolbar, Manage
-- [x] 建立資料遷移腳本：scripts/migrate-categories.ts
-- [x] AI 功能暫時停用（suggestCategory 顯示升級訊息）
-- [x] 推送到 GitHub (commit: 60c49b1)
+### 2. 標記舊欄位為 deprecated 並停止寫入
+- [ ] 在 drizzle/schema.ts 標記 `videos.category` 為 `@deprecated`
+- [ ] 更新 videos.create procedure：移除 category 寫入，僅寫入 categoryId
+- [ ] 更新 videos.update procedure：移除 category 寫入，僅寫入 categoryId
+- [ ] 更新 videos.importPlaylist procedure：移除 category 寫入，僅寫入 categoryId
 
-### 3. 前端切換到新系統（✅ Phase 23.3 已完成）
-- [x] 更新 Manage.tsx：使用 `videoCategories.list` 替代 `categories.list`（Phase 23.2 已完成）
-- [x] 更新 Board.tsx：分類篩選器使用 categoryId
-- [x] 更新 VideoListView.tsx：顯示邏輯優先使用 categoryId
-- [x] 更新 Dashboard.tsx：分類統計圖表使用 videoCategories
-- [x] 更新 dashboard.ts 後端 API：改用 categoryId JOIN videoCategories
-- [x] 建立 category key 到 categoryId 對應表（fallback 邏輯）
-- [x] 測試前端分類篩選與顯示功能
-  - [x] Board.tsx 分類 Tab 正確顯示新分類名稱
-  - [x] 分類篩選功能正常（點擊不同 Tab 正確篩選）
-  - [x] VideoListView.tsx 清單視圖正確顯示分類名稱
-  - [x] Dashboard.tsx 分類統計圖表正確顯示
-  - [x] 所有功能都正確使用 categoryId 而非舊 category
+### 3. 前端切換到新系統
+- [ ] 更新 Manage.tsx：使用 `videoCategories.list` 替代 `categories.list`
+- [ ] 更新 Board.tsx：分類篩選器使用 categoryId
+- [ ] 更新 VideoCard：顯示邏輯優先使用 categoryId
+- [ ] 測試前端分類篩選與顯示功能
 
 ### 4. 升級 AI 功能支援新系統
 - [ ] 修改 `suggestCategory` 函數：回傳 categoryId 而非 category key
@@ -1646,62 +1633,11 @@
 - [ ] 推送到 GitHub
 
 
-## Phase 26：修復知識庫入口問題
-- [ ] 修改 VideoListView.tsx 影片標題連結指向 /video/:id
-- [ ] 修改 Board.tsx 卡片點擊進入 /video/:id
-- [ ] 測試清單視圖點擊影片標題
-- [ ] 測試卡片視圖點擊卡片
-- [ ] 測試影片詳情頁載入
-- [ ] 測試時間軸筆記功能入口
-- [ ] 測試影片建議功能入口
-- [ ] 建立 checkpoint
-- [ ] 推送到 GitHub
+## Phase 28：CSV 批次匯入功能（✅ 已完成）
 
-## Phase 26：知識庫入口與 API Key 配置
-
-### 1. 知識庫使用說明文件
-- [ ] 建立知識庫使用說明文件（docs/knowledge-base-usage.md）
-- [ ] 說明時間軸筆記功能操作方式
-- [ ] 說明影片建議功能操作方式
-- [ ] 說明查詢與管理方式
-
-### 2. 檢查 AI 功能 API Key 配置
-- [ ] 檢查 server/_core/llm.ts 使用的 API Key 環境變數
-- [ ] 檢查詳情頁 AI 功能（時間軸筆記、影片建議）使用的 API
-- [ ] 確認 Railway 環境變數設定（BUILT_IN_FORGE_API_KEY）
-- [ ] 建立 Railway 環境變數設定文件
-
-## Phase 27：OpenAI API 整合（進行中）
-
-### 1. 修改 LLM 服務使用 OpenAI SDK
-- [ ] 安裝 openai 依賴（npm install openai）
-- [ ] 修改 server/_core/llm.ts 使用 OpenAI SDK
-- [ ] 保留向後相容性（支援 Manus Forge API）
-- [ ] 更新錯誤處理邏輯
-
-### 2. 更新環境變數配置
-- [ ] 修改 server/_core/env.ts 新增 OPENAI_API_KEY
-- [ ] 更新 .env.example 範本
-- [ ] 更新 README.md 環境變數說明
-
-### 3. 測試本地開發環境
-- [ ] 設定本地 OPENAI_API_KEY
-- [ ] 測試 AI 標籤建議功能
-- [ ] 測試 AI 分類建議功能
-- [ ] 測試 AI 搜尋功能
-- [ ] TypeScript 編譯通過
-
-### 4. 推送到 GitHub 並部署
-- [ ] 建立 checkpoint
-- [ ] 推送到 GitHub
-- [ ] 等待 Railway 自動部署
-
-### 5. 設定 Railway 環境變數
-- [ ] 在 Railway 設定 OPENAI_API_KEY
-- [ ] 驗證環境變數生效
-
-### 6. 驗證生產環境 AI 功能
-- [ ] 測試影片看板 AI 建議功能
-- [ ] 測試新增影片 AI 分類建議
-- [ ] 測試詳情頁時間軸筆記功能
-- [ ] 測試詳情頁影片建議功能
+- [x] 建立 videos.importFromCSV 後端 API
+- [x] 建立 CSVImportDialog 前端組件
+- [x] 測試 CSV 解析與匯入邏輯
+- [x] 建立 vitest 測試（4/4 通過）
+- [ ] 執行實際匯入 1,255 部影片（等待使用者手動執行）
+- [ ] 驗證匯入結果

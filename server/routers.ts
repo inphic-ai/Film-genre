@@ -19,6 +19,7 @@ import { videoSuggestionsRouter } from "./trpc/routers/videoSuggestions";
 import { aiSearchRouter } from "./trpc/routers/aiSearch";
 import { performanceMonitorRouter } from "./trpc/routers/performanceMonitor";
 import { videoCategoriesRouter } from "./trpc/routers/videoCategories";
+import { csvImportRouter } from "./trpc/routers/csvImport";
 
 export const appRouter = router({
   system: systemRouter,
@@ -1103,6 +1104,7 @@ ${tagsListText}
   aiSearch: aiSearchRouter,
   performanceMonitor: performanceMonitorRouter,
   videoCategories: videoCategoriesRouter,
+  csvImport: csvImportRouter,
 });
 
 export type AppRouter = typeof appRouter;

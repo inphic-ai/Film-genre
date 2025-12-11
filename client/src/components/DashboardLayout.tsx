@@ -47,6 +47,8 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { NotificationBell } from "./NotificationBell";
 import { AISearchDialog } from "./AISearchDialog";
+import { CSVImportDialog } from "./CSVImportDialog";
+import { Upload } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "數據視覺化", path: "/dashboard", roles: ["admin", "staff", "viewer"] },
@@ -147,6 +149,7 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
@@ -375,20 +378,43 @@ function DashboardLayoutContent({
 
             {/* AI 搜尋對話框 */}
             <AISearchDialog open={aiSearchOpen} onOpenChange={setAiSearchOpen} />
+            <CSVImportDialog 
+              open={csvImportOpen} 
+              onOpenChange={setCsvImportOpen}
+              onSuccess={() => {
+                // Refresh video list after successful import
+                window.location.reload();
+              }}
+            />
 
             {/* 通知圖示 */}
             <NotificationBell />
 
             {/* 新增影片按鈕 */}
             {(user?.role === "admin" || user?.role === "staff") && (
-              <Button
-                onClick={() => setLocation("/manage")}
-                size="sm"
-                className="bg-emerald-500 hover:bg-emerald-600 rounded-xl h-9 px-4"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                新增影片
-              </Button>
+              <>
+                <Button
+                  onClick={() => setLocation("/manage")}
+                  size="sm"
+                  className="bg-emerald-500 hover:bg-emerald-600 rounded-xl h-9 px-4"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  新增影片
+                </Button>
+                
+                {/* CSV 批次匯入按鈕（僅 Admin） */}
+                {user?.role === "admin" && (
+                  <Button
+                    onClick={() => setCsvImportOpen(true)}
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl h-9 px-4"
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    CSV 匯入
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>

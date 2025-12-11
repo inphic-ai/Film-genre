@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../../db";
-import { videos, products, productRelations, timelineNotes, auditLogs, videoCategories } from "../../../drizzle/schema";
+import { videos, products, productRelations, timelineNotes, auditLogs } from "../../../drizzle/schema";
 import { sql, desc, and, gte, count, eq } from "drizzle-orm";
 
 export const dashboardRouter = router({
@@ -13,16 +13,14 @@ export const dashboardRouter = router({
     // 總影片數
     const totalVideos = await db.select({ count: count() }).from(videos);
     
-    // 分類分佈（優先使用 categoryId，fallback 到舊 category）
+    // 分類分佈
     const categoryDistribution = await db
       .select({
-        categoryId: videos.categoryId,
-        categoryName: videoCategories.name,
+        category: videos.category,
         count: count(),
       })
       .from(videos)
-      .leftJoin(videoCategories, eq(videos.categoryId, videoCategories.id))
-      .groupBy(videos.categoryId, videoCategories.name);
+      .groupBy(videos.category);
     
     // 平台分佈
     const platformDistribution = await db
