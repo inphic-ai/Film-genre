@@ -24,6 +24,19 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for React and related libraries
+          'vendor-react': ['react', 'react-dom', 'react/jsx-runtime'],
+          // Vendor chunk for tRPC and query libraries
+          'vendor-trpc': ['@trpc/client', '@trpc/react-query', '@tanstack/react-query'],
+          // Vendor chunk for UI components
+          'vendor-ui': ['lucide-react', 'wouter'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: true,

@@ -96,6 +96,8 @@ export function VideoCard({ video, onEdit, onDelete, showActions = false, showTa
             src={video.thumbnailUrl}
             alt={video.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         )}
         
