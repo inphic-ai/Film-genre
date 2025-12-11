@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { lazy, Suspense } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -8,26 +9,35 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Board from "./pages/Board";
 
-import Manage from "./pages/Manage";
-import VideoDetail from "./pages/VideoDetail";
-import Dashboard from "./pages/Dashboard";
-import TagDetailPage from "./pages/TagDetailPage";
-import TagRankingPage from "./pages/TagRankingPage";
-import ReviewCenter from "./pages/ReviewCenter";
-import Products from "./pages/Products";
-import MyContributions from "./pages/MyContributions";
-import AdminSettings from "./pages/AdminSettings";
-import TagsManagement from "./pages/TagsManagement";
-import Notifications from "./pages/Notifications";
-import PerformanceMonitor from "./pages/PerformanceMonitor";
-import Creators from "./pages/Creators";
-import CreatorDetail from "./pages/CreatorDetail";
-import OperationLogs from "./pages/OperationLogs";
-import { CategoryManagement } from "./pages/CategoryManagement";
+// Lazy load non-critical pages for better performance
+const Manage = lazy(() => import("./pages/Manage"));
+const VideoDetail = lazy(() => import("./pages/VideoDetail"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TagDetailPage = lazy(() => import("./pages/TagDetailPage"));
+const TagRankingPage = lazy(() => import("./pages/TagRankingPage"));
+const ReviewCenter = lazy(() => import("./pages/ReviewCenter"));
+const Products = lazy(() => import("./pages/Products"));
+const MyContributions = lazy(() => import("./pages/MyContributions"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const TagsManagement = lazy(() => import("./pages/TagsManagement"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const PerformanceMonitor = lazy(() => import("./pages/PerformanceMonitor"));
+const Creators = lazy(() => import("./pages/Creators"));
+const CreatorDetail = lazy(() => import("./pages/CreatorDetail"));
+const OperationLogs = lazy(() => import("./pages/OperationLogs"));
+const CategoryManagement = lazy(() => import("./pages/CategoryManagement").then(m => ({ default: m.CategoryManagement })));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 function Router() {
   return (
-    <Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
       <Route path={"/board"} component={Board} />
@@ -52,6 +62,7 @@ function Router() {
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
