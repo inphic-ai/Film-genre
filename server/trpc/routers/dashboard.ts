@@ -322,6 +322,24 @@ export const dashboardRouter = router({
       };
     }),
 
+  // 最近影片（限制數量）
+  getRecentVideos: protectedProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(50).default(6),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      
+      const recentVideos = await db
+        .select()
+        .from(videos)
+        .orderBy(desc(videos.createdAt))
+        .limit(input.limit);
+      
+      return recentVideos;
+    }),
+
   // 綜合統計（快速總覽）
   getOverview: protectedProcedure.query(async () => {
     const db = await getDb();

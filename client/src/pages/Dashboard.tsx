@@ -14,9 +14,10 @@ export default function Dashboard() {
   
   // 保留舊的 API 用於熱門標籤
   const { data: popularTags, isLoading: tagsLoading } = trpc.tags.getPopular.useQuery({ limit: 15 });
-  const { data: allVideos } = trpc.videos.listAll.useQuery();
+  // 使用新的 getRecentVideos API 取代 listAll
+  const { data: recentVideos, isLoading: recentVideosLoading } = trpc.dashboard.getRecentVideos.useQuery({ limit: 6 });
 
-  const isLoading = overviewLoading || videoStatsLoading || productStatsLoading || activityLoading || tagsLoading || creatorStatsLoading;
+  const isLoading = overviewLoading || videoStatsLoading || productStatsLoading || activityLoading || tagsLoading || creatorStatsLoading || recentVideosLoading;
 
   if (isLoading) {
     return (
@@ -27,9 +28,6 @@ export default function Dashboard() {
       </DashboardLayout>
     );
   }
-
-  // 計算最近影片
-  const recentVideos = allVideos?.slice(0, 6) || [];
 
   return (
     <DashboardLayout>
@@ -376,7 +374,7 @@ export default function Dashboard() {
             <CardDescription>最新的 6 部影片</CardDescription>
           </CardHeader>
           <CardContent>
-            {recentVideos.length > 0 ? (
+            {recentVideos && recentVideos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {recentVideos.map((video) => (
                   <Link key={video.id} href={`/video/${video.id}`}>
