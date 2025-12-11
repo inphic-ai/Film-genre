@@ -129,7 +129,14 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   uploadedBy: integer("uploadedBy").references(() => users.id),
-});
+}, (table) => ({
+  // Performance indexes for Dashboard queries
+  createdAtIdx: index("videos_created_at_idx").on(table.createdAt),
+  categoryIdx: index("videos_category_idx").on(table.category),
+  platformIdx: index("videos_platform_idx").on(table.platform),
+  creatorIdx: index("videos_creator_idx").on(table.creator),
+  categoryIdIdx: index("videos_category_id_idx").on(table.categoryId),
+}));
 
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = typeof videos.$inferInsert;
