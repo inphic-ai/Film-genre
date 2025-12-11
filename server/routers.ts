@@ -8,7 +8,7 @@ import { ENV } from "./_core/env";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as ai from "./ai";
-import { withCache } from "./_core/redis";
+import { withCache, invalidateVideoCache, invalidateProductCache, invalidateUserActivityCache } from "./_core/redis";
 import { productsRouter } from "./trpc/routers/products";
 import { dashboardRouter } from "./trpc/routers/dashboard";
 import { myContributionsRouter } from "./trpc/routers/myContributions";
@@ -573,11 +573,16 @@ ${tagsListText}
           throw new Error('Unauthorized');
         }
         // 使用新分類系統
-        return await db.createVideo({
+        const result = await db.createVideo({
           ...input,
           category: 'other', // @deprecated: Keep for backward compatibility
           uploadedBy: ctx.user.id,
         });
+        
+        // 清除影片相關快取
+        await invalidateVideoCache();
+        
+        return result;
       }),
 
     // Update video (admin only)
@@ -600,6 +605,10 @@ ${tagsListText}
         }
         const { id, ...data } = input;
         await db.updateVideo(id, data);
+        
+        // 清除影片相關快取
+        await invalidateVideoCache();
+        
         return { success: true };
       }),
 
@@ -625,6 +634,10 @@ ${tagsListText}
           throw new Error('Unauthorized');
         }
         await db.deleteVideo(input.id);
+        
+        // 清除影片相關快取
+        await invalidateVideoCache();
+        
         return { success: true };
       }),
 
@@ -1068,7 +1081,12 @@ ${tagsListText}
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        return await db.batchApproveTimelineNotes(input.ids);
+        const result = await db.batchApproveTimelineNotes(input.ids);
+        
+        // 清除使用者活動相關快取
+        await invalidateUserActivityCache();
+        
+        return result;
       }),
 
     // Batch reject notes (admin only)
@@ -1081,7 +1099,12 @@ ${tagsListText}
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        return await db.batchRejectTimelineNotes(input.ids, input.reason);
+        const result = await db.batchRejectTimelineNotes(input.ids, input.reason);
+        
+        // 清除使用者活動相關快取
+        await invalidateUserActivityCache();
+        
+        return result;
       }),
   }),
 

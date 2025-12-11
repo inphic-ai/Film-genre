@@ -1,0 +1,8 @@
+{
+  "query": "CREATE INDEX IF NOT EXISTS idx_product_relations_productAId ON product_relations(\"productAId\")",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute CREATE INDEX IF NOT EXISTS idx_product_relations_productAId ON product_relations(\"productAId\")",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 93 near \"\"productAId\")\""
+  ]
+}

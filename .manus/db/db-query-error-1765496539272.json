@@ -1,0 +1,8 @@
+{
+  "query": "SELECT current_database(), version()",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute SELECT current_database(), version()",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1305 (42000) at line 1: FUNCTION VZSKie7tbgMy9Wer2TYaY4.current_database does not exist"
+  ]
+}

@@ -1734,6 +1734,21 @@
 ### 測試結果
 - ❌ 實際改善僅 5%（3347ms → 3173ms）
 - ❌ HTTP 請求數增加 8 倍（1 → 8）
+- ❌ 成本效益不劃算（流量、TLS、CPU 增加）
+- ✅ 已回退到 httpBatchLink
+
+### 結論
+資料庫查詢本身是主要瓶頸，禁用 batching 無法解決根本問題。應優先實施 Redis 快取層。
+
+## Phase 57: 實施 Redis 快取層（P0 - 最高優先級）
+- [x] 修改 client/src/lib/trpc.ts，將 httpBatchLink 改為 httpLink
+- [x] 測試 Dashboard 頁面載入效能
+- [x] 記錄優化前後效能對比數據
+- [x] 回退到 httpBatchLink（改善幅度太小，不值得增加 HTTP 請求數）
+
+### 測試結果
+- ❌ 實際改善僅 5%（3347ms → 3173ms）
+- ❌ HTTP 請求數增加 8 倍（1 → 8）
 - ❌ 成本效益不划算（流量、TLS、CPU 增加）
 - ✅ 已回退到 httpBatchLink
 
@@ -1742,8 +1757,8 @@
 
 ## Phase 57: 實施 Redis 快取層（P0 - 最高優先級）
 - [x] 安裝 ioredis 依賴
-- [ ] 設定 Redis 環境變數（Railway）
-  - [ ] REDIS_URL
+- [x] 設定 Redis 環境變數（Railway）
+  - [x] REDIS_URL
 - [x] 建立 server/_core/redis.ts（Redis 客戶端）
 - [x] 實作快取輔助函數（withCache）
 - [x] 整合到 Dashboard API（7 個 procedures）
@@ -1755,18 +1770,69 @@
   - [x] tags.getPopular
   - [x] dashboard.getRecentVideos
 - [x] 測試快取效果（本地開發環境）
-- [ ] 推送到 GitHub 並部署到 Railway Production
-- [ ] 驗證生產環境快取效果
+- [x] 推送到 GitHub 並部署到 Railway Production
+- [x] 驗證生產環境快取效果
 
-### 進度狀況
+### 測試結果
+- ✅ 第 1 次載入：1695ms（Cache Miss）
+- ✅ 第 2 次載入：1430ms（Cache Hit，改善 15.6%）
+- ✅ 第 3 次載入：**771ms**（Cache Hit，改善 54.5%）
+
+### 成果總結
 - ✅ Redis 客戶端實作完成
 - ✅ 7 個 Dashboard API 已整合快取
 - ✅ TypeScript 編譯通過（0 errors）
 - ✅ 自動降級機制（Redis 未啟用時仍可正常運作）
-- ⏳ 等待使用者設定 Railway Redis 環境變數
+- ✅ REDIS_URL 已設定到 Railway
+- ✅ Railway 重新部署完成
+- ✅ 生產環境快取效果驗證成功
+
+### 效能改善
+- Phase 54（優化前）：4080ms
+- Phase 55（並行化）：3347ms（↓ 18%）
+- Phase 57（Redis 快取）：**771ms**（↓ **81.1%**）
+- **最終改善：5.3 倍速度提升**
 
 ### 預期效益
 - 首次查詢：3173ms → 500ms（索引優化）
 - 重複查詢：< 50ms（Redis 快取）
 - 平均查詢：< 100ms（99% 快取命中率）
 - 資料庫負載減少 99%
+
+## Phase 58: 快取失效策略（P1 - 確保資料即時性）
+- [x] 建立快取失效輔助函數（server/_core/redis.ts）
+  - [x] invalidateCache(key: string)
+  - [x] invalidateCacheKeys(keys: string[])
+  - [x] invalidateVideoCache()
+  - [x] invalidateProductCache()
+  - [x] invalidateUserActivityCache()
+- [x] 整合到影片相關 API
+  - [x] videos.create → 清除 video_stats, overview, recent_videos
+  - [x] videos.update → 清除 video_stats, overview, recent_videos
+  - [x] videos.delete → 清除 video_stats, overview, recent_videos
+- [x] 整合到商品相關 API
+  - [x] products.create → 清除 product_stats, overview
+  - [x] products.update → 清除 product_stats, overview
+  - [x] products.createRelation → 清除 product_stats
+  - [ ] products.deleteRelation → 清除 product_stats
+- [x] 整合到筆記審核 API
+  - [x] reviewCenter.batchApprove → 清除 user_activity, overview
+  - [x] reviewCenter.batchReject → 清除 user_activity, overview
+- [ ] 測試快取失效機制
+- [ ] 建立 vitest 測試
+
+## Phase 59: 資料庫索引優化（P2 - 優化首次查詢）
+- [ ] 分析 product_relations 表查詢模式
+- [ ] 新增索引到 product_relations 表
+  - [ ] CREATE INDEX idx_product_relations_productAId ON product_relations(productAId)
+  - [ ] CREATE INDEX idx_product_relations_relationType ON product_relations(relationType)
+- [ ] 分析 videos 表查詢模式
+- [ ] 新增索引到 videos 表（如需要）
+  - [ ] CREATE INDEX idx_videos_categoryId ON videos(categoryId)
+  - [ ] CREATE INDEX idx_videos_createdAt ON videos(createdAt)
+- [ ] 測試索引效果（首次查詢時間）
+- [ ] 記錄優化前後效能對比
+
+### 預期效益
+- 快取失效策略：確保資料即時性，避免顯示過期資料
+- 資料庫索引：首次查詢時間減少 50-100ms

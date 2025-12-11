@@ -116,3 +116,88 @@ export async function clearCache(pattern: string): Promise<number> {
     return 0;
   }
 }
+
+/**
+ * 清除單一快取鍵
+ * 
+ * @param key - 快取鍵
+ * @returns 是否成功清除
+ */
+export async function invalidateCache(key: string): Promise<boolean> {
+  const redis = getRedis();
+  if (!redis) return false;
+
+  try {
+    const result = await redis.del(key);
+    if (result > 0) {
+      console.log(`[Redis] ✅ Invalidated cache: ${key}`);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`[Redis] ❌ Cache invalidation error for ${key}:`, error);
+    return false;
+  }
+}
+
+/**
+ * 批次清除多個快取鍵
+ * 
+ * @param keys - 快取鍵陣列
+ * @returns 清除的快取數量
+ */
+export async function invalidateCacheKeys(keys: string[]): Promise<number> {
+  const redis = getRedis();
+  if (!redis || keys.length === 0) return 0;
+
+  try {
+    const result = await redis.del(...keys);
+    console.log(`[Redis] ✅ Invalidated ${result} cache keys`);
+    return result;
+  } catch (error) {
+    console.error(`[Redis] ❌ Batch cache invalidation error:`, error);
+    return 0;
+  }
+}
+
+/**
+ * 清除 Dashboard 相關快取
+ * 用於新增/更新/刪除影片、商品、筆記時
+ */
+export async function invalidateDashboardCache(): Promise<void> {
+  await clearCache('dashboard:*');
+}
+
+/**
+ * 清除影片相關快取
+ * 用於新增/更新/刪除影片時
+ */
+export async function invalidateVideoCache(): Promise<void> {
+  await invalidateCacheKeys([
+    'dashboard:video_stats:v1',
+    'dashboard:overview:v1',
+    'dashboard:recent_videos:v1',
+  ]);
+}
+
+/**
+ * 清除商品相關快取
+ * 用於新增/更新/刪除商品時
+ */
+export async function invalidateProductCache(): Promise<void> {
+  await invalidateCacheKeys([
+    'dashboard:product_stats:v1',
+    'dashboard:overview:v1',
+  ]);
+}
+
+/**
+ * 清除使用者活動相關快取
+ * 用於審核筆記時
+ */
+export async function invalidateUserActivityCache(): Promise<void> {
+  await invalidateCacheKeys([
+    'dashboard:user_activity:v1',
+    'dashboard:overview:v1',
+  ]);
+}

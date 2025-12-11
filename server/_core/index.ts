@@ -1,4 +1,10 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load .env.local first (highest priority), then .env
+// Use override: true to force override system environment variables
+config({ path: resolve(process.cwd(), ".env.local"), override: true });
+config(); // Load .env as fallback
 import express from "express";
 import { createServer } from "http";
 import net from "net";

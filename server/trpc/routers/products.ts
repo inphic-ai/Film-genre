@@ -1,7 +1,8 @@
-import { router, protectedProcedure, publicProcedure } from "../../_core/trpc";
+import { router, publicProcedure, protectedProcedure } from "../../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../../db";
+import { invalidateProductCache } from "../../_core/redis";
 import { products, productRelations, videos, videoTags } from "../../../drizzle/schema";
 import { eq, like, or, and, inArray, sql } from "drizzle-orm";
 
@@ -300,6 +301,9 @@ export const productsRouter = router({
         })
         .returning();
 
+      // 清除商品相關快取
+      await invalidateProductCache();
+
       return newProduct[0];
     }),
 
@@ -347,6 +351,9 @@ export const productsRouter = router({
           message: "找不到該商品",
         });
       }
+
+      // 清除商品相關快取
+      await invalidateProductCache();
 
       return updated[0];
     }),
@@ -412,6 +419,9 @@ export const productsRouter = router({
           relationType: input.relationType,
         })
         .returning();
+
+      // 清除商品相關快取
+      await invalidateProductCache();
 
       return newRelation[0];
     }),

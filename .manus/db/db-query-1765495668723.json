@@ -1,0 +1,20 @@
+{
+  "query": "SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME",
+  "rows": [
+    {
+      "TABLE_NAME": "__drizzle_migrations",
+      "TABLE_ROWS": "1",
+      "DATA_LENGTH": "82"
+    },
+    {
+      "TABLE_NAME": "users",
+      "TABLE_ROWS": "0",
+      "DATA_LENGTH": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tTABLE_ROWS\tDATA_LENGTH\n__drizzle_migrations\t1\t82\nusers\t0\t0\n",
+  "stderr": "",
+  "execution_time_ms": 2362
+}
