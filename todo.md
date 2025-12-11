@@ -1656,3 +1656,52 @@
 - [ ] 測試影片建議功能入口
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
+
+## Phase 26：知識庫入口與 API Key 配置
+
+### 1. 知識庫使用說明文件
+- [ ] 建立知識庫使用說明文件（docs/knowledge-base-usage.md）
+- [ ] 說明時間軸筆記功能操作方式
+- [ ] 說明影片建議功能操作方式
+- [ ] 說明查詢與管理方式
+
+### 2. 檢查 AI 功能 API Key 配置
+- [ ] 檢查 server/_core/llm.ts 使用的 API Key 環境變數
+- [ ] 檢查詳情頁 AI 功能（時間軸筆記、影片建議）使用的 API
+- [ ] 確認 Railway 環境變數設定（BUILT_IN_FORGE_API_KEY）
+- [ ] 建立 Railway 環境變數設定文件
+
+## Phase 27：OpenAI API 整合（進行中）
+
+### 1. 修改 LLM 服務使用 OpenAI SDK
+- [ ] 安裝 openai 依賴（npm install openai）
+- [ ] 修改 server/_core/llm.ts 使用 OpenAI SDK
+- [ ] 保留向後相容性（支援 Manus Forge API）
+- [ ] 更新錯誤處理邏輯
+
+### 2. 更新環境變數配置
+- [ ] 修改 server/_core/env.ts 新增 OPENAI_API_KEY
+- [ ] 更新 .env.example 範本
+- [ ] 更新 README.md 環境變數說明
+
+### 3. 測試本地開發環境
+- [ ] 設定本地 OPENAI_API_KEY
+- [ ] 測試 AI 標籤建議功能
+- [ ] 測試 AI 分類建議功能
+- [ ] 測試 AI 搜尋功能
+- [ ] TypeScript 編譯通過
+
+### 4. 推送到 GitHub 並部署
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 等待 Railway 自動部署
+
+### 5. 設定 Railway 環境變數
+- [ ] 在 Railway 設定 OPENAI_API_KEY
+- [ ] 驗證環境變數生效
+
+### 6. 驗證生產環境 AI 功能
+- [ ] 測試影片看板 AI 建議功能
+- [ ] 測試新增影片 AI 分類建議
+- [ ] 測試詳情頁時間軸筆記功能
+- [ ] 測試詳情頁影片建議功能

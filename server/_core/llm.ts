@@ -1,4 +1,5 @@
 import { ENV } from "./env";
+import OpenAI from "openai";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -136,18 +137,29 @@ const normalizeContentPart = (
   throw new Error("Unsupported message content part");
 };
 
-const normalizeMessage = (message: Message) => {
+const normalizeMessage = (message: Message): OpenAI.Chat.ChatCompletionMessageParam => {
   const { role, name, tool_call_id } = message;
 
-  if (role === "tool" || role === "function") {
+  if (role === "tool") {
     const content = ensureArray(message.content)
       .map(part => (typeof part === "string" ? part : JSON.stringify(part)))
       .join("\n");
 
     return {
-      role,
-      name,
-      tool_call_id,
+      role: "tool",
+      content,
+      tool_call_id: tool_call_id || "",
+    };
+  }
+
+  if (role === "function") {
+    const content = ensureArray(message.content)
+      .map(part => (typeof part === "string" ? part : JSON.stringify(part)))
+      .join("\n");
+
+    return {
+      role: "function",
+      name: name || "",
       content,
     };
   }
@@ -156,24 +168,66 @@ const normalizeMessage = (message: Message) => {
 
   // If there's only text content, collapse to a single string for compatibility
   if (contentParts.length === 1 && contentParts[0].type === "text") {
-    return {
-      role,
-      name,
-      content: contentParts[0].text,
-    };
+    const textContent = contentParts[0].text;
+    
+    if (role === "system") {
+      return { role: "system", content: textContent };
+    }
+    if (role === "user") {
+      return { role: "user", content: textContent, ...(name ? { name } : {}) };
+    }
+    if (role === "assistant") {
+      return { role: "assistant", content: textContent, ...(name ? { name } : {}) };
+    }
   }
 
-  return {
-    role,
-    name,
-    content: contentParts,
-  };
+  // OpenAI SDK expects content as array of parts
+  // Note: assistant role only supports text content, not images
+  if (role === "user") {
+    const userContent = contentParts.map(part => {
+      if (part.type === "text") {
+        return { type: "text" as const, text: part.text };
+      }
+      if (part.type === "image_url") {
+        return { type: "image_url" as const, image_url: part.image_url };
+      }
+      // file_url is not directly supported by OpenAI SDK, convert to text
+      return { type: "text" as const, text: `[File: ${(part as FileContent).file_url.url}]` };
+    });
+    return { role: "user", content: userContent, ...(name ? { name } : {}) };
+  }
+  
+  if (role === "assistant") {
+    // Assistant only supports text content
+    const textContent = contentParts.map(part => {
+      if (part.type === "text") {
+        return part.text;
+      }
+      if (part.type === "image_url") {
+        return `[Image: ${part.image_url.url}]`;
+      }
+      return `[File: ${(part as FileContent).file_url.url}]`;
+    }).join("\n");
+    return { role: "assistant", content: textContent, ...(name ? { name } : {}) };
+  }
+  
+  // Fallback for system role (though system typically doesn't have multi-part content)
+  const systemContent = contentParts.map(part => {
+    if (part.type === "text") {
+      return part.text;
+    }
+    if (part.type === "image_url") {
+      return `[Image: ${part.image_url.url}]`;
+    }
+    return `[File: ${(part as FileContent).file_url.url}]`;
+  }).join("\n");
+  return { role: "system", content: systemContent };
 };
 
 const normalizeToolChoice = (
   toolChoice: ToolChoice | undefined,
   tools: Tool[] | undefined
-): "none" | "auto" | ToolChoiceExplicit | undefined => {
+): OpenAI.Chat.ChatCompletionToolChoiceOption | undefined => {
   if (!toolChoice) return undefined;
 
   if (toolChoice === "none" || toolChoice === "auto") {
@@ -206,17 +260,12 @@ const normalizeToolChoice = (
     };
   }
 
-  return toolChoice;
+  return toolChoice as OpenAI.Chat.ChatCompletionToolChoiceOption;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
-
 const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!ENV.openaiApiKey && !ENV.forgeApiKey) {
+    throw new Error("OPENAI_API_KEY or BUILT_IN_FORGE_API_KEY is not configured");
   }
 };
 
@@ -273,11 +322,68 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     tools,
     toolChoice,
     tool_choice,
+    maxTokens,
+    max_tokens,
     outputSchema,
     output_schema,
     responseFormat,
     response_format,
   } = params;
+
+  // Prioritize OpenAI API if available
+  if (ENV.openaiApiKey) {
+    const openai = new OpenAI({
+      apiKey: ENV.openaiApiKey,
+    });
+
+    const normalizedMessages = messages.map(normalizeMessage);
+    const normalizedToolChoice = normalizeToolChoice(
+      toolChoice || tool_choice,
+      tools
+    );
+    const normalizedResponseFormat = normalizeResponseFormat({
+      responseFormat,
+      response_format,
+      outputSchema,
+      output_schema,
+    });
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: normalizedMessages,
+      ...(tools && tools.length > 0 ? { tools: tools as OpenAI.Chat.ChatCompletionTool[] } : {}),
+      ...(normalizedToolChoice ? { tool_choice: normalizedToolChoice } : {}),
+      ...(maxTokens || max_tokens ? { max_tokens: maxTokens || max_tokens } : {}),
+      ...(normalizedResponseFormat ? { response_format: normalizedResponseFormat as any } : {}),
+    });
+
+    // Convert OpenAI response to InvokeResult format
+    return {
+      id: completion.id,
+      created: completion.created,
+      model: completion.model,
+      choices: completion.choices.map(choice => ({
+        index: choice.index,
+        message: {
+          role: choice.message.role as Role,
+          content: choice.message.content || "",
+          ...(choice.message.tool_calls ? { tool_calls: choice.message.tool_calls as ToolCall[] } : {}),
+        },
+        finish_reason: choice.finish_reason,
+      })),
+      usage: completion.usage ? {
+        prompt_tokens: completion.usage.prompt_tokens,
+        completion_tokens: completion.usage.completion_tokens,
+        total_tokens: completion.usage.total_tokens,
+      } : undefined,
+    };
+  }
+
+  // Fallback to Manus Forge API
+  const resolveApiUrl = () =>
+    ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
+      ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
+      : "https://forge.manus.im/v1/chat/completions";
 
   const payload: Record<string, unknown> = {
     model: "gemini-2.5-flash",
@@ -296,10 +402,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
+  payload.max_tokens = maxTokens || max_tokens || 32768;
   payload.thinking = {
     "budget_tokens": 128
-  }
+  };
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
