@@ -1663,6 +1663,9 @@
   - [x] 測試搜尋功能（標題、商品編號、描述）
   - [ ] 測試大量資料載入效能
   - [ ] 測試分頁功能
-- [ ] 建立 checkpoint
-- [ ] 推送到 GitHub
-- [ ] 驗證 Railway Production 部署
+- [x] 建立 checkpoint
+- [x] 推送到 GitHub (https://github.com/inphic-ai/Film-genre.git)
+- [x] 驗證 Railway Production 部署
+  - [x] 分頁功能正常（第 1 / 16 頁，共 757 部影片）
+  - [x] 分頁按鈕正常顯示（上一頁/下一頁）
+  - [ ] 搜尋功能有問題（輸入框只顯示部分字元）

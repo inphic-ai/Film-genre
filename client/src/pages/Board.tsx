@@ -52,6 +52,11 @@ export default function Board() {
   
   const [searchKeyword, setSearchKeyword] = useState(searchFromUrl);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  
+  // Sync searchKeyword with URL parameter changes
+  useEffect(() => {
+    setSearchKeyword(searchFromUrl);
+  }, [searchFromUrl]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration'>('viewCount');
