@@ -128,7 +128,7 @@ export default function Board() {
   const baseVideos = isAiSearch && aiSearchResult
     ? aiSearchResult.videos
     : useFullText && fullTextSearchResult 
-    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null, creator: null })) 
+    ? fullTextSearchResult.results.map(r => ({ ...r, notes: null, searchVector: null, rating: null, creator: null, categoryId: null })) 
     : selectedTagIds.length > 0 
     ? tagFilteredVideos 
     : allVideos;

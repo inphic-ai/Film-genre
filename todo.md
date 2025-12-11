@@ -1480,3 +1480,46 @@
 - [x] 測試本地開發環境
 - [x] 建立 checkpoint
 - [x] 推送到 GitHub
+
+
+## 影片分類系統擴充改版
+
+### Phase 0：資料庫 Schema 變更申請與審核
+- [ ] 提交資料庫變更申請（categories + knowledge_entries + videos.category_id）
+- [ ] 等待審核通過
+
+### Phase 1：資料庫 Schema 建立
+- [ ] 建立 categories 表（id, name, type, description, color, icon, sort_order, is_active, created_at）
+- [ ] 建立 knowledge_entries 表（id, video_id, entry_type, timestamp, content, image_urls, tags, created_at）
+- [ ] videos 表新增 category_id 欄位（references categories.id, onDelete: set null）
+- [ ] 建立 migration 檔案
+- [ ] 執行 pnpm db:push
+
+### Phase 2：後端 API
+- [ ] Category CRUD API（list, create, update, delete）
+- [ ] categories.getStats API（各分類影片數量統計）
+- [ ] 修改 videos.create API（分類邏輯：product_code 優先 → category_id → 未分類）
+- [ ] 修改 videos.update API（分類邏輯）
+- [ ] 修改 videos.list API（新增 categoryId 篩選參數）
+- [ ] videos.batchUpdateCategory API（批次修改分類）
+- [ ] 建立 vitest 測試
+
+### Phase 3：前端 UI
+- [ ] 建立 CategoriesManagement.tsx 頁面（分類管理）
+- [ ] 修改 Manage.tsx 影片表單（新增分類選擇器，product_code 有值時 disabled）
+- [ ] 修改 VideoCard.tsx（顯示分類資訊）
+- [ ] 修改 VideoListView.tsx（顯示分類資訊）
+- [ ] 修改 Board.tsx（新增分類篩選器）
+- [ ] 新增 /admin/categories 路由到 App.tsx
+
+### Phase 4：進階功能
+- [ ] BatchOperationToolbar 新增「批次修改分類」功能
+- [ ] Dashboard 新增分類統計圖表（分類分佈圓餅圖）
+- [ ] Board.tsx 分類篩選器支援多選
+
+### Phase 5：測試與部署
+- [ ] 本地開發環境測試
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 部署到 Railway Production

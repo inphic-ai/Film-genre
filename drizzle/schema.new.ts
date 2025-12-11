@@ -1,4 +1,4 @@
-import { boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, json, jsonb, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
@@ -39,35 +39,7 @@ export const platformEnum = pgEnum("platform", ["youtube", "tiktok", "redbook"])
 export const shareStatusEnum = pgEnum("share_status", ["private", "public"]);
 
 /**
- * Video category enum - 5 main categories for organizing videos
- */
-export const categoryEnum = pgEnum("category", [
-  "product_intro",    // 使用介紹
-  "maintenance",      // 維修
-  "case_study",       // 案例
-  "faq",              // 常見問題
-  "other"             // 其他
-]);
-
-/**
- * Categories table - allows customization of category names
- * ⚠️ DEPRECATED: This table is for the old category system (categoryEnum)
- * Use video_categories for the new flexible category system
- */
-export const categories = pgTable("categories", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  key: categoryEnum("key").notNull().unique(),
-  name: varchar("name", { length: 100 }).notNull(),
-  description: text("description"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
-
-export type Category = typeof categories.$inferSelect;
-export type InsertCategory = typeof categories.$inferInsert;
-
-/**
- * Video Categories table - NEW flexible category system for organizing videos
+ * Video Categories table - flexible category system for organizing videos
  * Replaces the old categoryEnum system for better flexibility
  */
 export const videoCategories = pgTable("video_categories", {
@@ -96,8 +68,8 @@ export const knowledgeEntries = pgTable("knowledge_entries", {
   entryType: varchar("entryType", { length: 50 }).notNull(), // text / image / note / highlight
   timestamp: integer("timestamp"), // Video timestamp in seconds
   content: text("content"), // Text content
-  imageUrls: jsonb("imageUrls").$type<string[]>(), // Array of image URLs
-  tags: jsonb("tags").$type<string[]>(), // Array of tags
+  imageUrls: json("imageUrls").$type<string[]>(), // Array of image URLs
+  tags: json("tags").$type<string[]>(), // Array of tags
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -106,6 +78,7 @@ export type InsertKnowledgeEntry = typeof knowledgeEntries.$inferInsert;
 
 /**
  * Videos table - stores all video resources with platform filtering support
+ * ⚠️ BREAKING CHANGE: Removed `category` enum field, replaced with `categoryId` foreign key
  */
 export const videos = pgTable("videos", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -115,8 +88,8 @@ export const videos = pgTable("videos", {
   videoUrl: text("videoUrl").notNull(),
   thumbnailUrl: text("thumbnailUrl"),
   customThumbnailUrl: text("customThumbnailUrl"), // User-uploaded custom thumbnail (S3 URL)
-  category: categoryEnum("category").notNull(), // ⚠️ DEPRECATED: Use categoryId instead
-  categoryId: integer("categoryId").references(() => videoCategories.id, { onDelete: "set null" }), // NEW: Foreign key to video_categories
+  // New category system - foreign key to video_categories table
+  categoryId: integer("categoryId").references(() => videoCategories.id, { onDelete: "set null" }),
   // New fields for enhanced functionality
   productId: varchar("productId", { length: 100 }),
   creator: varchar("creator", { length: 255 }), // Creator name (e.g., @心灵之音 for YouTube)
@@ -308,9 +281,9 @@ export const notifications = pgTable("notifications", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   type: notificationTypeEnum("type").notNull(),
-  title: varchar("title", { length: 200 }).notNull(),
-  content: text("content"),
-  relatedResourceType: varchar("relatedResourceType", { length: 50 }), // VIDEO / TIMELINE_NOTE / PRODUCT
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  relatedResourceType: varchar("relatedResourceType", { length: 50 }), // VIDEO / NOTE / etc.
   relatedResourceId: integer("relatedResourceId"),
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -318,89 +291,3 @@ export const notifications = pgTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
-
-/**
- * Video document type enum - categorizes different document types
- */
-export const documentTypeEnum = pgEnum("document_type", ["manual", "sop", "other"]);
-
-/**
- * Video Documents table - stores PDF manuals, SOPs, and other documents
- * Files are stored in Cloudflare R2
- */
-export const videoDocuments = pgTable("video_documents", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  videoId: integer("videoId").notNull().references(() => videos.id, { onDelete: "cascade" }),
-  type: documentTypeEnum("type").notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  fileUrl: text("fileUrl").notNull(), // Cloudflare R2 URL
-  fileKey: varchar("fileKey", { length: 500 }).notNull(), // R2 file key
-  fileSize: integer("fileSize"), // File size in bytes
-  mimeType: varchar("mimeType", { length: 100 }), // e.g., application/pdf
-  uploadedBy: integer("uploadedBy").notNull().references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type VideoDocument = typeof videoDocuments.$inferSelect;
-export type InsertVideoDocument = typeof videoDocuments.$inferInsert;
-
-/**
- * Knowledge Nodes table - stores structured knowledge (problem/cause/solution)
- * Linked to SKU for product-specific troubleshooting
- */
-export const knowledgeNodes = pgTable("knowledge_nodes", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  sku: varchar("sku", { length: 50 }).notNull(),
-  problem: text("problem").notNull(),
-  cause: text("cause"),
-  solution: text("solution").notNull(),
-  createdBy: integer("createdBy").notNull().references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
-
-export type KnowledgeNode = typeof knowledgeNodes.$inferSelect;
-export type InsertKnowledgeNode = typeof knowledgeNodes.$inferInsert;
-
-
-/**
- * Log type enum - categorizes different log types
- */
-export const logTypeEnum = pgEnum("log_type", ["API", "DB_QUERY"]);
-
-/**
- * Performance Logs table - tracks API response times and database query performance
- */
-export const performanceLogs = pgTable("performance_logs", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  logType: logTypeEnum("logType").notNull(),
-  endpoint: varchar("endpoint", { length: 255 }),
-  method: varchar("method", { length: 10 }),
-  responseTime: integer("responseTime").notNull(), // in milliseconds
-  statusCode: integer("statusCode"),
-  userId: integer("userId").references(() => users.id, { onDelete: "set null" }),
-  errorMessage: text("errorMessage"),
-  metadata: jsonb("metadata"), // Additional info (request params, SQL query, etc.)
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type PerformanceLog = typeof performanceLogs.$inferSelect;
-export type InsertPerformanceLog = typeof performanceLogs.$inferInsert;
-
-/**
- * User Activity Logs table - tracks user actions and behaviors
- */
-export const userActivityLogs = pgTable("user_activity_logs", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  action: varchar("action", { length: 100 }).notNull(), // VIDEO_CREATE, NOTE_SUBMIT, SEARCH, REVIEW_APPROVE, etc.
-  targetType: varchar("targetType", { length: 50 }), // VIDEO, NOTE, TAG, PRODUCT
-  targetId: integer("targetId"),
-  details: text("details"),
-  ipAddress: varchar("ipAddress", { length: 45 }),
-  userAgent: varchar("userAgent", { length: 255 }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type UserActivityLog = typeof userActivityLogs.$inferSelect;
-export type InsertUserActivityLog = typeof userActivityLogs.$inferInsert;
