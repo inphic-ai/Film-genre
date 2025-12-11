@@ -103,6 +103,7 @@ export default function Board() {
   const allVideos = paginatedResult?.videos || [];
   
   // Use fullTextSearch API when useFullText is true
+  console.log('[Board Debug] searchKeyword:', searchKeyword, 'useFullText:', useFullText, 'searchFromUrl:', searchFromUrl);
   const { data: fullTextSearchResult, isLoading: fullTextSearchLoading } = trpc.fullTextSearch.search.useQuery(
     { query: searchKeyword, limit: 50 },
     { enabled: useFullText && searchKeyword.trim().length > 0 }
