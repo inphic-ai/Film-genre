@@ -69,11 +69,33 @@ export default function Board() {
   const [batchMode, setBatchMode] = useState(false);
   const [selectedVideoIds, setSelectedVideoIds] = useState<number[]>([]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(50);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchKeyword, selectedCategory, selectedPlatforms, selectedShareStatus, sortBy, sortOrder]);
 
   const utils = trpc.useUtils();
   const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
-  const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
   const { data: allTags } = trpc.tags.list.useQuery();
+  
+  // Use paginated API for better performance
+  const { data: paginatedResult, isLoading: videosLoading } = trpc.videos.listPaginated.useQuery({
+    page,
+    pageSize,
+    search: searchKeyword || undefined,
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    platform: selectedPlatforms.length > 0 ? selectedPlatforms[0] : undefined,
+    shareStatus: selectedShareStatus.length > 0 ? selectedShareStatus[0] : undefined,
+    sortBy,
+    sortOrder,
+  }, {
+    enabled: !isAiSearch && selectedTagIds.length === 0 && !useFullText,
+  });
+  
+  const allVideos = paginatedResult?.videos || [];
   
   // Use fullTextSearch API when useFullText is true
   const { data: fullTextSearchResult, isLoading: fullTextSearchLoading } = trpc.fullTextSearch.search.useQuery(
@@ -652,6 +674,34 @@ export default function Board() {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Pagination Controls */}
+        {paginatedResult && paginatedResult.totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              上一頁
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                第 {page} / {paginatedResult.totalPages} 頁
+              </span>
+              <span className="text-sm text-muted-foreground">
+                （共 {paginatedResult.total} 部影片）
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setPage(p => Math.min(paginatedResult.totalPages, p + 1))}
+              disabled={page === paginatedResult.totalPages}
+            >
+              下一頁
+            </Button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

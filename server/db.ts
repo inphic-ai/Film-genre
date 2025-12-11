@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, or, like, sql, inArray } from "drizzle-orm";
+import { eq, desc, asc, and, or, like, ilike, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion } from "../drizzle/schema";
@@ -161,6 +161,97 @@ export async function getAllVideos(): Promise<Video[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(videos).orderBy(desc(videos.createdAt));
+}
+
+/**
+ * Get paginated videos with search and filters (for internal board)
+ */
+export async function getVideosPaginated(params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  category?: string;
+  platform?: string;
+  shareStatus?: string;
+  sortBy: 'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration';
+  sortOrder: 'asc' | 'desc';
+}): Promise<{ videos: Video[]; total: number; page: number; pageSize: number; totalPages: number }> {
+  const db = await getDb();
+  if (!db) return { videos: [], total: 0, page: params.page, pageSize: params.pageSize, totalPages: 0 };
+
+  // Build WHERE conditions
+  const conditions: any[] = [];
+  
+  if (params.search) {
+    conditions.push(
+      or(
+        ilike(videos.title, `%${params.search}%`),
+        ilike(videos.description, `%${params.search}%`),
+        ilike(videos.productId, `%${params.search}%`),
+        ilike(videos.creator, `%${params.search}%`)
+      )
+    );
+  }
+  
+  if (params.category) {
+    conditions.push(eq(videos.category, params.category as any));
+  }
+  
+  if (params.platform) {
+    conditions.push(eq(videos.platform, params.platform as any));
+  }
+  
+  if (params.shareStatus) {
+    conditions.push(eq(videos.shareStatus, params.shareStatus as any));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // Build ORDER BY clause
+  let orderByClause;
+  switch (params.sortBy) {
+    case 'viewCount':
+      orderByClause = params.sortOrder === 'asc' ? asc(videos.viewCount) : desc(videos.viewCount);
+      break;
+    case 'createdAt':
+      orderByClause = params.sortOrder === 'asc' ? asc(videos.createdAt) : desc(videos.createdAt);
+      break;
+    case 'title':
+      orderByClause = params.sortOrder === 'asc' ? asc(videos.title) : desc(videos.title);
+      break;
+    case 'rating':
+      orderByClause = params.sortOrder === 'asc' ? asc(videos.rating) : desc(videos.rating);
+      break;
+    case 'duration':
+      orderByClause = params.sortOrder === 'asc' ? asc(videos.duration) : desc(videos.duration);
+      break;
+    default:
+      orderByClause = desc(videos.createdAt);
+  }
+
+  // Get total count
+  const countQuery = whereClause 
+    ? db.select({ count: sql<number>`count(*)` }).from(videos).where(whereClause)
+    : db.select({ count: sql<number>`count(*)` }).from(videos);
+  
+  const countResult = await countQuery;
+  const total = Number(countResult[0]?.count || 0);
+
+  // Get paginated results
+  const offset = (params.page - 1) * params.pageSize;
+  const query = whereClause
+    ? db.select().from(videos).where(whereClause).orderBy(orderByClause).limit(params.pageSize).offset(offset)
+    : db.select().from(videos).orderBy(orderByClause).limit(params.pageSize).offset(offset);
+  
+  const results = await query;
+
+  return {
+    videos: results,
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    totalPages: Math.ceil(total / params.pageSize),
+  };
 }
 
 /**

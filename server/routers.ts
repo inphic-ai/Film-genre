@@ -101,6 +101,25 @@ export const appRouter = router({
       return await db.getAllVideos();
     }),
 
+    // Get paginated videos with search and filters (admin only)
+    listPaginated: protectedProcedure
+      .input(z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(50),
+        search: z.string().optional(),
+        category: z.string().optional(),
+        platform: z.string().optional(),
+        shareStatus: z.string().optional(),
+        sortBy: z.enum(['viewCount', 'createdAt', 'title', 'rating', 'duration']).default('viewCount'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
+      }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Unauthorized');
+        }
+        return await db.getVideosPaginated(input);
+      }),
+
     // Get YouTube videos only (for client portal - public)
     listYouTube: publicProcedure.query(async () => {
       return await db.getYouTubeVideos();
