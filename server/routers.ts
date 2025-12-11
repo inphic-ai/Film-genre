@@ -441,8 +441,7 @@ ${tagsListText}
       .input(z.object({
         playlistUrl: z.string().url(),
         apiKey: z.string(),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
-        categoryId: z.number().optional(),
+        categoryId: z.number(), // REQUIRED: Use new category system
         shareStatus: z.enum(['private', 'public']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -501,16 +500,14 @@ ${tagsListText}
               continue;
             }
             
-            // 建立影片記錄
-            // 向後相容：如果沒有提供 category 也沒有 categoryId，預設使用 'other'
-            const category = input.category || 'other';
+            // 建立影片記錄（使用新分類系統）
             await db.createVideo({
               title: video.title,
               description: video.description || undefined,
               platform: 'youtube',
               videoUrl,
               thumbnailUrl: video.thumbnailUrl,
-              category,
+              category: 'other', // @deprecated: Keep for backward compatibility
               categoryId: input.categoryId,
               shareStatus: input.shareStatus || 'private',
               uploadedBy: ctx.user.id,
@@ -545,8 +542,7 @@ ${tagsListText}
         platform: z.enum(['youtube', 'tiktok', 'redbook']),
         videoUrl: z.string().url(),
         thumbnailUrl: z.string().url().optional(),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
-        categoryId: z.number().optional(),
+        categoryId: z.number(), // REQUIRED: Use new category system
         productId: z.string().optional(),
         creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
@@ -555,11 +551,10 @@ ${tagsListText}
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
         }
-        // 向後相容：如果沒有提供 category 也沒有 categoryId，預設使用 'other'
-        const category = input.category || 'other';
+        // 使用新分類系統
         return await db.createVideo({
           ...input,
-          category,
+          category: 'other', // @deprecated: Keep for backward compatibility
           uploadedBy: ctx.user.id,
         });
       }),
@@ -573,8 +568,7 @@ ${tagsListText}
         platform: z.enum(['youtube', 'tiktok', 'redbook']).optional(),
         videoUrl: z.string().url().optional(),
         thumbnailUrl: z.string().url().optional(),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
-        categoryId: z.number().optional(),
+        categoryId: z.number().optional(), // Use new category system
         productId: z.string().optional(),
         creator: z.string().optional(),
         shareStatus: z.enum(['private', 'public']).optional(),
@@ -718,20 +712,11 @@ ${tagsListText}
     batchUpdateCategory: protectedProcedure
       .input(z.object({
         ids: z.array(z.number()),
-        category: z.enum(['product_intro', 'maintenance', 'case_study', 'faq', 'other']).optional(),
-        categoryId: z.number().optional(),
+        categoryId: z.number(), // REQUIRED: Use new category system
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== 'admin') {
           throw new Error('Unauthorized');
-        }
-        
-        // 向後相容：如果沒有提供 category 也沒有 categoryId，拋錯
-        if (!input.category && !input.categoryId) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: '請提供 category 或 categoryId',
-          });
         }
         
         let successCount = 0;
@@ -739,14 +724,7 @@ ${tagsListText}
         
         for (const id of input.ids) {
           try {
-            const updateData: any = {};
-            if (input.categoryId) {
-              updateData.categoryId = input.categoryId;
-            }
-            if (input.category) {
-              updateData.category = input.category;
-            }
-            await db.updateVideo(id, updateData);
+            await db.updateVideo(id, { categoryId: input.categoryId });
             successCount++;
           } catch (error) {
             console.error(`Failed to update video ${id}:`, error);

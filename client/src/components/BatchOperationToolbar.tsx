@@ -43,8 +43,10 @@ export function BatchOperationToolbar({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedShareStatus, setSelectedShareStatus] = useState<string>('');
+
+  const { data: categories = [] } = trpc.videoCategories.list.useQuery({});
 
   const batchDeleteMutation = trpc.videos.batchDelete.useMutation();
   const batchUpdateCategoryMutation = trpc.videos.batchUpdateCategory.useMutation();
@@ -63,18 +65,18 @@ export function BatchOperationToolbar({
   };
 
   const handleBatchUpdateCategory = async () => {
-    if (!selectedCategory) {
+    if (!selectedCategoryId) {
       toast.error('請選擇分類');
       return;
     }
     try {
       const result = await batchUpdateCategoryMutation.mutateAsync({
         ids: selectedIds,
-        category: selectedCategory as any,
+        categoryId: selectedCategoryId,
       });
       toast.success(`成功更新 ${result.successCount} 部影片${result.failedCount > 0 ? `，${result.failedCount} 部失敗` : ''}`);
       setCategoryDialogOpen(false);
-      setSelectedCategory('');
+      setSelectedCategoryId(null);
       onClearSelection();
       onOperationComplete();
     } catch (error) {
@@ -185,14 +187,14 @@ export function BatchOperationToolbar({
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategoryId?.toString()} onValueChange={(value) => setSelectedCategoryId(Number(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="選擇分類" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(categoryLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
+                {categories.filter(c => c.isActive).map(cat => (
+                  <SelectItem key={cat.id} value={cat.id.toString()}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -204,7 +206,7 @@ export function BatchOperationToolbar({
             </Button>
             <Button
               onClick={handleBatchUpdateCategory}
-              disabled={batchUpdateCategoryMutation.isPending || !selectedCategory}
+              disabled={batchUpdateCategoryMutation.isPending || !selectedCategoryId}
             >
               {batchUpdateCategoryMutation.isPending ? '更新中...' : '確認更新'}
             </Button>

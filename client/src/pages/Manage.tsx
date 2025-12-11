@@ -23,7 +23,7 @@ export default function Manage() {
   const [platform, setPlatform] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [category, setCategory] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [productId, setProductId] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [shareStatus, setShareStatus] = useState<"private" | "public">("private");
@@ -44,7 +44,7 @@ export default function Manage() {
   const [isBatchImportDialogOpen, setIsBatchImportDialogOpen] = useState(false);
 
   const utils = trpc.useUtils();
-  const { data: categories } = trpc.categories.list.useQuery();
+  const { data: categories = [] } = trpc.videoCategories.list.useQuery({});
   const { data: existingVideo } = trpc.videos.getById.useQuery(
     { id: videoId! },
     { enabled: !!videoId }
@@ -143,8 +143,9 @@ export default function Manage() {
 
   const suggestCategoryMutation = trpc.ai.suggestCategory.useMutation({
     onSuccess: (data) => {
-      setCategory(data.category);
-      toast.success("已自動建議分類！");
+      // AI 建議功能需要升級支援新分類系統
+      // 暫時停用，等待 Phase 23.4 實作
+      toast.info("分類建議功能正在升級中，請手動選擇分類");
     },
     onError: (error) => {
       toast.error(`分類建議失敗：${error.message}`);
@@ -188,7 +189,7 @@ export default function Manage() {
       setPlatform(existingVideo.platform);
       setVideoUrl(existingVideo.videoUrl);
       setThumbnailUrl(existingVideo.thumbnailUrl || "");
-      setCategory(existingVideo.category);
+      setCategoryId(existingVideo.categoryId || null);
       setProductId(existingVideo.productId || "");
       setDuration(existingVideo.duration || null);
       setShareStatus(existingVideo.shareStatus || "private");
@@ -295,7 +296,7 @@ export default function Manage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !platform || !videoUrl || !category) {
+    if (!title || !platform || !videoUrl || !categoryId) {
       toast.error("請填寫所有必填欄位");
       return;
     }
@@ -306,7 +307,7 @@ export default function Manage() {
       platform: platform as "youtube" | "tiktok" | "redbook",
       videoUrl,
       thumbnailUrl: thumbnailUrl || undefined,
-      category: category as "product_intro" | "maintenance" | "case_study" | "faq" | "other",
+      categoryId,
       productId: productId || undefined,
       creator: creator || undefined,
       duration: duration || undefined,
@@ -553,13 +554,13 @@ export default function Manage() {
                     AI 建議
                   </Button>
                 </div>
-                <Select value={category} onValueChange={setCategory} required>
+                <Select value={categoryId?.toString()} onValueChange={(value) => setCategoryId(Number(value))} required>
                   <SelectTrigger id="category">
                     <SelectValue placeholder="請選擇分類" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories?.map(cat => (
-                      <SelectItem key={cat.key} value={cat.key}>
+                    {categories.filter(c => c.isActive).map(cat => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
                         {cat.name}
                       </SelectItem>
                     ))}

@@ -18,7 +18,7 @@ interface BatchImportDialogProps {
 export function BatchImportDialog({ open, onOpenChange, onImportComplete }: BatchImportDialogProps) {
   const [playlistUrl, setPlaylistUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [category, setCategory] = useState<'product_intro' | 'maintenance' | 'case_study' | 'faq' | 'other'>('product_intro');
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [shareStatus, setShareStatus] = useState<'private' | 'public'>('private');
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<{
@@ -34,6 +34,7 @@ export function BatchImportDialog({ open, onOpenChange, onImportComplete }: Batc
     }>;
   } | null>(null);
 
+  const { data: categories = [] } = trpc.videoCategories.list.useQuery({});
   const validateApiKeyMutation = trpc.videos.validateYouTubeApiKey.useMutation();
   const importPlaylistMutation = trpc.videos.importPlaylist.useMutation();
 
@@ -66,6 +67,11 @@ export function BatchImportDialog({ open, onOpenChange, onImportComplete }: Batc
       return;
     }
 
+    if (!categoryId) {
+      toast.error('請選擇分類');
+      return;
+    }
+
     setIsImporting(true);
     setImportResult(null);
 
@@ -73,7 +79,7 @@ export function BatchImportDialog({ open, onOpenChange, onImportComplete }: Batc
       const result = await importPlaylistMutation.mutateAsync({
         playlistUrl,
         apiKey,
-        category,
+        categoryId,
         shareStatus,
       });
 
@@ -94,7 +100,7 @@ export function BatchImportDialog({ open, onOpenChange, onImportComplete }: Batc
     if (!isImporting) {
       setPlaylistUrl('');
       setApiKey('');
-      setCategory('product_intro');
+      setCategoryId(null);
       setShareStatus('private');
       setImportResult(null);
       onOpenChange(false);
@@ -188,16 +194,16 @@ export function BatchImportDialog({ open, onOpenChange, onImportComplete }: Batc
             {/* Category */}
             <div className="space-y-2">
               <Label htmlFor="category">預設分類 *</Label>
-              <Select value={category} onValueChange={(value: any) => setCategory(value)} disabled={isImporting}>
+              <Select value={categoryId?.toString()} onValueChange={(value) => setCategoryId(Number(value))} disabled={isImporting}>
                 <SelectTrigger id="category">
-                  <SelectValue />
+                  <SelectValue placeholder="選擇分類" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="product_intro">使用介紹</SelectItem>
-                  <SelectItem value="maintenance">維修</SelectItem>
-                  <SelectItem value="case_study">案例</SelectItem>
-                  <SelectItem value="faq">常見問題</SelectItem>
-                  <SelectItem value="other">其他</SelectItem>
+                  {categories.filter(c => c.isActive).map(cat => (
+                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

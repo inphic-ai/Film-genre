@@ -1586,3 +1586,48 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+
+
+## Phase 23：舊分類系統凍結與新系統遷移（進行中）
+
+### 策略：凍結模式（Legacy Freeze）
+保留舊 `videos.category` 欄位但標記為 deprecated，逐步遷移到新的 `categoryId` 系統，確保向後相容與資料安全。
+
+### 1. 建立 category → categoryId 對應表與資料遷移腳本
+- [ ] 在 server/db.ts 建立 `getCategoryMapping()` 函數（category key → categoryId）
+- [ ] 建立 migration script：`scripts/migrate-categories.ts`
+- [ ] 實作資料遷移邏輯（將舊 category 對應到新 categoryId）
+- [ ] 執行 migration script 並驗證結果
+
+### 2. 標記舊欄位為 deprecated 並停止寫入
+- [ ] 在 drizzle/schema.ts 標記 `videos.category` 為 `@deprecated`
+- [ ] 更新 videos.create procedure：移除 category 寫入，僅寫入 categoryId
+- [ ] 更新 videos.update procedure：移除 category 寫入，僅寫入 categoryId
+- [ ] 更新 videos.importPlaylist procedure：移除 category 寫入，僅寫入 categoryId
+
+### 3. 前端切換到新系統
+- [ ] 更新 Manage.tsx：使用 `videoCategories.list` 替代 `categories.list`
+- [ ] 更新 Board.tsx：分類篩選器使用 categoryId
+- [ ] 更新 VideoCard：顯示邏輯優先使用 categoryId
+- [ ] 測試前端分類篩選與顯示功能
+
+### 4. 升級 AI 功能支援新系統
+- [ ] 修改 `suggestCategory` 函數：回傳 categoryId 而非 category key
+- [ ] 修改 `aiSearch` router：使用 categoryId 查詢
+- [ ] 建立 category key → categoryId 對應邏輯
+- [ ] 測試 AI 建議與搜尋功能
+
+### 5. 實作向後相容讀取邏輯
+- [ ] 更新 `getVideosByCategory` 函數：支援 fallback 邏輯
+- [ ] 更新 `getYouTubeVideosByCategory` 函數：支援 fallback 邏輯
+- [ ] 實作顯示邏輯：categoryId 為空時 fallback 到舊 category
+- [ ] 測試向後相容性（舊資料仍可正常顯示）
+
+### 6. 測試與驗證遷移結果
+- [ ] 測試資料遷移結果（所有影片都有 categoryId）
+- [ ] 測試前端分類篩選功能
+- [ ] 測試 AI 功能
+- [ ] 測試向後相容性
+- [ ] 建立 vitest 測試
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
