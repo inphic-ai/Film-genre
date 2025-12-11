@@ -23,6 +23,7 @@ import PerformanceMonitor from "./pages/PerformanceMonitor";
 import Creators from "./pages/Creators";
 import CreatorDetail from "./pages/CreatorDetail";
 import OperationLogs from "./pages/OperationLogs";
+import { CategoryManagement } from "./pages/CategoryManagement";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
         <Route path="/creators" component={Creators} />
         <Route path="/creator/:creatorName" component={CreatorDetail} />
         <Route path="/admin/logs" component={OperationLogs} />
+        <Route path="/admin/categories" component={CategoryManagement} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

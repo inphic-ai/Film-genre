@@ -1523,3 +1523,66 @@
 - [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 部署到 Railway Production
+
+
+## Phase 22：前端分類管理介面（進行中）
+
+### 基礎建設
+- [ ] 安裝 @dnd-kit 相關套件（拖曳排序）
+- [ ] 建立 CategoryManagement.tsx 頁面
+- [ ] 建立基礎 UI 結構（表格、按鈕）
+
+### 分類 CRUD 操作
+- [ ] 新增分類對話框（CreateCategoryDialog）
+- [ ] 編輯分類對話框（EditCategoryDialog）
+- [ ] 刪除分類確認對話框
+- [ ] 整合 tRPC mutations
+
+### 拖曳排序功能
+- [ ] 實作 DndContext 與 SortableContext
+- [ ] 實作 SortableItem 元件
+- [ ] 整合 reorder mutation
+
+### 可重用元件
+- [ ] CategorySelect 元件（下拉選單）
+- [ ] CategoryBadge 元件（顯示分類標籤）
+
+### 整合與測試
+- [ ] 更新影片管理頁面的分類篩選器
+- [ ] 更新影片編輯表單的分類選擇
+- [ ] 在 App.tsx 註冊路由
+- [ ] 瀏覽器測試所有功能
+
+
+## Phase 22：前端分類管理介面（已完成）
+
+### 1. 安裝依賴與建立基礎結構
+- [x] 安裝 @dnd-kit 套件
+- [x] 建立 CategoryManagement.tsx 頁面
+- [x] 實作分類列表顯示（名稱、描述、顏色、排序、狀態）
+- [x] 實作拖曳排序功能（@dnd-kit）
+
+### 2. 實作分類 CRUD 對話框
+- [x] 建立 CreateCategoryDialog 組件
+- [x] 建立 EditCategoryDialog 組件
+- [x] 建立 DeleteCategoryDialog 組件
+- [x] 整合對話框到 CategoryManagement 頁面
+
+### 3. 建立可重用元件
+- [x] 建立 CategorySelect 可重用元件
+- [x] 建立 CategoryBadge 可重用元件
+
+### 4. 路由與導航整合
+- [x] 在 App.tsx 註冊路由（/admin/categories）
+- [x] 在 DashboardLayout 新增選單項目
+
+### 5. 測試與驗證
+- [x] 瀏覽器測試分類管理功能
+- [x] 測試新增分類功能（✅ 成功新增「測試分類」）
+- [x] 驗證分類列表顯示（✅ 8 個分類正常顯示）
+- [x] 驗證後端 API（✅ 13 個 vitest 測試全部通過）
+
+### 6. 部署與交付
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署

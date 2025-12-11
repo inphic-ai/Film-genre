@@ -36,7 +36,8 @@ import {
   Tag as TagIcon,
   Bell,
   Activity,
-  Sparkles
+  Sparkles,
+  Folder
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -54,6 +55,7 @@ const menuItems = [
   { icon: FileText, label: "我的貢獻", path: "/my-contributions", roles: ["admin", "staff"] },
   { icon: Bell, label: "通知中心", path: "/notifications", roles: ["admin", "staff", "viewer"] },
   { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
+  { icon: Folder, label: "分類管理", path: "/admin/categories", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
   { icon: FileTextIcon, label: "操作日誌", path: "/admin/logs", roles: ["admin"] },
   { icon: Activity, label: "效能監控", path: "/admin/performance", roles: ["admin"] },
