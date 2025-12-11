@@ -1599,17 +1599,30 @@
 - [ ] 實作資料遷移邏輯（將舊 category 對應到新 categoryId）
 - [ ] 執行 migration script 並驗證結果
 
-### 2. 標記舊欄位為 deprecated 並停止寫入
-- [ ] 在 drizzle/schema.ts 標記 `videos.category` 為 `@deprecated`
-- [ ] 更新 videos.create procedure：移除 category 寫入，僅寫入 categoryId
-- [ ] 更新 videos.update procedure：移除 category 寫入，僅寫入 categoryId
-- [ ] 更新 videos.importPlaylist procedure：移除 category 寫入，僅寫入 categoryId
+### 2. 標記舊欄位為 deprecated 並停止寫入（✅ Phase 23.2 已完成）
+- [x] 在 drizzle/schema.ts 標記 `videos.category` 為 `@deprecated`
+- [x] 更新 videos.create procedure：移除 category 寫入，僅寫入 categoryId
+- [x] 更新 videos.update procedure：移除 category 寫入，僅寫入 categoryId
+- [x] 更新 videos.importPlaylist procedure：移除 category 寫入，僅寫入 categoryId
+- [x] 更新 videos.batchUpdateCategory procedure：移除 category 寫入，僅寫入 categoryId
+- [x] 更新前端元件：BatchImportDialog, BatchOperationToolbar, Manage
+- [x] 建立資料遷移腳本：scripts/migrate-categories.ts
+- [x] AI 功能暫時停用（suggestCategory 顯示升級訊息）
+- [x] 推送到 GitHub (commit: 60c49b1)
 
-### 3. 前端切換到新系統
-- [ ] 更新 Manage.tsx：使用 `videoCategories.list` 替代 `categories.list`
-- [ ] 更新 Board.tsx：分類篩選器使用 categoryId
-- [ ] 更新 VideoCard：顯示邏輯優先使用 categoryId
-- [ ] 測試前端分類篩選與顯示功能
+### 3. 前端切換到新系統（✅ Phase 23.3 已完成）
+- [x] 更新 Manage.tsx：使用 `videoCategories.list` 替代 `categories.list`（Phase 23.2 已完成）
+- [x] 更新 Board.tsx：分類篩選器使用 categoryId
+- [x] 更新 VideoListView.tsx：顯示邏輯優先使用 categoryId
+- [x] 更新 Dashboard.tsx：分類統計圖表使用 videoCategories
+- [x] 更新 dashboard.ts 後端 API：改用 categoryId JOIN videoCategories
+- [x] 建立 category key 到 categoryId 對應表（fallback 邏輯）
+- [x] 測試前端分類篩選與顯示功能
+  - [x] Board.tsx 分類 Tab 正確顯示新分類名稱
+  - [x] 分類篩選功能正常（點擊不同 Tab 正確篩選）
+  - [x] VideoListView.tsx 清單視圖正確顯示分類名稱
+  - [x] Dashboard.tsx 分類統計圖表正確顯示
+  - [x] 所有功能都正確使用 categoryId 而非舊 category
 
 ### 4. 升級 AI 功能支援新系統
 - [ ] 修改 `suggestCategory` 函數：回傳 categoryId 而非 category key

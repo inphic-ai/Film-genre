@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash2, ExternalLink, Star } from "lucide-react";
 import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 import type { Video } from "../../../drizzle/schema";
 
 interface VideoListViewProps {
@@ -49,6 +50,23 @@ function formatDuration(seconds: number | null): string {
 
 export function VideoListView({ videos, onEdit, onDelete, showActions = false, batchMode = false, selectedVideoIds = [], onToggleSelect }: VideoListViewProps) {
   const [, setLocation] = useLocation();
+  const { data: videoCategories } = trpc.videoCategories.list.useQuery({ includeDisabled: false });
+  
+  // 建立 categoryId 到 name 的對應表
+  const categoryIdToName = videoCategories?.reduce((acc, cat) => {
+    acc[cat.id] = cat.name;
+    return acc;
+  }, {} as Record<number, string>) || {};
+  
+  // 取得分類名稱（優先使用 categoryId，fallback 到舊 category）
+  const getCategoryName = (video: Video) => {
+    if (video.categoryId && categoryIdToName[video.categoryId]) {
+      return categoryIdToName[video.categoryId];
+    } else if (video.category) {
+      return categoryLabels[video.category] || video.category;
+    }
+    return '未分類';
+  };
   
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -109,7 +127,7 @@ export function VideoListView({ videos, onEdit, onDelete, showActions = false, b
               </TableCell>
               <TableCell>
                 <Badge variant="outline">
-                  {categoryLabels[video.category] || video.category}
+                  {getCategoryName(video)}
                 </Badge>
               </TableCell>
               <TableCell>

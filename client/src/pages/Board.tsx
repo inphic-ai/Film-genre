@@ -71,7 +71,7 @@ export default function Board() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const utils = trpc.useUtils();
-  const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery();
+  const { data: videoCategories, isLoading: categoriesLoading } = trpc.videoCategories.list.useQuery({ includeDisabled: false });
   const { data: allVideos, isLoading: videosLoading } = trpc.videos.listAll.useQuery();
   const { data: allTags } = trpc.tags.list.useQuery();
   
@@ -138,7 +138,9 @@ export default function Board() {
       video.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       video.description?.toLowerCase().includes(searchKeyword.toLowerCase());
     
-    const matchesCategory = selectedCategory === "all" || video.category === selectedCategory;
+    // 優先使用 categoryId，fallback 到舊 category
+    const matchesCategory = selectedCategory === "all" || 
+      (video.categoryId ? video.categoryId.toString() === selectedCategory : video.category === selectedCategory);
     const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(video.platform);
     const matchesShareStatus = selectedShareStatus.length === 0 || selectedShareStatus.includes(video.shareStatus);
     
@@ -162,8 +164,25 @@ export default function Board() {
     return sortOrder === 'asc' ? -result : result;
   });
 
-  const videosByCategory = categories?.reduce((acc, category) => {
-    acc[category.key] = filteredVideos?.filter(v => v.category === category.key) || [];
+  // 建立 category key 到 categoryId 的對應表（舊系統 fallback）
+  const categoryKeyToId: Record<string, number> = {
+    'product_intro': 1,
+    'maintenance': 2,
+    'case_study': 3,
+    'faq': 4,
+    'other': 5,
+  };
+
+  const videosByCategory = videoCategories?.reduce((acc, category) => {
+    acc[category.id.toString()] = filteredVideos?.filter(v => {
+      if (v.categoryId) {
+        return v.categoryId === category.id;
+      } else if (v.category) {
+        // fallback: 舊 category key 對應到新 categoryId
+        return categoryKeyToId[v.category] === category.id;
+      }
+      return false;
+    }) || [];
     return acc;
   }, {} as Record<string, Video[]>);
 
@@ -561,8 +580,8 @@ export default function Board() {
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList>
             <TabsTrigger value="all">全部</TabsTrigger>
-            {categories?.map(category => (
-              <TabsTrigger key={category.key} value={category.key}>
+            {videoCategories?.map(category => (
+              <TabsTrigger key={category.id} value={category.id.toString()}>
                 {category.name}
               </TabsTrigger>
             ))}
@@ -571,12 +590,12 @@ export default function Board() {
           <TabsContent value="all" className="mt-6">
             {viewMode === 'card' ? (
               <>
-                {categories?.map(category => {
-                  const videos = videosByCategory?.[category.key] || [];
+                {videoCategories?.map(category => {
+                  const videos = videosByCategory?.[category.id.toString()] || [];
                   if (videos.length === 0) return null;
                   
                   return (
-                    <div key={category.key} className="mb-8">
+                    <div key={category.id} className="mb-8">
                       <h2 className="text-xl font-semibold mb-4">{category.name}</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {videos.map(video => (
@@ -614,12 +633,12 @@ export default function Board() {
             )}
           </TabsContent>
 
-          {categories?.map(category => (
-            <TabsContent key={category.key} value={category.key} className="mt-6">
+          {videoCategories?.map(category => (
+            <TabsContent key={category.id} value={category.id.toString()} className="mt-6">
               {viewMode === 'card' ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {videosByCategory?.[category.key]?.map(video => (
+                    {videosByCategory?.[category.id.toString()]?.map(video => (
                       <VideoCard
                         key={video.id}
                         video={video}
@@ -632,7 +651,7 @@ export default function Board() {
                       />
                     ))}
                   </div>
-                  {videosByCategory?.[category.key]?.length === 0 && (
+                  {videosByCategory?.[category.id.toString()]?.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
                       此分類尚無影片
                     </div>
@@ -640,7 +659,7 @@ export default function Board() {
                 </>
               ) : (
                 <VideoListView
-                  videos={videosByCategory?.[category.key] || []}
+                  videos={videosByCategory?.[category.id.toString()] || []}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   showActions={!batchMode}

@@ -121,9 +121,9 @@ export default function Dashboard() {
                       ? ((item.count / videoStats.totalVideos) * 100).toFixed(1)
                       : 0;
                     return (
-                      <div key={item.category} className="space-y-1">
+                      <div key={item.categoryId || 'uncategorized'} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium">{item.category || '未分類'}</span>
+                          <span className="font-medium">{item.categoryName || '未分類'}</span>
                           <span className="text-muted-foreground">{item.count} ({percentage}%)</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
