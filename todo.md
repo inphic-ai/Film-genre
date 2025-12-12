@@ -1836,3 +1836,24 @@
 ### 預期效益
 - 快取失效策略：確保資料即時性，避免顯示過期資料
 - 資料庫索引：首次查詢時間減少 50-100ms
+
+## Phase 60：驗證 Railway 生產環境 Redis 快取效果
+- [ ] 檢查 Railway Redis 服務狀態
+- [ ] 檢查 REDIS_URL 環境變數設定
+- [ ] 測試 Dashboard API 首次載入時間（快取 MISS）
+- [ ] 測試 Dashboard API 重複載入時間（快取 HIT）
+- [ ] 分析快取命中率
+- [ ] 測試快取失效機制（新增影片後 Dashboard 更新）
+- [ ] 記錄實際效能數據
+- [ ] 建立效能測試報告
+
+## Phase 61：修復 Board 頁面圖示重複顯示問題
+- [x] 檢查 Board.tsx 頂部導航列程式碼
+- [x] 檢查 DashboardLayout.tsx 頂部導航列程式碼
+- [x] 診斷左上角圖示重複原因（Logo/選單按鈕）
+- [x] 診斷右側視圖切換按鈕重複原因（Grid View icons）
+- [x] 修正重複渲染邏輯
+- [x] 測試本地開發環境
+- [ ] 建立 checkpoint
+- [ ] 推送到 GitHub
+- [ ] 驗證 Railway Production 部署

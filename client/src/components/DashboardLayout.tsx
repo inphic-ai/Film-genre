@@ -335,7 +335,6 @@ function DashboardLayoutContent({
         {/* 頂部導航列 */}
         <div className="flex border-b h-16 items-center justify-between bg-white/80 backdrop-blur px-4 sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-4">
-            {isMobile && <SidebarTrigger className="h-9 w-9 rounded-lg" />}
             <button
               onClick={toggleSidebar}
               className="h-8 w-8 flex items-center justify-center hover:bg-slate-100 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 shrink-0"

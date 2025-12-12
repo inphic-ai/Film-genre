@@ -292,8 +292,7 @@ export default function Board() {
 
           {/* View Mode Selector */}
           <Select value={viewMode} onValueChange={(value: 'card' | 'list') => setViewMode(value)}>
-            <SelectTrigger className="w-[120px]">
-              {viewMode === 'card' ? <LayoutGrid className="h-4 w-4 mr-2" /> : <List className="h-4 w-4 mr-2" />}
+            <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
