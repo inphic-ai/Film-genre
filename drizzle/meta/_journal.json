@@ -120,6 +120,13 @@
       "when": 1765515407871,
       "tag": "0016_wakeful_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1765538494082,
+      "tag": "0017_supreme_gorgon",
+      "breakpoints": true
     }
   ]
 }

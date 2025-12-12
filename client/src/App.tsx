@@ -26,6 +26,7 @@ const Creators = lazy(() => import("./pages/Creators"));
 const CreatorDetail = lazy(() => import("./pages/CreatorDetail"));
 const OperationLogs = lazy(() => import("./pages/OperationLogs"));
 const CategoryManagement = lazy(() => import("./pages/CategoryManagement").then(m => ({ default: m.CategoryManagement })));
+const SearchSettings = lazy(() => import("./pages/SearchSettings"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -59,6 +60,7 @@ function Router() {
         <Route path="/creator/:creatorName" component={CreatorDetail} />
         <Route path="/admin/logs" component={OperationLogs} />
         <Route path="/admin/categories" component={CategoryManagement} />
+        <Route path="/admin/search-settings" component={SearchSettings} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

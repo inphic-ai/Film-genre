@@ -51,12 +51,47 @@ export default function Board() {
   console.log('[Board Debug] isAiSearch:', isAiSearch, 'parsedQuery:', parsedQuery);
   
   const [searchKeyword, setSearchKeyword] = useState(searchFromUrl);
+  const [searchInput, setSearchInput] = useState(searchFromUrl); // 用於 manual 模式的輸入框狀態
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   
   // Sync searchKeyword with URL parameter changes
   useEffect(() => {
     setSearchKeyword(searchFromUrl);
+    setSearchInput(searchFromUrl);
   }, [searchFromUrl]);
+
+  // Get search settings
+  const { data: searchSettings } = trpc.searchSettings.get.useQuery();
+  const triggerMode = searchSettings?.triggerMode || 'debounce';
+  const debounceDelay = searchSettings?.debounceDelay || 500;
+
+  // Debounce search keyword (only for debounce mode)
+  useEffect(() => {
+    if (triggerMode === 'debounce') {
+      const timer = setTimeout(() => {
+        setSearchKeyword(searchInput);
+      }, debounceDelay);
+      return () => clearTimeout(timer);
+    } else if (triggerMode === 'realtime') {
+      setSearchKeyword(searchInput);
+    }
+    // For manual mode, do nothing (searchKeyword only updates on Enter or button click)
+  }, [searchInput, triggerMode, debounceDelay]);
+
+  // Handle manual search (Enter key or button click)
+  const handleManualSearch = () => {
+    setSearchKeyword(searchInput);
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      if (triggerMode === 'manual') {
+        handleManualSearch();
+      }
+      // For realtime and debounce modes, Enter key does nothing (already handled by onChange)
+    }
+  };
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'viewCount' | 'createdAt' | 'title' | 'rating' | 'duration'>('viewCount');
@@ -284,10 +319,20 @@ export default function Board() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜尋影片標題或描述..."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="pl-9"
             />
+            {triggerMode === 'manual' && (
+              <Button
+                onClick={handleManualSearch}
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* View Mode Selector */}

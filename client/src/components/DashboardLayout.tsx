@@ -58,6 +58,7 @@ const menuItems = [
   { icon: Bell, label: "通知中心", path: "/notifications", roles: ["admin", "staff", "viewer"] },
   { icon: TagIcon, label: "標籤管理", path: "/admin/tags", roles: ["admin"] },
   { icon: Folder, label: "分類管理", path: "/admin/categories", roles: ["admin"] },
+  { icon: Search, label: "搜尋設定", path: "/admin/search-settings", roles: ["admin"] },
   { icon: Settings, label: "系統管理", path: "/admin/settings", roles: ["admin"] },
   { icon: FileTextIcon, label: "操作日誌", path: "/admin/logs", roles: ["admin"] },
   { icon: Activity, label: "效能監控", path: "/admin/performance", roles: ["admin"] },

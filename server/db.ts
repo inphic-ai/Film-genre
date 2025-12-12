@@ -1,7 +1,7 @@
 import { eq, desc, asc, and, or, like, ilike, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion, videoCategories, VideoCategory } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion, videoCategories, VideoCategory, searchSettings, SearchSettings, InsertSearchSettings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -1611,4 +1611,58 @@ export async function deleteSuggestion(id: number) {
   if (!db) return;
 
   await db.delete(suggestions).where(eq(suggestions.id, id));
+}
+
+// ============================================
+// Search Settings Functions
+// ============================================
+
+/**
+ * Get search settings (single row table)
+ */
+export async function getSearchSettings(): Promise<SearchSettings | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const results = await db.select().from(searchSettings).limit(1);
+  
+  // If no settings exist, create default settings
+  if (results.length === 0) {
+    await db.insert(searchSettings).values({
+      triggerMode: 'debounce',
+      debounceDelay: 500,
+      searchEngine: 'hybrid',
+    });
+    
+    const newResults = await db.select().from(searchSettings).limit(1);
+    return newResults[0] || null;
+  }
+  
+  return results[0];
+}
+
+/**
+ * Update search settings
+ */
+export async function updateSearchSettings(
+  data: Partial<InsertSearchSettings>
+): Promise<SearchSettings | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Get existing settings
+  const existing = await getSearchSettings();
+  if (!existing) return null;
+
+  // Update settings
+  const updated = await db
+    .update(searchSettings)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(searchSettings.id, existing.id))
+    .returning();
+
+  return updated[0] || null;
 }

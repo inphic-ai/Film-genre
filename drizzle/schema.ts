@@ -431,3 +431,22 @@ export const importLogs = pgTable("import_logs", {
 
 export type ImportLog = typeof importLogs.$inferSelect;
 export type InsertImportLog = typeof importLogs.$inferInsert;
+
+/**
+ * Search Settings table - stores global search configuration
+ * Used for search trigger mode, debounce delay, and search engine selection
+ */
+export const triggerModeEnum = pgEnum("trigger_mode", ["realtime", "debounce", "manual"]);
+export const searchEngineEnum = pgEnum("search_engine", ["fulltext", "tags", "ai", "hybrid"]);
+
+export const searchSettings = pgTable("search_settings", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  triggerMode: triggerModeEnum("triggerMode").notNull().default("debounce"),
+  debounceDelay: integer("debounceDelay").notNull().default(500), // milliseconds
+  searchEngine: searchEngineEnum("searchEngine").notNull().default("hybrid"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type SearchSettings = typeof searchSettings.$inferSelect;
+export type InsertSearchSettings = typeof searchSettings.$inferInsert;
