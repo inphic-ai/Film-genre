@@ -1,0 +1,21 @@
+{
+  "query": "INSERT INTO videos (title, description, platform, \"videoUrl\", \"thumbnailUrl\", category, \"categoryId\", creator, \"shareStatus\", duration, \"uploadedBy\") \nVALUES (\n  'Test Video', \n  'Test Description', \n  'youtube', \n  'https://www.youtube.com/watch?v=test123', \n  'https://i.ytimg.com/vi/test123/hqdefault.jpg', \n  'product_intro', \n  1, \n  'Test Creator', \n  'private', \n  60, \n  1\n) RETURNING id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2zwSb7aZqxwGG5M.6a2ce670420f --database VZSKie7tbgMy9Wer2TYaY4 --execute INSERT INTO videos (title, description, platform, \"videoUrl\", \"thumbnailUrl\", category, \"categoryId\", creator, \"shareStatus\", duration, \"uploadedBy\") \nVALUES (\n  'Test Video', \n  'Test Description', \n  'youtube', \n  'https://www.youtube.com/watch?v=test123', \n  'https://i.ytimg.com/vi/test123/hqdefault.jpg', \n  'product_intro', \n  1, \n  'Test Creator', \n  'private', \n  60, \n  1\n) RETURNING id;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 60 near \"\"videoUrl\", \"thumbnailUrl\", category, \"categoryId\", creator, \"shareStatus\", duration, \"uploadedBy\") ",
+    "VALUES (",
+    "  'Test Video', ",
+    "  'Test Description', ",
+    "  'youtube', ",
+    "  'https://www.youtube.com/watch?v=test123', ",
+    "  'https://i.ytimg.com/vi/test123/hqdefault.jpg', ",
+    "  'product_intro', ",
+    "  1, ",
+    "  'Test Creator', ",
+    "  'private', ",
+    "  60, ",
+    "  1",
+    ") RETURNING id\""
+  ]
+}

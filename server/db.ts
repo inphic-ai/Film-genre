@@ -1,7 +1,7 @@
 import { eq, desc, asc, and, or, like, ilike, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion } from "../drizzle/schema";
+import { InsertUser, users, categories, videos, tags, videoTags, timelineNotes, notifications, suggestions, Category, Video, InsertVideo, InsertCategory, Tag, InsertTag, VideoTag, InsertVideoTag, TimelineNote, InsertTimelineNote, Notification, InsertNotification, Suggestion, InsertSuggestion, videoCategories, VideoCategory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -293,6 +293,16 @@ export async function getVideosByCategory(category: string): Promise<Video[]> {
 /**
  * Get videos by categoryId (NEW)
  */
+/**
+ * Get video category by ID
+ */
+export async function getVideoCategoryById(id: number): Promise<VideoCategory | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(videoCategories).where(eq(videoCategories.id, id)).limit(1);
+  return result[0];
+}
+
 export async function getVideosByCategoryId(categoryId: number): Promise<Video[]> {
   const db = await getDb();
   if (!db) return [];

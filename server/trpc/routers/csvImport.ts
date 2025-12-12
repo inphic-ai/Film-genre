@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import * as db from "../../db";
+import Papa from "papaparse";
 
 /**
  * CSV 批次匯入 Router
@@ -49,16 +50,28 @@ export const csvImportRouter = router({
 
       const { extractYouTubeVideoId, fetchYouTubeMetadata, fetchPlaylistVideos } = await import('../../utils/youtube');
 
-      // 1. 解析 CSV 內容
-      const lines = input.csvContent.split('\n').filter(line => line.trim());
+      // 1. 解析 CSV 內容（使用 papaparse 正確處理含逗號的欄位）
+      const parseResult = Papa.parse<string[]>(input.csvContent, {
+        skipEmptyLines: true,
+      });
+
       const videoEntries: Array<{ title: string; url: string }> = [];
 
-      for (const line of lines) {
-        const [title, url] = line.split(',').map(s => s.trim());
-        if (title && url) {
-          videoEntries.push({ title, url });
+      console.log('[CSV Import] 解析結果：', parseResult.data.length, '行');
+
+      // 跳過標題列（第一行）
+      for (let i = 1; i < parseResult.data.length; i++) {
+        const row = parseResult.data[i];
+        if (row.length >= 2) {
+          const title = row[0]?.trim();
+          const url = row[1]?.trim();
+          if (title && url) {
+            videoEntries.push({ title, url });
+          }
         }
       }
+
+      console.log('[CSV Import] 解析出', videoEntries.length, '個有效影片');
 
       if (videoEntries.length === 0) {
         throw new TRPCError({
@@ -66,6 +79,19 @@ export const csvImportRouter = router({
           message: 'CSV 檔案格式錯誤或無有效資料',
         });
       }
+
+      // 1.5 查詢分類資訊以取得 type (slug)
+      const category = await db.getVideoCategoryById(input.categoryId);
+      if (!category) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '無效的分類 ID',
+        });
+      }
+      
+      // 將 type 映射到舊的 category enum 值
+      const categoryEnumValue = category.type as 'product_intro' | 'maintenance' | 'case_study' | 'faq' | 'other';
+      console.log('[CSV Import] 分類資訊：', category.name, '(type:', category.type, ')');
 
       // 2. 批次匯入影片
       const results = {
@@ -82,6 +108,7 @@ export const csvImportRouter = router({
       };
 
       for (const entry of videoEntries) {
+        console.log('[CSV Import] 處理影片：', entry.title);
         try {
           // 2.1 解析 YouTube Video ID
           const videoId = extractYouTubeVideoId(entry.url);
@@ -142,10 +169,10 @@ export const csvImportRouter = router({
           }
           
           const videoDetails = {
-            title: snippet.title || entry.title,
-            description: snippet.description || '',
+            title: (snippet.title || entry.title).substring(0, 255), // 截斷標題至 255 字元
+            description: (snippet.description || '').substring(0, 5000), // 截斷描述至 5000 字元
             thumbnailUrl: snippet.thumbnails?.maxresdefault?.url || snippet.thumbnails?.high?.url || '',
-            creator: snippet.channelTitle || '',
+            creator: (snippet.channelTitle || '').substring(0, 255), // 截斷創作者名稱至 255 字元
             duration,
           };
 
@@ -155,14 +182,14 @@ export const csvImportRouter = router({
             description: videoDetails.description,
             videoUrl: entry.url,
             platform: 'youtube',
-            category: 'other', // ⚠️ DEPRECATED: 使用預設值 'other'，實際分類由 categoryId 決定
+            category: categoryEnumValue, // 根據 categoryId 動態設定
             categoryId: input.categoryId,
             thumbnailUrl: videoDetails.thumbnailUrl,
             creator: videoDetails.creator,
             duration: videoDetails.duration,
             shareStatus: input.shareStatus,
             uploadedBy: ctx.user.id,
-            productId: null,
+            // productId 省略（而不是傳 null）
           });
 
           results.imported++;
@@ -171,17 +198,34 @@ export const csvImportRouter = router({
             title: videoDetails.title || entry.title,
             status: 'imported',
           });
+          console.log('[CSV Import] 成功匯入：', videoDetails.title);
         } catch (error) {
+          console.error('[CSV Import] 匯入失敗：', entry.title);
+          console.error('[CSV Import] 錯誤詳情：', error);
+          console.error('[CSV Import] 錯誤堆疊：', error instanceof Error ? error.stack : 'N/A');
           results.failed++;
+          
+          // 提取更詳細的錯誤訊息
+          let errorMessage = '未知錯誤';
+          if (error instanceof Error) {
+            errorMessage = error.message;
+            // 如果是資料庫錯誤，嘗試提取具體原因
+            if (error.message.includes('Failed query')) {
+              errorMessage = '資料庫插入失敗：' + error.message.substring(0, 200);
+            }
+          }
+          
+          console.error('[CSV Import] 錯誤訊息：', errorMessage);
           results.videos.push({
             videoId: '',
             title: entry.title,
             status: 'failed',
-            reason: error instanceof Error ? error.message : '未知錯誤',
+            reason: errorMessage,
           });
         }
       }
 
+      console.log('[CSV Import] 匯入完成：', results);
       return results;
     }),
 });

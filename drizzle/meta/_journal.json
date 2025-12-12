@@ -113,6 +113,13 @@
       "when": 1765462436581,
       "tag": "0015_long_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1765515407871,
+      "tag": "0016_wakeful_jackpot",
+      "breakpoints": true
     }
   ]
 }

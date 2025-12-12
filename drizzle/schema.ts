@@ -411,3 +411,23 @@ export const userActivityLogs = pgTable("user_activity_logs", {
 
 export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type InsertUserActivityLog = typeof userActivityLogs.$inferInsert;
+
+/**
+ * Import Logs table - tracks all CSV batch import operations
+ * Used for audit trail and troubleshooting (Phase 71)
+ */
+export const importLogs = pgTable("import_logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  importedBy: varchar("importedBy", { length: 255 }).notNull(), // API Key name or User ID
+  importedAt: timestamp("importedAt").notNull().defaultNow(),
+  batchSize: integer("batchSize").notNull(), // Total rows in CSV
+  successCount: integer("successCount").notNull().default(0),
+  failedCount: integer("failedCount").notNull().default(0),
+  skippedCount: integer("skippedCount").notNull().default(0), // Duplicate videos
+  errorDetails: text("errorDetails"), // JSON string with error details
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type ImportLog = typeof importLogs.$inferSelect;
+export type InsertImportLog = typeof importLogs.$inferInsert;

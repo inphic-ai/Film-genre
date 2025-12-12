@@ -587,10 +587,20 @@ export default function Manage() {
                 </Label>
                 <Input
                   id="videoUrl"
-                  type="url"
+                  type="text"
                   value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://..."
+                  onChange={(e) => {
+                    const input = e.target.value.trim();
+                    // 檢測是否為 YouTube Video ID（11 個字元，僅英數字、底線、連字號）
+                    const videoIdPattern = /^[A-Za-z0-9_-]{11}$/;
+                    if (videoIdPattern.test(input)) {
+                      // 自動轉換為完整 URL
+                      setVideoUrl(`https://www.youtube.com/watch?v=${input}`);
+                    } else {
+                      setVideoUrl(input);
+                    }
+                  }}
+                  placeholder="YouTube URL 或 Video ID（例：dQw4w9WgXcQ）"
                   required
                 />
                 {autoFetchedThumbnail && (

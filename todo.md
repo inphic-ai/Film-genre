@@ -1855,5 +1855,24 @@
 - [x] 修正重複渲染邏輯
 - [x] 測試本地開發環境
 - [x] 建立 checkpoint
+- [x] 推送到 GitHub
+- [x] 驗證 Railway Production 部署
+
+## Phase 71：實作 Admin API Key 機制支援批次影片匯入
+- [x] 提出資料庫變更申請（DB_CHANGE_REQUEST_PHASE71.md）
+- [x] 等待審核通過
+- [x] 新增 import_logs 資料表到 drizzle/schema.ts
+- [x] 執行 pnpm db:push 推送到 Railway PostgreSQL
+- [x] 驗證資料表正確建立（Migration 0016_wakeful_jackpot.sql）
+- [ ] 設計 Admin API Key 認證中介層
+- [ ] 新增 ADMIN_API_KEY 環境變數
+- [ ] 建立 POST /api/admin/csv-import API 端點
+- [ ] 實作批次大小限制（50 筆/次）
+- [ ] 實作匯入進度回報機制
+- [ ] 實作操作日誌記錄（匯入者、時間、批次大小、成功/失敗數量）
+- [ ] 建立上傳腳本（讀取 CSV → 呼叫 API → 等待結果）
+- [ ] 測試本地開發環境
+- [ ] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
+- [ ] 使用新 API 完成 1,334 個影片批次匯入
