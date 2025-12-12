@@ -1854,6 +1854,6 @@
 - [x] 診斷右側視圖切換按鈕重複原因（Grid View icons）
 - [x] 修正重複渲染邏輯
 - [x] 測試本地開發環境
-- [ ] 建立 checkpoint
+- [x] 建立 checkpoint
 - [ ] 推送到 GitHub
 - [ ] 驗證 Railway Production 部署
